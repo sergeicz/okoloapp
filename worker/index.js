@@ -132,6 +132,44 @@ async function appendSheetRow(sheetId, sheetName, values, accessToken) {
   return response.json();
 }
 
+async function deleteSheetRow(sheetId, sheetName, rowIndex, accessToken) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      requests: [{
+        deleteDimension: {
+          range: {
+            sheetId: 0, // Предполагаем что users это первый лист
+            dimension: 'ROWS',
+            startIndex: rowIndex,
+            endIndex: rowIndex + 1
+          }
+        }
+      }]
+    }),
+  });
+  return response.json();
+}
+
+async function checkUserActive(bot, userId) {
+  try {
+    const member = await bot.api.getChatMember(userId, userId);
+    return member.status !== 'kicked';
+  } catch (error) {
+    // Если получили ошибку - пользователь заблокировал бота или удалил аккаунт
+    if (error.error_code === 403 || error.error_code === 400) {
+      return false;
+    }
+    // Другие ошибки - считаем что активен
+    return true;
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // ADMIN CHECK HELPER
 // ═══════════════════════════════════════════════════════════════
@@ -557,41 +595,141 @@ async function executeBroadcast(ctx, env, state) {
   
   let successCount = 0;
   let failCount = 0;
+  let inactiveCount = 0;
+  const errors = [];
+  const inactiveUsers = [];
   
-  await ctx.reply('⏳ Начинаю рассылку...');
+  await ctx.reply('⏳ Проверяю активных подписчиков...');
   
-  for (const user of users) {
-    if (user.telegram_id && String(user.telegram_id).trim() !== '') {
+  // Фильтруем только пользователей с telegram_id
+  const validUsers = users.filter(u => u.telegram_id && String(u.telegram_id).trim() !== '');
+  
+  await ctx.reply(`📊 Найдено пользователей: ${validUsers.length}\n⏳ Начинаю рассылку...`);
+  
+  for (const user of validUsers) {
+    try {
+      if (hasImage) {
+        await ctx.api.sendPhoto(user.telegram_id, photoSource, {
+          caption: messageText,
+          parse_mode: 'Markdown',
+          reply_markup: keyboard
+        });
+      } else {
+        await ctx.api.sendMessage(user.telegram_id, messageText, {
+          parse_mode: 'Markdown',
+          reply_markup: keyboard
+        });
+      }
+      successCount++;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch (error) {
+      failCount++;
+      
+      // Анализируем ошибку
+      const errorCode = error.error_code;
+      const errorDescription = error.description || error.message;
+      
+      console.error(`Failed to send to ${user.telegram_id}:`, errorCode, errorDescription);
+      
+      // Классифицируем ошибки
+      if (errorCode === 403) {
+        // Бот заблокирован пользователем
+        inactiveUsers.push({
+          telegram_id: user.telegram_id,
+          username: user.username,
+          reason: 'Заблокировал бота'
+        });
+        inactiveCount++;
+      } else if (errorCode === 400 && errorDescription?.includes('chat not found')) {
+        // Пользователь удалил аккаунт
+        inactiveUsers.push({
+          telegram_id: user.telegram_id,
+          username: user.username,
+          reason: 'Удалил аккаунт'
+        });
+        inactiveCount++;
+      } else if (errorCode === 400 && errorDescription?.includes('user is deactivated')) {
+        // Аккаунт деактивирован
+        inactiveUsers.push({
+          telegram_id: user.telegram_id,
+          username: user.username,
+          reason: 'Деактивирован'
+        });
+        inactiveCount++;
+      } else {
+        // Другие ошибки
+        errors.push({
+          telegram_id: user.telegram_id,
+          username: user.username,
+          error: `${errorCode}: ${errorDescription?.substring(0, 50) || 'Unknown'}`
+        });
+      }
+    }
+  }
+  
+  // Удаляем неактивных пользователей из таблицы
+  if (inactiveUsers.length > 0) {
+    await ctx.reply(`🧹 Очищаю ${inactiveUsers.length} неактивных пользователей...`);
+    
+    // Получаем свежие данные
+    const allUsers = await getSheetData(env.SHEET_ID, 'users', accessToken);
+    
+    // Находим строки для удаления (в обратном порядке чтобы индексы не сбивались)
+    const rowsToDelete = [];
+    for (const inactiveUser of inactiveUsers) {
+      const index = allUsers.findIndex(u => String(u.telegram_id) === String(inactiveUser.telegram_id));
+      if (index !== -1) {
+        rowsToDelete.push(index + 2); // +2 потому что: +1 для заголовка, +1 для 1-based индекса
+      }
+    }
+    
+    // Удаляем строки (в обратном порядке)
+    rowsToDelete.sort((a, b) => b - a);
+    for (const rowIndex of rowsToDelete) {
       try {
-        if (hasImage) {
-          await ctx.api.sendPhoto(user.telegram_id, photoSource, {
-            caption: messageText,
-            parse_mode: 'Markdown',
-            reply_markup: keyboard
-          });
-        } else {
-          await ctx.api.sendMessage(user.telegram_id, messageText, {
-            parse_mode: 'Markdown',
-            reply_markup: keyboard
-          });
-        }
-        successCount++;
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await deleteSheetRow(env.SHEET_ID, 'users', rowIndex, accessToken);
+        await new Promise(resolve => setTimeout(resolve, 50));
       } catch (error) {
-        console.error(`Failed to send to ${user.telegram_id}:`, error);
-        failCount++;
+        console.error(`Failed to delete row ${rowIndex}:`, error);
       }
     }
   }
   
   await deleteBroadcastState(env, ctx.chat.id);
   
+  // Формируем детальный отчет
+  let reportText = `✅ *Рассылка завершена!*\n\n`;
+  reportText += `📊 *Статистика:*\n`;
+  reportText += `✉️ Отправлено: ${successCount}\n`;
+  reportText += `❌ Ошибок: ${failCount}\n`;
+  
+  if (inactiveCount > 0) {
+    reportText += `🧹 Удалено неактивных: ${inactiveCount}\n\n`;
+    reportText += `*Причины:*\n`;
+    
+    const reasonCounts = {};
+    inactiveUsers.forEach(u => {
+      reasonCounts[u.reason] = (reasonCounts[u.reason] || 0) + 1;
+    });
+    
+    for (const [reason, count] of Object.entries(reasonCounts)) {
+      reportText += `• ${reason}: ${count}\n`;
+    }
+  }
+  
+  if (errors.length > 0) {
+    reportText += `\n⚠️ *Другие ошибки (${errors.length}):*\n`;
+    errors.slice(0, 5).forEach(e => {
+      reportText += `• @${e.username || e.telegram_id}: ${e.error}\n`;
+    });
+    if (errors.length > 5) {
+      reportText += `• ... и еще ${errors.length - 5}\n`;
+    }
+  }
+  
   const resultKeyboard = new InlineKeyboard().text('« Вернуться в админку', 'admin_panel');
   
-  await ctx.reply(
-    `✅ *Рассылка завершена!*\n\n✉️ Отправлено: ${successCount}\n❌ Ошибок: ${failCount}`,
-    { parse_mode: 'Markdown', reply_markup: resultKeyboard }
-  );
+  await ctx.reply(reportText, { parse_mode: 'Markdown', reply_markup: resultKeyboard });
 }
 
 // ═══════════════════════════════════════════════════════════════
