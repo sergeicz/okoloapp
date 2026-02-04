@@ -727,7 +727,7 @@ function setupBot(env) {
           return {
             ...u,
             totalClicks,
-            lastActiveDate: new Date(u.last_active || u.date_registered || '2020-01-01')
+            lastActiveDate: new Date(u.last_active || u.date_added || u.date_registered || '2020-01-01')
           };
         });
       
@@ -756,7 +756,7 @@ function setupBot(env) {
         const position = startIndex + index + 1;
         const username = user.username.startsWith('@') ? user.username : `@${user.username}`;
         const firstName = user.first_name || 'Н/Д';
-        const registered = user.date_registered || 'Н/Д';
+        const registered = user.date_added || user.date_registered || 'Н/Д';
         const lastActive = user.last_active || 'Н/Д';
         const clicks = user.totalClicks || 0;
         const botStarted = user.bot_started === 'TRUE' ? '✅' : '❌';
@@ -833,7 +833,7 @@ function setupBot(env) {
           return {
             ...u,
             totalClicks,
-            registrationDate: new Date(u.date_registered || '2020-01-01')
+            registrationDate: new Date(u.date_added || u.date_registered || '2020-01-01')
           };
         });
       
@@ -862,7 +862,7 @@ function setupBot(env) {
         const position = startIndex + index + 1;
         const username = user.username.startsWith('@') ? user.username : `@${user.username}`;
         const firstName = user.first_name || 'Н/Д';
-        const registered = user.date_registered || 'Н/Д';
+        const registered = user.date_added || user.date_registered || 'Н/Д';
         const lastActive = user.last_active || 'Н/Д';
         const clicks = user.totalClicks || 0;
         const botStarted = user.bot_started === 'TRUE' ? '✅' : '❌';
@@ -937,7 +937,7 @@ function setupBot(env) {
       const now = new Date();
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const activeLastWeek = users.filter(u => {
-        const lastActive = new Date(u.last_active || '2020-01-01');
+        const lastActive = new Date(u.last_active || u.date_added || u.date_registered || '2020-01-01');
         return lastActive >= sevenDaysAgo;
       }).length;
       
