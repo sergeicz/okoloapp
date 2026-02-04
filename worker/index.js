@@ -220,6 +220,33 @@ async function checkAdmin(env, user) {
   return isAdmin;
 }
 
+// Проверка, является ли пользователь представителем партнера
+async function checkRepresentative(env, user) {
+  try {
+    if (!user.username) {
+      return null; // Нет username - не может быть представителем
+    }
+    
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(creds);
+    const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+    
+    const username = user.username.toLowerCase();
+    
+    // Ищем партнера, где этот пользователь является представителем
+    const partnerData = partners.find(p => 
+      p.predstavitel && 
+      p.predstavitel.toLowerCase().replace('@', '') === username
+    );
+    
+    console.log(`Representative check for ${user.username}:`, partnerData ? partnerData.title : 'not found');
+    return partnerData || null;
+  } catch (error) {
+    console.error('Error checking representative:', error);
+    return null;
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // BROADCAST STATE HELPERS
 // ═══════════════════════════════════════════════════════════════
@@ -322,8 +349,9 @@ function setupBot(env) {
       }
     }
     
-    // Проверяем админа
+    // Проверяем админа и представителя
     const isAdmin = await checkAdmin(env, user);
+    const partnerData = await checkRepresentative(env, user);
     
     // Клавиатура
     const keyboard = new InlineKeyboard()
@@ -331,6 +359,10 @@ function setupBot(env) {
     
     if (isAdmin) {
       keyboard.row().text('⚙️ Админ-панель', 'admin_panel');
+    }
+    
+    if (partnerData) {
+      keyboard.row().text('📊 Личный кабинет представителя', 'representative_cabinet');
     }
     
     await ctx.reply(
@@ -671,6 +703,7 @@ function setupBot(env) {
   bot.callbackQuery('back_to_start', async (ctx) => {
     const user = ctx.from;
     const isAdmin = await checkAdmin(env, user);
+    const partnerData = await checkRepresentative(env, user);
     
     const keyboard = new InlineKeyboard()
       .webApp('🚀 Открыть Mini App', env.WEBAPP_URL);
@@ -679,11 +712,222 @@ function setupBot(env) {
       keyboard.row().text('⚙️ Админ-панель', 'admin_panel');
     }
     
+    if (partnerData) {
+      keyboard.row().text('📊 Личный кабинет представителя', 'representative_cabinet');
+    }
+    
     await ctx.editMessageText(
       `👋 *Привет, ${user.first_name}!*\n\nДобро пожаловать в наш Mini App!\n\n🔗 Нажми кнопку ниже чтобы открыть приложение с партнерскими ссылками.`,
       { parse_mode: 'Markdown', reply_markup: keyboard }
     );
     await ctx.answerCallbackQuery();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // ЛИЧНЫЙ КАБИНЕТ ПРЕДСТАВИТЕЛЯ
+  // ═══════════════════════════════════════════════════════════
+
+  // Главное меню личного кабинета
+  bot.callbackQuery('representative_cabinet', async (ctx) => {
+    const partnerData = await checkRepresentative(env, ctx.from);
+    
+    if (!partnerData) {
+      await ctx.answerCallbackQuery('❌ Вы не являетесь представителем партнера');
+      return;
+    }
+    
+    const keyboard = new InlineKeyboard()
+      .text('📅 Отчет за неделю', 'rep_weekly_report').row()
+      .text('📊 Отчет за месяц', 'rep_monthly_report').row()
+      .text('« Назад', 'back_to_start');
+    
+    await ctx.editMessageText(
+      `📊 *Личный кабинет представителя*\n\n` +
+      `🏷️ *Ваш партнер:* ${partnerData.title}\n` +
+      `📁 *Категория:* ${partnerData.category || 'Не указана'}\n` +
+      `📅 *Дата размещения:* ${partnerData.date_release || 'Не указана'}\n\n` +
+      `Выберите тип отчета:`,
+      {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      }
+    );
+    await ctx.answerCallbackQuery();
+  });
+
+  // Еженедельный отчет по запросу
+  bot.callbackQuery('rep_weekly_report', async (ctx) => {
+    const partnerData = await checkRepresentative(env, ctx.from);
+    
+    if (!partnerData) {
+      await ctx.answerCallbackQuery('❌ Вы не являетесь представителем партнера');
+      return;
+    }
+    
+    await ctx.answerCallbackQuery('📊 Формирую отчет...');
+    
+    try {
+      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const accessToken = await getAccessToken(creds);
+      const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
+      
+      // Собираем статистику ТОЛЬКО по этому партнеру
+      const partnerClicks = clicks.filter(c => c.url === partnerData.url);
+      
+      if (partnerClicks.length === 0) {
+        const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
+        await ctx.editMessageText(
+          `📊 *Еженедельный отчет*\n\n` +
+          `🏷️ *Партнер:* ${partnerData.title}\n\n` +
+          `📭 По вашей ссылке пока нет переходов.`,
+          { parse_mode: 'Markdown', reply_markup: keyboard }
+        );
+        return;
+      }
+      
+      const now = new Date();
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      
+      // Общая статистика
+      const totalClicks = partnerClicks.reduce((sum, c) => sum + parseInt(c.click || 1), 0);
+      const uniqueUsers = new Set(partnerClicks.map(c => c.telegram_id)).size;
+      const conversionRate = totalClicks > 0 ? ((uniqueUsers / totalClicks) * 100).toFixed(2) : '0.00';
+      
+      // За неделю
+      const weekClicks = partnerClicks.filter(c => {
+        const clickDate = new Date(c.last_click_date || c.first_click_date);
+        return clickDate >= oneWeekAgo;
+      });
+      const weekTotalClicks = weekClicks.reduce((sum, c) => sum + parseInt(c.click || 1), 0);
+      const weekUniqueUsers = new Set(weekClicks.map(c => c.telegram_id)).size;
+      
+      const report = `📊 *Еженедельный отчет*\n\n` +
+                    `🏷️ *Ваш партнер:* ${partnerData.title}\n` +
+                    `📁 *Категория:* ${partnerData.category || 'Не указана'}\n` +
+                    `📅 *Дата размещения:* ${partnerData.date_release || 'Не указана'}\n` +
+                    `🔗 *Ссылка:* ${partnerData.url}\n\n` +
+                    `*📈 Общая статистика:*\n` +
+                    `👥 Уникальных пользователей: ${uniqueUsers}\n` +
+                    `🖱️ Всего кликов: ${totalClicks}\n` +
+                    `📊 Конверсия: ${conversionRate}%\n\n` +
+                    `*🗓️ За последнюю неделю:*\n` +
+                    `👥 Новых пользователей: ${weekUniqueUsers}\n` +
+                    `🖱️ Кликов: ${weekTotalClicks}\n\n` +
+                    `_Отчет сформирован: ${now.toLocaleDateString('ru-RU')} ${now.toLocaleTimeString('ru-RU')}_`;
+      
+      const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
+      
+      await ctx.editMessageText(report, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+        disable_web_page_preview: true
+      });
+      
+    } catch (error) {
+      console.error('[REP_WEEKLY] Error:', error);
+      const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
+      await ctx.editMessageText(
+        '❌ Ошибка при формировании отчета. Попробуйте позже.',
+        { reply_markup: keyboard }
+      );
+    }
+  });
+
+  // Ежемесячный отчет по запросу
+  bot.callbackQuery('rep_monthly_report', async (ctx) => {
+    const partnerData = await checkRepresentative(env, ctx.from);
+    
+    if (!partnerData) {
+      await ctx.answerCallbackQuery('❌ Вы не являетесь представителем партнера');
+      return;
+    }
+    
+    await ctx.answerCallbackQuery('📊 Формирую отчет...');
+    
+    try {
+      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const accessToken = await getAccessToken(creds);
+      const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
+      
+      // Собираем статистику ТОЛЬКО по этому партнеру
+      const partnerClicks = clicks.filter(c => c.url === partnerData.url);
+      
+      if (partnerClicks.length === 0) {
+        const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
+        await ctx.editMessageText(
+          `📊 *Ежемесячный отчет*\n\n` +
+          `🏷️ *Партнер:* ${partnerData.title}\n\n` +
+          `📭 По вашей ссылке пока нет переходов.`,
+          { parse_mode: 'Markdown', reply_markup: keyboard }
+        );
+        return;
+      }
+      
+      const now = new Date();
+      const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      const previousMonthName = oneMonthAgo.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+      
+      // Общая статистика
+      const totalClicks = partnerClicks.reduce((sum, c) => sum + parseInt(c.click || 1), 0);
+      const uniqueUsers = new Set(partnerClicks.map(c => c.telegram_id)).size;
+      const conversionRate = totalClicks > 0 ? ((uniqueUsers / totalClicks) * 100).toFixed(2) : '0.00';
+      
+      // За месяц
+      const monthClicks = partnerClicks.filter(c => {
+        const clickDate = new Date(c.last_click_date || c.first_click_date);
+        return clickDate >= oneMonthAgo;
+      });
+      const monthTotalClicks = monthClicks.reduce((sum, c) => sum + parseInt(c.click || 1), 0);
+      const monthUniqueUsers = new Set(monthClicks.map(c => c.telegram_id)).size;
+      const monthConversion = monthTotalClicks > 0 ? ((monthUniqueUsers / monthTotalClicks) * 100).toFixed(2) : '0.00';
+      
+      // ТОП-5 активных дней
+      const dailyStats = {};
+      monthClicks.forEach(c => {
+        const date = c.last_click_date || c.first_click_date;
+        if (date) {
+          dailyStats[date] = (dailyStats[date] || 0) + parseInt(c.click || 1);
+        }
+      });
+      const topDays = Object.entries(dailyStats)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([date, clicks]) => `  • ${date}: ${clicks} кликов`)
+        .join('\n');
+      
+      const report = `📊 *Ежемесячный отчет*\n` +
+                    `📅 *Период:* ${previousMonthName}\n\n` +
+                    `🏷️ *Ваш партнер:* ${partnerData.title}\n` +
+                    `📁 *Категория:* ${partnerData.category || 'Не указана'}\n` +
+                    `📅 *Дата размещения:* ${partnerData.date_release || 'Не указана'}\n` +
+                    `🔗 *Ссылка:* ${partnerData.url}\n\n` +
+                    `*📈 Общая статистика (за все время):*\n` +
+                    `👥 Уникальных пользователей: ${uniqueUsers}\n` +
+                    `🖱️ Всего кликов: ${totalClicks}\n` +
+                    `📊 Конверсия: ${conversionRate}%\n\n` +
+                    `*🗓️ За последний месяц:*\n` +
+                    `👥 Новых пользователей: ${monthUniqueUsers}\n` +
+                    `🖱️ Кликов: ${monthTotalClicks}\n` +
+                    `📊 Конверсия за месяц: ${monthConversion}%\n\n` +
+                    (topDays ? `*📅 Самые активные дни месяца:*\n${topDays}\n\n` : '') +
+                    `_Отчет сформирован: ${now.toLocaleDateString('ru-RU')} ${now.toLocaleTimeString('ru-RU')}_`;
+      
+      const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
+      
+      await ctx.editMessageText(report, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+        disable_web_page_preview: true
+      });
+      
+    } catch (error) {
+      console.error('[REP_MONTHLY] Error:', error);
+      const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
+      await ctx.editMessageText(
+        '❌ Ошибка при формировании отчета. Попробуйте позже.',
+        { reply_markup: keyboard }
+      );
+    }
   });
 
   // ═══════════════════════════════════════════════════════════
