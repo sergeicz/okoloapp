@@ -313,35 +313,6 @@ h2 {
   transform: translateY(-2px) scale(0.98);
 }
 
-.promo-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 1.2rem;
-  background: rgba(255, 215, 0, 0.2);
-  border: 2px solid rgba(255, 215, 0, 0.5);
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: pulse-badge 2s ease-in-out infinite;
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-  backdrop-filter: blur(10px);
-}
-
-@keyframes pulse-badge {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-  }
-  50% {
-    transform: scale(1.1);
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.9);
-  }
-}
-
 .gradient-btn {
   background: var(--primary);
   border: none;
@@ -769,14 +740,6 @@ h2 {
     height: 28px;
   }
 
-  .promo-badge {
-    width: 28px;
-    height: 28px;
-    font-size: 1.1rem;
-    top: 6px;
-    right: 6px;
-  }
-
   #cookieConsent {
     padding: 12px;
   }
@@ -864,14 +827,6 @@ h2 {
     height: 26px;
   }
 
-  .promo-badge {
-    width: 26px;
-    height: 26px;
-    font-size: 1rem;
-    top: 5px;
-    right: 5px;
-  }
-
   #cookieConsent {
     padding: 10px;
   }
@@ -945,14 +900,6 @@ h2 {
     height: 22px;
   }
 
-  .promo-badge {
-    width: 24px;
-    height: 24px;
-    font-size: 0.95rem;
-    top: 4px;
-    right: 4px;
-  }
-
   .cookie-box {
     padding: 18px 14px;
     max-width: calc(100vw - 20px);
@@ -1019,14 +966,6 @@ h2 {
   .modern-btn .btn-logo {
     width: 18px;
     height: 18px;
-  }
-
-  .promo-badge {
-    width: 22px;
-    height: 22px;
-    font-size: 0.85rem;
-    top: 3px;
-    right: 3px;
   }
 
   .cookie-box {
@@ -1132,13 +1071,5 @@ h2 {
   .modern-btn .btn-logo {
     width: 36px;
     height: 36px;
-  }
-
-  .promo-badge {
-    width: 34px;
-    height: 34px;
-    font-size: 1.3rem;
-    top: 10px;
-    right: 10px;
   }
 }
