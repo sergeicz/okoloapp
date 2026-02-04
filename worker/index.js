@@ -1005,6 +1005,8 @@ async function executeBroadcast(ctx, env, state) {
   // Начальная конверсия = 0% (пока нет кликов)
   const conversionRate = '0.00%';
   
+  // Сохраняем статистику в таблицу broadcasts
+  let saveError = null;
   try {
     await appendSheetRow(
       env.SHEET_ID,
@@ -1028,9 +1030,11 @@ async function executeBroadcast(ctx, env, state) {
       ],
       accessToken
     );
-    console.log(`[BROADCAST] ✅ Statistics saved: ${state.broadcast_id} - ${state.broadcast_name} (sent: ${successCount}, read: ${readCount})`);
+    console.log(`[BROADCAST] ✅ Statistics saved to broadcasts sheet: ${state.broadcast_id} - ${state.broadcast_name}`);
   } catch (error) {
-    console.error(`[BROADCAST] ❌ Failed to save statistics:`, error);
+    saveError = error.message || String(error);
+    console.error(`[BROADCAST] ❌ Failed to save statistics to broadcasts sheet:`, error);
+    console.error(`[BROADCAST] ❌ Error details:`, JSON.stringify(error, null, 2));
   }
   
   await deleteBroadcastState(env, ctx.chat.id);
@@ -1045,6 +1049,12 @@ async function executeBroadcast(ctx, env, state) {
   reportText += `👆 Кликов: 0 (отслеживается)\n`;
   reportText += `📈 Конверсия: 0.00% (обновляется)\n`;
   reportText += `❌ Ошибок: ${failCount}\n`;
+  
+  if (saveError) {
+    reportText += `\n⚠️ *Внимание:* Не удалось сохранить статистику в таблицу!\n`;
+    reportText += `Ошибка: ${saveError.substring(0, 100)}\n`;
+    reportText += `Проверьте что лист "broadcasts" существует.\n`;
+  }
   
   if (inactiveCount > 0) {
     reportText += `📦 Перенесено в архив: ${inactiveCount}\n\n`;
