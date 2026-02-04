@@ -126,8 +126,7 @@ body {
   animation: fadeInUp 0.8s ease-out;
   overflow-x: hidden;
   word-wrap: break-word;
-  margin-bottom: 60px;
-  padding-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 /* =====================================================
@@ -1255,23 +1254,27 @@ h2 {
 }
 
 /* =====================================================
-   FOOTER - GLASS CAPSULE STYLE
+   FOOTER - GLASS CAPSULE STYLE WITH DELAYED ANIMATION
    ===================================================== */
 
 .app-footer {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  margin-top: 40px;
+  margin-bottom: 30px;
   padding: 0;
   text-align: center;
-  z-index: 1000;
-  animation: slideUp 0.6s ease-out;
+  opacity: 0;
+  transform: translateY(-50px);
+  transition: opacity 0.6s ease-out, transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.app-footer.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .footer-link {
   display: inline-block;
-  padding: 12px 32px;
+  padding: 14px 36px;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
@@ -1282,7 +1285,7 @@ h2 {
               inset 0 1px 1px rgba(255, 255, 255, 0.4);
   color: #000000;
   text-decoration: none;
-  font-size: 6px;
+  font-size: 10px;
   font-weight: 400;
   letter-spacing: 0.5px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1309,33 +1312,36 @@ h2 {
 /* Адаптивность футера */
 @media (max-width: 768px) {
   .app-footer {
-    bottom: 15px;
+    margin-top: 35px;
+    margin-bottom: 25px;
   }
   
   .footer-link {
-    padding: 10px 28px;
-    font-size: 6px;
+    padding: 12px 30px;
+    font-size: 10px;
   }
 }
 
 @media (max-width: 480px) {
   .app-footer {
-    bottom: 12px;
+    margin-top: 30px;
+    margin-bottom: 20px;
   }
   
   .footer-link {
-    padding: 9px 24px;
-    font-size: 6px;
+    padding: 11px 26px;
+    font-size: 9px;
   }
 }
 
 @media (max-width: 360px) {
   .app-footer {
-    bottom: 10px;
+    margin-top: 25px;
+    margin-bottom: 18px;
   }
   
   .footer-link {
-    padding: 8px 20px;
-    font-size: 6px;
+    padding: 10px 22px;
+    font-size: 8px;
   }
 }

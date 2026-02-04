@@ -525,6 +525,17 @@ document.getElementById('pushForm').onsubmit = async (e) => {
 // Запуск приложения при загрузке
 window.addEventListener('DOMContentLoaded', initApp);
 
+// Показ футера через 5 секунд после загрузки
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const footer = document.querySelector('.app-footer');
+    if (footer) {
+      footer.classList.add('show');
+      console.log('✨ Footer shown after 5 seconds');
+    }
+  }, 5000);
+});
+
 // Обработка ошибок приложения
 window.addEventListener('error', (event) => {
   console.error('Global error:', event.error);
