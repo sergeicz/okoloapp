@@ -1,5 +1,6 @@
-// Cloudflare Worker с прямыми HTTP запросами к Google Sheets API
-// Работает БЕЗ тяжелых Node.js библиотек
+// Cloudflare Worker с API + Telegram Bot + Админ-панель в боте
+import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { JWT } from 'google-auth-library';
 
 // CORS заголовки
 const corsHeaders = {
@@ -21,7 +22,10 @@ function errorResponse(message, status = 500) {
   return jsonResponse({ error: message, success: false }, status);
 }
 
-// Получить Google OAuth токен
+// ═══════════════════════════════════════════════════════════════
+// GOOGLE SHEETS API
+// ═══════════════════════════════════════════════════════════════
+
 async function getAccessToken(creds) {
   const jwt = await createJWT(creds);
   const response = await fetch('https://oauth2.googleapis.com/token', {
@@ -36,7 +40,6 @@ async function getAccessToken(creds) {
   return data.access_token;
 }
 
-// Создать JWT для Google
 async function createJWT(creds) {
   const header = { alg: 'RS256', typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
@@ -81,7 +84,6 @@ function str2ab(str) {
   return bytes.buffer;
 }
 
-// Получить данные из Google Sheets
 async function getSheetData(sheetId, sheetName, accessToken) {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}!A:Z`;
   const response = await fetch(url, {
@@ -105,7 +107,6 @@ async function getSheetData(sheetId, sheetName, accessToken) {
   });
 }
 
-// Добавить строку в Google Sheets
 async function appendSheetRow(sheetId, sheetName, values, accessToken) {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}!A:Z:append?valueInputOption=RAW`;
   const response = await fetch(url, {
@@ -119,11 +120,241 @@ async function appendSheetRow(sheetId, sheetName, values, accessToken) {
   return await response.json();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// TELEGRAM BOT API
+// ═══════════════════════════════════════════════════════════════
+
+async function sendTelegramMessage(botToken, chatId, text, keyboard = null) {
+  const body = {
+    chat_id: chatId,
+    text: text,
+    parse_mode: 'Markdown',
+  };
+  
+  if (keyboard) {
+    body.reply_markup = keyboard;
+  }
+
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  
+  return await response.json();
+}
+
+async function answerCallbackQuery(botToken, callbackQueryId, text = '') {
+  await fetch(`https://api.telegram.org/bot${botToken}/answerCallbackQuery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      callback_query_id: callbackQueryId,
+      text: text,
+    }),
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BOT HANDLERS
+// ═══════════════════════════════════════════════════════════════
+
+async function handleStart(env, chatId, user) {
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(creds);
+  
+  // Регистрируем пользователя
+  const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+  const existing = users.find(u => String(u.telegram_id) === String(chatId));
+  
+  if (!existing) {
+    await appendSheetRow(
+      env.SHEET_ID,
+      'users',
+      [chatId, user.username || 'N/A', user.first_name || 'Unknown', new Date().toISOString(), 'TRUE'],
+      accessToken
+    );
+  }
+  
+  // Проверяем админа
+  const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+  const isAdmin = admins.some(a => a.username && a.username.toLowerCase() === user.username?.toLowerCase());
+  
+  // Клавиатура
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: '🚀 Открыть Mini App', web_app: { url: env.WEBAPP_URL } }]
+    ]
+  };
+  
+  // Если админ - добавляем кнопку админки
+  if (isAdmin) {
+    keyboard.inline_keyboard.push([{ text: '⚙️ Админ-панель', callback_data: 'admin_panel' }]);
+  }
+  
+  const welcomeText = `👋 *Привет, ${user.first_name}!*\n\nДобро пожаловать в наш Mini App!\n\n🔗 Нажми кнопку ниже чтобы открыть приложение с партнерскими ссылками.`;
+  
+  await sendTelegramMessage(env.BOT_TOKEN, chatId, welcomeText, keyboard);
+}
+
+async function handleAdminPanel(env, chatId, messageId) {
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: '📊 Статистика', callback_data: 'admin_stats' }],
+      [{ text: '📢 Рассылка', callback_data: 'admin_broadcast' }],
+      [{ text: '👥 Пользователи', callback_data: 'admin_users' }],
+      [{ text: '« Назад', callback_data: 'back_to_start' }],
+    ]
+  };
+  
+  const text = `⚙️ *Админ-панель*\n\nВыберите действие:`;
+  
+  await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/editMessageText`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      message_id: messageId,
+      text: text,
+      parse_mode: 'Markdown',
+      reply_markup: keyboard,
+    }),
+  });
+}
+
+async function handleAdminStats(env, chatId, messageId) {
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(creds);
+  
+  const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+  const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
+  const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+  
+  const subscribed = users.filter(u => String(u.subscribed).toUpperCase() === 'TRUE').length;
+  
+  const text = `📊 *Статистика*\n\n👥 Всего пользователей: ${users.length}\n✅ Подписаны: ${subscribed}\n❌ Отписаны: ${users.length - subscribed}\n\n🔗 Партнерских ссылок: ${partners.length}\n👆 Всего кликов: ${clicks.length}`;
+  
+  const keyboard = {
+    inline_keyboard: [[{ text: '« Назад', callback_data: 'admin_panel' }]]
+  };
+  
+  await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/editMessageText`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      message_id: messageId,
+      text: text,
+      parse_mode: 'Markdown',
+      reply_markup: keyboard,
+    }),
+  });
+}
+
+async function handleAdminBroadcast(env, chatId, messageId) {
+  const text = `📢 *Рассылка*\n\nОтправьте сообщение в следующем формате:\n\n\`\`\`\n/broadcast Заголовок\nТекст сообщения\nhttps://ссылка-для-кнопки.com\n\`\`\`\n\nПример:\n\`\`\`\n/broadcast Новая акция!\nСкидка 50% на все товары до конца недели!\nhttps://example.com\n\`\`\``;
+  
+  const keyboard = {
+    inline_keyboard: [[{ text: '« Назад', callback_data: 'admin_panel' }]]
+  };
+  
+  await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/editMessageText`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      message_id: messageId,
+      text: text,
+      parse_mode: 'Markdown',
+      reply_markup: keyboard,
+    }),
+  });
+}
+
+async function handleBroadcast(env, chatId, text) {
+  // Парсим команду: /broadcast Заголовок\nТекст\nСсылка
+  const lines = text.replace('/broadcast', '').trim().split('\n');
+  
+  if (lines.length < 3) {
+    await sendTelegramMessage(env.BOT_TOKEN, chatId, '❌ Неверный формат! Нужно:\n/broadcast Заголовок\nТекст\nСсылка');
+    return;
+  }
+  
+  const title = lines[0].trim();
+  const msg = lines.slice(1, -1).join('\n').trim();
+  const link = lines[lines.length - 1].trim();
+  
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(creds);
+  const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+  const subscribedUsers = users.filter(u => String(u.subscribed).toUpperCase() === 'TRUE');
+  
+  await sendTelegramMessage(env.BOT_TOKEN, chatId, `⏳ Отправка рассылки ${subscribedUsers.length} пользователям...`);
+  
+  let successful = 0;
+  let failed = 0;
+  
+  for (const user of subscribedUsers) {
+    try {
+      const keyboard = {
+        inline_keyboard: [[{ text: '🔗 Перейти', url: link }]]
+      };
+      
+      await sendTelegramMessage(env.BOT_TOKEN, user.telegram_id, `*${title}*\n\n${msg}`, keyboard);
+      successful++;
+      
+      // Небольшая задержка между отправками
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch (error) {
+      failed++;
+    }
+  }
+  
+  await sendTelegramMessage(
+    env.BOT_TOKEN,
+    chatId,
+    `✅ Рассылка завершена!\n\n✅ Успешно: ${successful}\n❌ Ошибок: ${failed}`
+  );
+}
+
+async function handleAdminUsers(env, chatId, messageId) {
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(creds);
+  const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+  
+  const usersList = users.slice(0, 10).map((u, i) => 
+    `${i + 1}. @${u.username || 'N/A'} (ID: ${u.telegram_id}) ${u.subscribed === 'TRUE' ? '✅' : '❌'}`
+  ).join('\n');
+  
+  const text = `👥 *Последние пользователи* (${users.length} всего):\n\n${usersList}\n\n_Полный список в Google Sheets_`;
+  
+  const keyboard = {
+    inline_keyboard: [[{ text: '« Назад', callback_data: 'admin_panel' }]]
+  };
+  
+  await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/editMessageText`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      message_id: messageId,
+      text: text,
+      parse_mode: 'Markdown',
+      reply_markup: keyboard,
+    }),
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN HANDLER
+// ═══════════════════════════════════════════════════════════════
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    // CORS preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
@@ -137,17 +368,82 @@ export default {
       const creds = JSON.parse(env.CREDENTIALS_JSON);
       const accessToken = await getAccessToken(creds);
 
-      // Health check
+      // ═══════════════════════════════════════════════════════════
+      // TELEGRAM BOT WEBHOOK
+      // ═══════════════════════════════════════════════════════════
+      
+      if (path === `/bot${env.BOT_TOKEN}` && request.method === 'POST') {
+        const update = await request.json();
+        
+        // Обработка команд
+        if (update.message) {
+          const chatId = update.message.chat.id;
+          const text = update.message.text;
+          const user = update.message.from;
+          
+          if (text === '/start') {
+            await handleStart(env, chatId, user);
+          } else if (text.startsWith('/broadcast')) {
+            // Проверка админа
+            const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+            const isAdmin = admins.some(a => a.username && a.username.toLowerCase() === user.username?.toLowerCase());
+            
+            if (isAdmin) {
+              await handleBroadcast(env, chatId, text);
+            } else {
+              await sendTelegramMessage(env.BOT_TOKEN, chatId, '❌ У вас нет прав администратора');
+            }
+          }
+        }
+        
+        // Обработка callback queries (кнопок)
+        if (update.callback_query) {
+          const callbackQuery = update.callback_query;
+          const chatId = callbackQuery.message.chat.id;
+          const messageId = callbackQuery.message.message_id;
+          const data = callbackQuery.data;
+          const user = callbackQuery.from;
+          
+          // Проверка админа
+          const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+          const isAdmin = admins.some(a => a.username && a.username.toLowerCase() === user.username?.toLowerCase());
+          
+          if (!isAdmin && data !== 'back_to_start') {
+            await answerCallbackQuery(env.BOT_TOKEN, callbackQuery.id, '❌ У вас нет прав администратора');
+            return jsonResponse({ ok: true });
+          }
+          
+          if (data === 'admin_panel') {
+            await handleAdminPanel(env, chatId, messageId);
+          } else if (data === 'admin_stats') {
+            await handleAdminStats(env, chatId, messageId);
+          } else if (data === 'admin_broadcast') {
+            await handleAdminBroadcast(env, chatId, messageId);
+          } else if (data === 'admin_users') {
+            await handleAdminUsers(env, chatId, messageId);
+          } else if (data === 'back_to_start') {
+            await handleStart(env, chatId, user);
+          }
+          
+          await answerCallbackQuery(env.BOT_TOKEN, callbackQuery.id);
+        }
+        
+        return jsonResponse({ ok: true });
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // API ENDPOINTS (для Mini App)
+      // ═══════════════════════════════════════════════════════════
+
       if (path === '/api/health') {
         return jsonResponse({
           status: 'ok',
           timestamp: new Date().toISOString(),
-          version: '1.0.0',
-          mode: 'production_with_google_sheets',
+          version: '2.0.0',
+          mode: 'production_with_bot_and_sheets',
         });
       }
 
-      // Get partners
       if (path === '/api/partners' && request.method === 'GET') {
         const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
         return jsonResponse(partners.map(p => ({
@@ -157,7 +453,6 @@ export default {
         })));
       }
 
-      // Register click
       if (path === '/api/click' && request.method === 'POST') {
         const body = await request.json();
         await appendSheetRow(
@@ -169,7 +464,6 @@ export default {
         return jsonResponse({ ok: true, success: true });
       }
 
-      // Register user
       if (path === '/api/user' && request.method === 'POST') {
         const body = await request.json();
         const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
@@ -186,7 +480,6 @@ export default {
         return jsonResponse({ ok: true, success: true });
       }
 
-      // Check admin
       if (path === '/api/me' && request.method === 'POST') {
         const body = await request.json();
         const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
@@ -196,7 +489,6 @@ export default {
         return jsonResponse({ is_admin });
       }
 
-      // Get subscribers
       if (path === '/api/subscribers' && request.method === 'GET') {
         const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
         return jsonResponse(users.map(u => ({
@@ -204,38 +496,6 @@ export default {
           username: u.username,
           subscribed: String(u.subscribed).toUpperCase() === 'TRUE',
         })));
-      }
-
-      // Send push
-      if (path === '/api/push' && request.method === 'POST') {
-        const body = await request.json();
-        const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
-        const subscribedUsers = users.filter(u => String(u.subscribed).toUpperCase() === 'TRUE');
-
-        const sendPromises = subscribedUsers.map(user =>
-          fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: user.telegram_id,
-              text: `*${body.title}*\n\n${body.msg}`,
-              parse_mode: 'Markdown',
-              reply_markup: {
-                inline_keyboard: [[{ text: 'Перейти', url: body.link }]],
-              },
-            }),
-          }).catch(() => ({ success: false }))
-        );
-
-        const results = await Promise.allSettled(sendPromises);
-        const successful = results.filter(r => r.status === 'fulfilled').length;
-
-        return jsonResponse({
-          ok: true,
-          success: true,
-          sent: successful,
-          total: subscribedUsers.length,
-        });
       }
 
       return errorResponse('Endpoint not found', 404);
