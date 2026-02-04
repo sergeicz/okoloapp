@@ -283,76 +283,76 @@ h2 {
   box-shadow: 0 12px 32px rgba(17, 153, 142, 0.6);
 }
 
-/* Cookie Banner */
+/* Cookie Modal */
 #cookieConsent {
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
-  width: 100%;
-  background: var(--glass-bg);
-  backdrop-filter: blur(30px);
-  border-top: 2px solid var(--brutal-red);
-  padding: 20px;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   z-index: 999999;
-  animation: slideUp 0.5s ease;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 0, 0, 0.3);
-  overflow: hidden;
+  animation: fadeIn 0.3s ease;
+  padding: 20px;
 }
 
 #cookieConsent.hidden {
   display: none !important;
 }
 
-.cookie-banner-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  overflow: visible;
+.cookie-box {
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px);
+  border: 2px solid var(--brutal-red);
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 450px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(255, 0, 0, 0.4);
+  animation: slideUp 0.4s ease;
+}
+
+.cookie-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
 }
 
 .cookie-text {
-  flex: 1;
-  min-width: 250px;
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.4;
-  overflow: visible;
-}
-
-.cookie-text strong {
-  color: var(--brutal-red);
-  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 25px;
 }
 
 .cookie-btn {
   background: var(--primary);
   color: var(--text-primary);
   border: 2px solid var(--brutal-red);
-  padding: 12px 32px;
-  font-size: 0.9rem;
+  padding: 14px 40px;
+  font-size: 1rem;
   font-weight: 700;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 1px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
-  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(255, 0, 0, 0.4);
+  width: 100%;
 }
 
 .cookie-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.6);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 0, 0, 0.6);
   border-color: #fff;
-  background: linear-gradient(135deg, #FF0000 0%, #FF4500 100%);
 }
 
 .cookie-btn:active {
-  transform: translateY(0);
+  transform: translateY(-1px);
 }
 
 @keyframes slideUp {
@@ -585,24 +585,29 @@ h2 {
     height: 28px;
   }
 
-  /* Cookie Banner Mobile */
+  /* Cookie Modal Mobile */
   #cookieConsent {
     padding: 15px;
   }
 
-  .cookie-banner-content {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
+  .cookie-box {
+    padding: 25px 20px;
+    max-width: 90%;
+  }
+
+  .cookie-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
   }
 
   .cookie-text {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
   }
 
   .cookie-btn {
-    width: 100%;
-    padding: 12px 24px;
+    padding: 12px 32px;
+    font-size: 0.95rem;
   }
 }
 
@@ -657,18 +662,28 @@ h2 {
     height: 24px;
   }
 
-  /* Cookie Banner Small Mobile */
+  /* Cookie Modal Small Mobile */
   #cookieConsent {
     padding: 12px;
   }
 
+  .cookie-box {
+    padding: 20px 16px;
+  }
+
+  .cookie-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+
   .cookie-text {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    margin-bottom: 18px;
   }
 
   .cookie-btn {
-    padding: 10px 20px;
-    font-size: 0.85rem;
+    padding: 11px 28px;
+    font-size: 0.9rem;
   }
 }
 
@@ -696,33 +711,42 @@ h2 {
     height: 20px;
   }
 
+  .cookie-box {
+    padding: 18px 14px;
+  }
+
+  .cookie-icon {
+    font-size: 1.8rem;
+  }
+
   .cookie-text {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   .cookie-btn {
-    font-size: 0.8rem;
-    padding: 8px 18px;
+    font-size: 0.85rem;
+    padding: 10px 24px;
   }
 }
 
 /* Ландшафтная ориентация для мобильных */
 @media (max-height: 600px) and (orientation: landscape) {
-  #cookieConsent {
-    padding: 10px 15px;
+  .cookie-box {
+    padding: 20px;
   }
 
-  .cookie-banner-content {
-    gap: 10px;
+  .cookie-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
   }
 
   .cookie-text {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
   }
 
   .cookie-btn {
-    padding: 8px 20px;
-    font-size: 0.85rem;
+    padding: 10px 30px;
   }
 }
 
@@ -740,11 +764,12 @@ html {
 </head>
 <body>
 
-<!-- Cookie Banner -->
+<!-- Cookie Modal -->
 <div id="cookieConsent">
-  <div class="cookie-banner-content">
+  <div class="cookie-box">
+    <div class="cookie-icon">🍪</div>
     <div class="cookie-text">
-      🍪 Мы используем cookies для улучшения вашего опыта и аналитики.
+      Мы используем cookies для улучшения вашего опыта и аналитики.
     </div>
     <button class="cookie-btn" onclick="acceptCookies()">
       Понятно
