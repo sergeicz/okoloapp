@@ -588,6 +588,7 @@ function setupBot(env) {
       chatId: ctx.chat.id,
       broadcast_name: null,
       broadcast_id: `BR_${Date.now()}`, // Уникальный ID рассылки
+      partner: null,          // Партнер для рассылки (опционально)
       title: null,
       subtitle: null,
       image_url: null,
@@ -605,7 +606,55 @@ function setupBot(env) {
     const keyboard = new InlineKeyboard().text('❌ Отменить', 'broadcast_cancel');
     
     await ctx.editMessageText(
-      '📢 *Создание рассылки*\n\n*Шаг 1 из 5:* Название рассылки\n\n📝 Введите *название* рассылки для аналитики (например: "Акция Январь 2026"):',
+      '📢 *Создание рассылки*\n\n*Шаг 1 из 6:* Название рассылки\n\n📝 Введите *название* рассылки для аналитики (например: "Акция Январь 2026"):',
+      { parse_mode: 'Markdown', reply_markup: keyboard }
+    );
+    await ctx.answerCallbackQuery();
+  });
+
+  // Пропуск выбора партнера
+  bot.callbackQuery('broadcast_skip_partner', async (ctx) => {
+    const state = await getBroadcastState(env, ctx.chat.id);
+    if (!state) return;
+    
+    state.partner = null;
+    state.step = 'title';
+    await saveBroadcastState(env, ctx.chat.id, state);
+    
+    const keyboard = new InlineKeyboard().text('❌ Отменить', 'broadcast_cancel');
+    
+    await ctx.reply(
+      '📢 *Создание рассылки*\n\n*Шаг 3 из 6:* Заголовок\n\n✅ Рассылка без привязки к партнеру\n\n📝 Введите *заголовок* рассылки (обязательно):',
+      { parse_mode: 'Markdown', reply_markup: keyboard }
+    );
+    await ctx.answerCallbackQuery();
+  });
+
+  // Выбор партнера для рассылки
+  bot.callbackQuery(/^broadcast_partner_(\d+)$/, async (ctx) => {
+    const state = await getBroadcastState(env, ctx.chat.id);
+    if (!state) return;
+    
+    const partnerIndex = parseInt(ctx.match[1]);
+    
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(creds);
+    const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+    
+    if (!partners[partnerIndex]) {
+      await ctx.answerCallbackQuery('❌ Партнер не найден');
+      return;
+    }
+    
+    const partner = partners[partnerIndex];
+    state.partner = partner.title;
+    state.step = 'title';
+    await saveBroadcastState(env, ctx.chat.id, state);
+    
+    const keyboard = new InlineKeyboard().text('❌ Отменить', 'broadcast_cancel');
+    
+    await ctx.reply(
+      `📢 *Создание рассылки*\n\n*Шаг 3 из 6:* Заголовок\n\n✅ Партнер выбран:\n🏷️ ${partner.title}\n\n📝 Введите *заголовок* рассылки (обязательно):`,
       { parse_mode: 'Markdown', reply_markup: keyboard }
     );
     await ctx.answerCallbackQuery();
@@ -624,7 +673,7 @@ function setupBot(env) {
       .text('❌ Отменить', 'broadcast_cancel');
     
     await ctx.reply(
-      '📢 *Создание рассылки*\n\n*Шаг 3 из 4:* Медиа\n\n🖼️📹🎙️ *Прикрепите медиа* (фото/видео/голосовое/видеозаметку) или отправьте ссылку на фото/видео (URL):',
+      '📢 *Создание рассылки*\n\n*Шаг 5 из 6:* Медиа\n\n🖼️📹🎙️ *Прикрепите медиа* (фото/видео/голосовое/видеозаметку) или отправьте ссылку на фото/видео (URL):',
       { parse_mode: 'Markdown', reply_markup: keyboard }
     );
     await ctx.answerCallbackQuery();
@@ -643,7 +692,7 @@ function setupBot(env) {
       .text('❌ Отменить', 'broadcast_cancel');
     
     await ctx.reply(
-      '📢 *Создание рассылки*\n\n*Шаг 4 из 4:* Кнопка\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
+      '📢 *Создание рассылки*\n\n*Шаг 6 из 6:* Кнопка\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
       { parse_mode: 'Markdown', reply_markup: keyboard }
     );
     await ctx.answerCallbackQuery();
@@ -1268,6 +1317,7 @@ function setupBot(env) {
     const keyboard = new InlineKeyboard()
       .text('📅 Отчет за неделю', 'rep_weekly_report').row()
       .text('📊 Отчет за месяц', 'rep_monthly_report').row()
+      .text('📈 Статистика рассылок', 'rep_broadcasts_stats').row()
       .text('« Назад', 'back_to_start');
     
     await ctx.editMessageText(
@@ -1459,6 +1509,97 @@ function setupBot(env) {
     }
   });
 
+  // Статистика рассылок для представителя
+  bot.callbackQuery('rep_broadcasts_stats', async (ctx) => {
+    const partnerData = await checkRepresentative(env, ctx.from);
+    
+    if (!partnerData) {
+      await ctx.answerCallbackQuery('❌ Вы не являетесь представителем партнера');
+      return;
+    }
+    
+    await ctx.answerCallbackQuery('📊 Загружаю статистику...');
+    
+    try {
+      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const accessToken = await getAccessToken(creds);
+      const broadcasts = await getSheetData(env.SHEET_ID, 'broadcasts', accessToken);
+      
+      // Фильтруем рассылки только по партнеру представителя
+      const partnerBroadcasts = broadcasts.filter(b => b.partner === partnerData.title);
+      
+      if (!partnerBroadcasts || partnerBroadcasts.length === 0) {
+        const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
+        await ctx.editMessageText(
+          `📈 *Статистика рассылок*\n\n` +
+          `🏷️ *Партнер:* ${partnerData.title}\n\n` +
+          `📭 По вашему партнеру пока не было рассылок.`,
+          { parse_mode: 'Markdown', reply_markup: keyboard }
+        );
+        return;
+      }
+      
+      // Сортируем по дате (новые сверху)
+      partnerBroadcasts.sort((a, b) => {
+        const dateA = new Date(a.date + ' ' + a.time);
+        const dateB = new Date(b.date + ' ' + b.time);
+        return dateB - dateA;
+      });
+      
+      // Общая статистика
+      const totalSent = partnerBroadcasts.reduce((sum, b) => sum + parseInt(b.sent_count || 0), 0);
+      const totalClicks = partnerBroadcasts.reduce((sum, b) => sum + parseInt(b.click_count || 0), 0);
+      const totalReads = partnerBroadcasts.reduce((sum, b) => sum + parseInt(b.read_count || 0), 0);
+      const avgClickRate = totalReads > 0 ? ((totalClicks / totalReads) * 100).toFixed(2) : '0.00';
+      
+      let text = `📈 *Статистика рассылок*\n\n` +
+                 `🏷️ *Партнер:* ${partnerData.title}\n\n` +
+                 `*📊 Общая статистика:*\n` +
+                 `📧 Всего рассылок: ${partnerBroadcasts.length}\n` +
+                 `📬 Доставлено сообщений: ${totalSent}\n` +
+                 `👁️ Прочитано: ${totalReads}\n` +
+                 `🖱️ Кликов: ${totalClicks}\n` +
+                 `📊 Средний CTR: ${avgClickRate}%\n\n` +
+                 `*📋 Список рассылок:*\n\n`;
+      
+      // Показываем последние 5 рассылок
+      const recentBroadcasts = partnerBroadcasts.slice(0, 5);
+      recentBroadcasts.forEach((b, index) => {
+        const clickRate = parseInt(b.read_count || 0) > 0 
+          ? ((parseInt(b.click_count || 0) / parseInt(b.read_count || 0)) * 100).toFixed(1)
+          : '0.0';
+        
+        text += `${index + 1}. *${b.name || 'Без названия'}*\n`;
+        text += `   📅 ${b.date} ${b.time}\n`;
+        text += `   📬 Отправлено: ${b.sent_count || 0}\n`;
+        text += `   🖱️ Кликов: ${b.click_count || 0} (${clickRate}%)\n`;
+        if (b.title) text += `   📝 ${b.title.substring(0, 30)}${b.title.length > 30 ? '...' : ''}\n`;
+        text += `\n`;
+      });
+      
+      if (partnerBroadcasts.length > 5) {
+        text += `_... и еще ${partnerBroadcasts.length - 5} рассылок_\n\n`;
+      }
+      
+      text += `_Данные обновлены: ${new Date().toLocaleDateString('ru-RU')} ${new Date().toLocaleTimeString('ru-RU')}_`;
+      
+      const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
+      
+      await ctx.editMessageText(text, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+      
+    } catch (error) {
+      console.error('[REP_BROADCASTS_STATS] Error:', error);
+      const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
+      await ctx.editMessageText(
+        '❌ Ошибка при загрузке статистики. Попробуйте позже.',
+        { reply_markup: keyboard }
+      );
+    }
+  });
+
   // ═══════════════════════════════════════════════════════════
   // ОБРАБОТКА ТЕКСТОВЫХ СООБЩЕНИЙ (для рассылки)
   // ═══════════════════════════════════════════════════════════
@@ -1475,12 +1616,32 @@ function setupBot(env) {
     
     if (state.step === 'broadcast_name') {
       state.broadcast_name = text;
-      state.step = 'title';
-      keyboard = new InlineKeyboard().text('❌ Отменить', 'broadcast_cancel');
+      state.step = 'partner_select';
       
       await saveBroadcastState(env, ctx.chat.id, state);
+      
+      // Получаем список партнеров
+      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const accessToken = await getAccessToken(creds);
+      const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+      
+      keyboard = new InlineKeyboard();
+      
+      if (partners && partners.length > 0) {
+        // Добавляем кнопки для партнеров (по 2 в ряд)
+        partners.forEach((partner, index) => {
+          const shortTitle = partner.title.length > 20 ? partner.title.substring(0, 20) + '...' : partner.title;
+          keyboard.text(shortTitle, `broadcast_partner_${index}`);
+          if (index % 2 === 1) keyboard.row();
+        });
+        if (partners.length % 2 === 1) keyboard.row();
+      }
+      
+      keyboard.text('⏭️ Без партнера', 'broadcast_skip_partner').row()
+              .text('❌ Отменить', 'broadcast_cancel');
+      
       await ctx.reply(
-        `📢 *Создание рассылки*\n\n*Шаг 2 из 5:* Заголовок\n\n✅ Название сохранено:\n"${text}"\n\n📝 Введите *заголовок* рассылки (обязательно):`,
+        `📢 *Создание рассылки*\n\n*Шаг 2 из 6:* Выбор партнера\n\n✅ Название сохранено:\n"${text}"\n\n🏷️ Выберите партнера для этой рассылки или пропустите:`,
         { parse_mode: 'Markdown', reply_markup: keyboard }
       );
       
@@ -1493,7 +1654,7 @@ function setupBot(env) {
       
       await saveBroadcastState(env, ctx.chat.id, state);
       await ctx.reply(
-        `📢 *Создание рассылки*\n\n*Шаг 3 из 5:* Подзаголовок\n\n✅ Заголовок сохранен:\n"${text}"\n\n📝 Введите *подзаголовок* (описание):`,
+        `📢 *Создание рассылки*\n\n*Шаг 4 из 6:* Подзаголовок\n\n✅ Заголовок сохранен:\n"${text}"\n\n📝 Введите *подзаголовок* (описание):`,
         { parse_mode: 'Markdown', reply_markup: keyboard }
       );
       
@@ -1506,7 +1667,7 @@ function setupBot(env) {
       
       await saveBroadcastState(env, ctx.chat.id, state);
       await ctx.reply(
-        '📢 *Создание рассылки*\n\n*Шаг 4 из 5:* Медиа\n\n🖼️📹🎙️ *Прикрепите медиа* (фото/видео/голосовое/видеозаметку) или отправьте ссылку на фото/видео (URL):',
+        '📢 *Создание рассылки*\n\n*Шаг 5 из 6:* Медиа\n\n🖼️📹🎙️ *Прикрепите медиа* (фото/видео/голосовое/видеозаметку) или отправьте ссылку на фото/видео (URL):',
         { parse_mode: 'Markdown', reply_markup: keyboard }
       );
       
@@ -1531,7 +1692,7 @@ function setupBot(env) {
       
       await saveBroadcastState(env, ctx.chat.id, state);
       await ctx.reply(
-        '📢 *Создание рассылки*\n\n*Шаг 5 из 5:* Кнопка\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
+        '📢 *Создание рассылки*\n\n*Шаг 6 из 6:* Кнопка\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
         { parse_mode: 'Markdown', reply_markup: keyboard }
       );
       
@@ -1570,7 +1731,7 @@ function setupBot(env) {
     
     await saveBroadcastState(env, ctx.chat.id, state);
     await ctx.reply(
-      '📢 *Создание рассылки*\n\n*Шаг 5 из 5:* Кнопка\n\n✅ Картинка загружена!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
+      '📢 *Создание рассылки*\n\n*Шаг 6 из 6:* Кнопка\n\n✅ Картинка загружена!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
       { parse_mode: 'Markdown', reply_markup: keyboard }
     );
   });
@@ -1595,7 +1756,7 @@ function setupBot(env) {
     
     await saveBroadcastState(env, ctx.chat.id, state);
     await ctx.reply(
-      '📢 *Создание рассылки*\n\n*Шаг 5 из 5:* Кнопка\n\n✅ Видео загружено!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
+      '📢 *Создание рассылки*\n\n*Шаг 6 из 6:* Кнопка\n\n✅ Видео загружено!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
       { parse_mode: 'Markdown', reply_markup: keyboard }
     );
   });
@@ -1620,7 +1781,7 @@ function setupBot(env) {
     
     await saveBroadcastState(env, ctx.chat.id, state);
     await ctx.reply(
-      '📢 *Создание рассылки*\n\n*Шаг 5 из 5:* Кнопка\n\n✅ Голосовое сообщение загружено!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
+      '📢 *Создание рассылки*\n\n*Шаг 6 из 6:* Кнопка\n\n✅ Голосовое сообщение загружено!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
       { parse_mode: 'Markdown', reply_markup: keyboard }
     );
   });
@@ -1645,7 +1806,7 @@ function setupBot(env) {
     
     await saveBroadcastState(env, ctx.chat.id, state);
     await ctx.reply(
-      '📢 *Создание рассылки*\n\n*Шаг 5 из 5:* Кнопка\n\n✅ Видеозаметка загружена!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
+      '📢 *Создание рассылки*\n\n*Шаг 6 из 6:* Кнопка\n\n✅ Видеозаметка загружена!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
       { parse_mode: 'Markdown', reply_markup: keyboard }
     );
   });
@@ -1920,7 +2081,7 @@ async function executeBroadcast(ctx, env, state) {
   const readCount = successCount;
   
   // Сохраняем статистику в таблицу broadcasts
-  // Формат таблицы: broadcast_id, name, date, time, sent_count, read_count, click_count, title, subtitle, button_text, button_url, total_users, fail_count, archived_count
+  // Формат таблицы: broadcast_id, name, date, time, sent_count, read_count, click_count, title, subtitle, button_text, button_url, total_users, fail_count, archived_count, partner
   let saveError = null;
   try {
     await appendSheetRow(
@@ -1940,7 +2101,8 @@ async function executeBroadcast(ctx, env, state) {
         state.button_url || '',                       // button_url
         validUsers.length,                            // total_users
         failCount,                                    // fail_count
-        inactiveCount                                 // archived_count
+        inactiveCount,                                // archived_count
+        state.partner || ''                           // partner
       ],
       accessToken
     );
@@ -2245,7 +2407,7 @@ async function sendWeeklyPartnerReports(env) {
     // ⚠️ ВАЖНО: Каждый представитель получает отчет ТОЛЬКО по своему партнеру
     for (const partner of partners) {
       // Проверяем что есть представитель для ЭТОГО партнера
-      if (!partner.predstavitel || partner.przedstawitel.trim() === '') {
+      if (!partner.predstavitel || partner.predstavitel.trim() === '') {
         console.log(`[WEEKLY_REPORT] ⏭️ Skipping ${partner.title}: no representative`);
         continue;
       }
@@ -2569,7 +2731,7 @@ export default {
               const newClicks = currentClicks + 1;
               const rowIndex = broadcastIndex + 2;
               
-              // Обновляем click_count (конверсия не используется в таблице)
+              // Обновляем click_count
               await updateSheetRow(
                 env.SHEET_ID,
                 'broadcasts',
@@ -2588,7 +2750,8 @@ export default {
                   broadcast.button_url || '',
                   broadcast.total_users || '0',
                   broadcast.fail_count || '0',
-                  broadcast.archived_count || '0'
+                  broadcast.archived_count || '0',
+                  broadcast.partner || ''                    // partner
                 ],
                 accessToken
               );
