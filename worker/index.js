@@ -1919,10 +1919,8 @@ async function executeBroadcast(ctx, env, state) {
   // Считаем что все успешно доставленные сообщения прочитаны
   const readCount = successCount;
   
-  // Начальная конверсия = 0% (пока нет кликов)
-  const conversionRate = '0.00%';
-  
   // Сохраняем статистику в таблицу broadcasts
+  // Формат таблицы: broadcast_id, name, date, time, sent_count, read_count, click_count, title, subtitle, button_text, button_url, total_users, fail_count, archived_count
   let saveError = null;
   try {
     await appendSheetRow(
@@ -1936,7 +1934,6 @@ async function executeBroadcast(ctx, env, state) {
         successCount,                                 // sent_count
         readCount,                                    // read_count (= sent_count)
         0,                                            // click_count (будет обновляться)
-        conversionRate,                               // conversion_rate
         state.title || '',                            // title
         state.subtitle || '',                         // subtitle
         state.button_text || '',                      // button_text
@@ -2572,15 +2569,7 @@ export default {
               const newClicks = currentClicks + 1;
               const rowIndex = broadcastIndex + 2;
               
-              // Пересчитываем конверсию
-              const sentCount = parseInt(broadcast.sent_count || '0') || 0;
-              let conversionRate = '0.00%';
-              if (sentCount > 0) {
-                const rate = (newClicks / sentCount) * 100;
-                conversionRate = rate.toFixed(2) + '%';
-              }
-              
-              // Обновляем click_count и conversion_rate
+              // Обновляем click_count (конверсия не используется в таблице)
               await updateSheetRow(
                 env.SHEET_ID,
                 'broadcasts',
@@ -2593,7 +2582,6 @@ export default {
                   broadcast.sent_count || '0',
                   broadcast.read_count || '0',
                   String(newClicks),                         // click_count - обновляем
-                  conversionRate,                            // conversion_rate - пересчитываем
                   broadcast.title || '',
                   broadcast.subtitle || '',
                   broadcast.button_text || '',
@@ -2605,7 +2593,7 @@ export default {
                 accessToken
               );
               
-              console.log(`[REDIRECT] ✅ Updated broadcast ${broadcastId}: clicks ${currentClicks} → ${newClicks}, conversion: ${conversionRate}`);
+              console.log(`[REDIRECT] ✅ Updated broadcast ${broadcastId}: clicks ${currentClicks} → ${newClicks}`);
             }
           } catch (error) {
             console.error(`[REDIRECT] ❌ Failed to update broadcast clicks:`, error);
