@@ -1362,6 +1362,7 @@ export default {
           logo_url: p.logo_url || '',
           url: p.url,
           category: p.category,
+          promocode: p.promocode || '', // Добавляем промокод
         })));
       }
 
@@ -1444,9 +1445,38 @@ export default {
           console.log(`[CLICK] 🆕 New click recorded: ${body.telegram_id} → ${body.url}`);
         }
         
-        // Возвращаем корректное количество кликов
+        // Отправляем промокод пользователю, если он есть
+        if (partner?.promocode && partner.promocode.trim() !== '') {
+          try {
+            const bot = setupBot(env);
+            const promocode = partner.promocode.trim();
+            
+            // Формируем сообщение с промокодом
+            const message = `🎁 *Ваш промокод от ${partner.title}*\n\n` +
+                          `\`${promocode}\`\n\n` +
+                          `_Нажмите на промокод чтобы скопировать_\n\n` +
+                          `🔗 [Перейти к партнеру](${body.url})`;
+            
+            await bot.api.sendMessage(body.telegram_id, message, {
+              parse_mode: 'Markdown',
+              disable_web_page_preview: true,
+            });
+            
+            console.log(`[PROMOCODE] ✅ Sent to user ${body.telegram_id}: ${promocode}`);
+          } catch (error) {
+            console.error(`[PROMOCODE] ❌ Failed to send:`, error);
+            // Не останавливаем выполнение если отправка не удалась
+          }
+        }
+        
+        // Возвращаем корректное количество кликов + информацию о промокоде
         const clickCount = existingClickIndex !== -1 ? newCount : 1;
-        return jsonResponse({ ok: true, success: true, clicks: clickCount });
+        return jsonResponse({ 
+          ok: true, 
+          success: true, 
+          clicks: clickCount,
+          promocode_sent: !!(partner?.promocode && partner.promocode.trim() !== '')
+        });
       }
 
       if (path === '/api/user' && request.method === 'POST') {

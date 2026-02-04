@@ -305,10 +305,19 @@ async function loadPartners() {
           a.appendChild(logo);
         }
         
-        // Добавляем текст
+        // Добавляем текст с индикатором промокода
         const text = document.createElement('span');
         text.textContent = link.title;
         a.appendChild(text);
+        
+        // Добавляем значок промокода если есть
+        if (link.promocode && link.promocode.trim() !== '') {
+          const badge = document.createElement('span');
+          badge.textContent = '🎁';
+          badge.className = 'promo-badge';
+          badge.title = 'Есть промокод!';
+          a.appendChild(badge);
+        }
         
         div.appendChild(a);
       });
@@ -325,8 +334,8 @@ async function handleLinkClick(event, link) {
   try {
     console.log('[CLICK] Tracking click:', link.title || link.url);
     
-    // Регистрация клика (не блокируем переход)
-    safeFetch(`${CONFIG.API_URL}/api/click`, {
+    // Регистрация клика и получение промокода
+    const response = await safeFetch(`${CONFIG.API_URL}/api/click`, {
       method: 'POST',
       body: JSON.stringify({
         telegram_id: user.id,
@@ -334,14 +343,30 @@ async function handleLinkClick(event, link) {
         title: link.title,
         category: link.category,
       }),
-    }).catch(err => console.warn('Click tracking failed:', err));
+    });
 
-    // Вибрация для обратной связи
-    if (tg.HapticFeedback) {
-      tg.HapticFeedback.impactOccurred('light');
+    // Показываем уведомление о промокоде
+    if (response && response.promocode_sent) {
+      showSuccess('🎁 Промокод отправлен в бот!');
+      console.log('[PROMOCODE] User notified about promocode');
+      
+      // Дополнительная вибрация для промокода
+      if (tg.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
+    } else {
+      // Обычная вибрация для клика
+      if (tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('light');
+      }
     }
   } catch (error) {
     console.error('Link click handler error:', error);
+    
+    // Вибрация даже при ошибке
+    if (tg.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
   }
 }
 
