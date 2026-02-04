@@ -104,6 +104,54 @@ function showSuccess(message) {
   }
 }
 
+// Показ красивого уведомления о промокоде
+function showPromoNotification() {
+  // Удаляем предыдущее уведомление если есть
+  const existing = document.querySelector('.promo-notification');
+  if (existing) {
+    existing.remove();
+  }
+  
+  // Создаем новое уведомление
+  const notification = document.createElement('div');
+  notification.className = 'promo-notification';
+  notification.innerHTML = `
+    <div class="promo-notification-icon">🎁</div>
+    <div class="promo-notification-content">
+      <div class="promo-notification-title">Промокод отправлен!</div>
+      <div class="promo-notification-text">Проверьте личные сообщения с ботом</div>
+    </div>
+    <button class="promo-notification-close">×</button>
+  `;
+  
+  // Добавляем на страницу
+  document.body.appendChild(notification);
+  
+  // Вибрация для обратной связи
+  if (tg.HapticFeedback) {
+    tg.HapticFeedback.notificationOccurred('success');
+  }
+  
+  // Закрытие по клику на крестик
+  const closeBtn = notification.querySelector('.promo-notification-close');
+  closeBtn.onclick = () => {
+    notification.classList.add('hiding');
+    setTimeout(() => notification.remove(), 300);
+  };
+  
+  // Автоматическое закрытие через 4 секунды
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.classList.add('hiding');
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.remove();
+        }
+      }, 300);
+    }
+  }, 4000);
+}
+
 // Показ загрузки
 function showLoading(elementId) {
   const element = document.getElementById(elementId);
@@ -367,14 +415,8 @@ async function handleLinkClick(event, link) {
       
       if (data.promocode_sent) {
         console.log('[PROMOCODE] ✅ Промокод отправлен в бот!');
-        // Показываем уведомление
-        if (tg.showPopup) {
-          tg.showPopup({
-            title: '🎁 Промокод отправлен',
-            message: 'Проверьте личные сообщения с ботом',
-            buttons: [{ type: 'ok' }]
-          });
-        }
+        // Показываем красивое уведомление
+        showPromoNotification();
       }
     } else {
       console.error('[CLICK] Request failed:', response.status);
