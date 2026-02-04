@@ -41,7 +41,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           echo "🚀 Starting Wrangler deployment..."
-          npx wrangler deploy --verbose
+          npx wrangler deploy
 
       - name: Deployment notification
         if: success()
