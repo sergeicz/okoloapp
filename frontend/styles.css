@@ -1289,31 +1289,41 @@ h2 {
    FOOTER - GLASS CAPSULE STYLE WITH DELAYED ANIMATION
    ===================================================== */
 
-.app-footer {
+/* =====================================================
+   SOCIAL MEDIA SECTION
+   ===================================================== */
+
+social {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   margin-top: 40px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(-50px);
+  transition: opacity 0.6s ease-out, transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+social.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.app-footer {
+  margin-top: 30px;
   margin-bottom: 30px;
   padding: 0;
   text-align: center;
   opacity: 0;
   transform: translateY(-50px);
   transition: opacity 0.6s ease-out, transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 40px;
+  transition-delay: 0.2s;
 }
 
 .app-footer.show {
   opacity: 1;
   transform: translateY(0);
-}
-
-/* Секция социальных сетей */
-.social-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
 }
 
 .social-title {
@@ -1332,11 +1342,6 @@ h2 {
   gap: 12px;
 }
 
-/* Секция разработчиков */
-.developer-section {
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
 
 .social-link {
   width: 36px;
@@ -1411,16 +1416,16 @@ h2 {
   opacity: 0.9;
 }
 
-/* Адаптивность футера */
+/* Адаптивность футера и социальных сетей */
 @media (max-width: 768px) {
-  .app-footer {
+  social {
     margin-top: 35px;
-    margin-bottom: 25px;
-    gap: 35px;
+    gap: 10px;
   }
   
-  .social-section {
-    gap: 10px;
+  .app-footer {
+    margin-top: 25px;
+    margin-bottom: 25px;
   }
   
   .social-title {
@@ -1448,14 +1453,14 @@ h2 {
 }
 
 @media (max-width: 480px) {
-  .app-footer {
+  social {
     margin-top: 30px;
-    margin-bottom: 20px;
-    gap: 30px;
+    gap: 10px;
   }
   
-  .social-section {
-    gap: 10px;
+  .app-footer {
+    margin-top: 20px;
+    margin-bottom: 20px;
   }
   
   .social-title {
@@ -1483,14 +1488,14 @@ h2 {
 }
 
 @media (max-width: 360px) {
-  .app-footer {
+  social {
     margin-top: 25px;
-    margin-bottom: 18px;
-    gap: 25px;
+    gap: 8px;
   }
   
-  .social-section {
-    gap: 8px;
+  .app-footer {
+    margin-top: 18px;
+    margin-bottom: 18px;
   }
   
   .social-title {

@@ -525,10 +525,17 @@ document.getElementById('pushForm').onsubmit = async (e) => {
 // Запуск приложения при загрузке
 window.addEventListener('DOMContentLoaded', initApp);
 
-// Показ футера через 5 секунд после загрузки
+// Показ социальных сетей и футера через 5 секунд после загрузки
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
+    const social = document.querySelector('social');
     const footer = document.querySelector('.app-footer');
+    
+    if (social) {
+      social.classList.add('show');
+      console.log('✨ Social media shown after 5 seconds');
+    }
+    
     if (footer) {
       footer.classList.add('show');
       console.log('✨ Footer shown after 5 seconds');
