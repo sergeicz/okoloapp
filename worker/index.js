@@ -1036,13 +1036,84 @@ export default {
 
       if (path === '/api/click' && request.method === 'POST') {
         const body = await request.json();
-        await appendSheetRow(
-          env.SHEET_ID,
-          'clicks',
-          [body.telegram_id, body.url, new Date().toISOString()],
-          accessToken
+        
+        // Получаем данные пользователя
+        const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+        const user = users.find(u => String(u.telegram_id) === String(body.telegram_id));
+        
+        // Получаем данные партнера
+        const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+        const partner = partners.find(p => p.url === body.url);
+        
+        // Получаем все клики
+        const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
+        
+        // Ищем существующую запись для этого пользователя и URL
+        const existingClickIndex = clicks.findIndex(c => 
+          String(c.telegram_id) === String(body.telegram_id) && 
+          c.url === body.url
         );
-        return jsonResponse({ ok: true, success: true });
+        
+        const now = new Date();
+        const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        const currentTime = now.toISOString().split('T')[1].split('.')[0]; // HH:MM:SS
+        const timestamp = now.toISOString();
+        
+        if (existingClickIndex !== -1) {
+          // Обновляем существующую запись - увеличиваем счетчик
+          const existingClick = clicks[existingClickIndex];
+          const currentCount = parseInt(existingClick.click || '1') || 1;
+          const newCount = currentCount + 1;
+          
+          const rowIndex = existingClickIndex + 2; // +2 для заголовка и 1-based индекса
+          
+          // Формат: telegram_id, username, first_name, partner_title, category, url, click, first_click_date, last_click_date, last_click_time, timestamp
+          await updateSheetRow(
+            env.SHEET_ID,
+            'clicks',
+            rowIndex,
+            [
+              body.telegram_id,
+              user?.username || '',
+              user?.first_name || '',
+              partner?.title || 'Unknown',
+              partner?.category || '',
+              body.url,
+              String(newCount),                      // click - увеличиваем счетчик
+              existingClick.first_click_date || currentDate,  // сохраняем первую дату
+              currentDate,                           // last_click_date - обновляем
+              currentTime,                           // last_click_time
+              timestamp                              // timestamp
+            ],
+            accessToken
+          );
+          
+          console.log(`[CLICK] 🔄 Updated click count: ${body.telegram_id} → ${body.url} (${newCount} times)`);
+        } else {
+          // Создаем новую запись
+          await appendSheetRow(
+            env.SHEET_ID,
+            'clicks',
+            [
+              body.telegram_id,
+              user?.username || '',
+              user?.first_name || '',
+              partner?.title || 'Unknown',
+              partner?.category || '',
+              body.url,
+              '1',                  // click - первый клик
+              currentDate,          // first_click_date
+              currentDate,          // last_click_date
+              currentTime,          // last_click_time
+              timestamp             // timestamp
+            ],
+            accessToken
+          );
+          
+          console.log(`[CLICK] 🆕 New click recorded: ${body.telegram_id} → ${body.url}`);
+        }
+        
+        return jsonResponse({ ok: true, success: true, clicks: existingClickIndex !== -1 ? parseInt(clicks[existingClickIndex].click || '1') + 1 : 1 });
       }
 
       if (path === '/api/user' && request.method === 'POST') {

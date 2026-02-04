@@ -1263,12 +1263,16 @@ async function loadPartners() {
 // Обработка клика по ссылке
 async function handleLinkClick(event, link) {
   try {
+    console.log('[CLICK] Tracking click:', link.title || link.url);
+    
     // Регистрация клика (не блокируем переход)
     safeFetch(`${CONFIG.API_URL}/api/click`, {
       method: 'POST',
       body: JSON.stringify({
         telegram_id: user.id,
         url: link.url,
+        title: link.title,
+        category: link.category,
       }),
     }).catch(err => console.warn('Click tracking failed:', err));
 
