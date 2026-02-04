@@ -396,17 +396,61 @@ h2 {
   gap: 20px;
 }
 
-/* Loading State */
+/* Loading State - Progress Bar */
 .loading {
   text-align: center;
   padding: 40px 20px;
-  font-size: 1.2rem;
-  color: var(--text-secondary);
 }
 
-.loading::after {
-  content: '...';
-  animation: shimmer 1.5s infinite;
+.loading-bar-container {
+  width: 100%;
+  max-width: 300px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0 auto;
+  position: relative;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+.loading-bar {
+  height: 100%;
+  background: linear-gradient(90deg, 
+    #FF0000 0%, 
+    #FF4500 25%, 
+    #FF0000 50%, 
+    #FF4500 75%, 
+    #FF0000 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: loadingProgress 1.5s ease-in-out infinite;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+}
+
+.loading-text {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes loadingProgress {
+  0% {
+    width: 0%;
+    background-position: 0% 0%;
+  }
+  50% {
+    width: 70%;
+    background-position: 100% 0%;
+  }
+  100% {
+    width: 100%;
+    background-position: 200% 0%;
+  }
 }
 
 /* Admin Panel */
