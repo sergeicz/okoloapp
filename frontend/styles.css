@@ -495,6 +495,7 @@ h2 {
 .partner-banner {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 18px;
   width: 100%;
   padding: 20px 28px;
@@ -562,10 +563,11 @@ h2 {
 }
 
 .banner-content {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  align-items: center;
+  text-align: center;
 }
 
 .banner-title {
