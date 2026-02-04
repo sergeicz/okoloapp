@@ -637,6 +637,7 @@ async function executeBroadcast(ctx, env, state) {
         inactiveUsers.push({
           telegram_id: user.telegram_id,
           username: user.username,
+          date_on: user.date_registered || user.first_seen || '',
           reason: 'Заблокировал бота'
         });
         inactiveCount++;
@@ -645,6 +646,7 @@ async function executeBroadcast(ctx, env, state) {
         inactiveUsers.push({
           telegram_id: user.telegram_id,
           username: user.username,
+          date_on: user.date_registered || user.first_seen || '',
           reason: 'Удалил аккаунт'
         });
         inactiveCount++;
@@ -653,6 +655,7 @@ async function executeBroadcast(ctx, env, state) {
         inactiveUsers.push({
           telegram_id: user.telegram_id,
           username: user.username,
+          date_on: user.date_registered || user.first_seen || '',
           reason: 'Деактивирован'
         });
         inactiveCount++;
@@ -667,12 +670,52 @@ async function executeBroadcast(ctx, env, state) {
     }
   }
   
-  // Удаляем неактивных пользователей из таблицы
+  // Переносим неактивных пользователей в лист "pidarasy" и удаляем из "users"
   if (inactiveUsers.length > 0) {
-    await ctx.reply(`🧹 Очищаю ${inactiveUsers.length} неактивных пользователей...`);
+    await ctx.reply(`🧹 Переношу ${inactiveUsers.length} неактивных пользователей в архив...`);
     
-    // Получаем свежие данные
+    // Получаем свежие данные из листа users
     const allUsers = await getSheetData(env.SHEET_ID, 'users', accessToken);
+    const dateOff = new Date().toISOString().split('T')[0]; // Текущая дата в формате YYYY-MM-DD
+    
+    // Переносим каждого неактивного пользователя
+    for (const inactiveUser of inactiveUsers) {
+      try {
+        // Находим полные данные пользователя в таблице
+        const fullUserData = allUsers.find(u => String(u.telegram_id) === String(inactiveUser.telegram_id));
+        
+        // Получаем дату подписки (пробуем разные варианты названий колонок)
+        const dateOn = fullUserData?.date_registered 
+          || fullUserData?.first_seen 
+          || fullUserData?.created_at
+          || fullUserData?.joined_date
+          || inactiveUser.date_on
+          || '';
+        
+        // Добавляем в лист "pidarasy"
+        // Формат: username, tg_id, date on, date off
+        await appendSheetRow(
+          env.SHEET_ID,
+          'pidarasy',
+          [
+            inactiveUser.username || '',
+            inactiveUser.telegram_id || '',
+            dateOn,
+            dateOff
+          ],
+          accessToken
+        );
+        
+        console.log(`✅ Перенесен в pidarasy: @${inactiveUser.username} (${inactiveUser.telegram_id}), подписка: ${dateOn}, отписка: ${dateOff}`);
+        
+        await new Promise(resolve => setTimeout(resolve, 50));
+      } catch (error) {
+        console.error(`Failed to move user ${inactiveUser.telegram_id} to pidarasy:`, error);
+      }
+    }
+    
+    // Теперь удаляем из листа "users"
+    await ctx.reply(`🗑️ Удаляю неактивных из основной таблицы...`);
     
     // Находим строки для удаления (в обратном порядке чтобы индексы не сбивались)
     const rowsToDelete = [];
@@ -704,7 +747,7 @@ async function executeBroadcast(ctx, env, state) {
   reportText += `❌ Ошибок: ${failCount}\n`;
   
   if (inactiveCount > 0) {
-    reportText += `🧹 Удалено неактивных: ${inactiveCount}\n\n`;
+    reportText += `📦 Перенесено в архив: ${inactiveCount}\n\n`;
     reportText += `*Причины:*\n`;
     
     const reasonCounts = {};
