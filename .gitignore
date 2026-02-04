@@ -1,0 +1,100 @@
+# === Секретные данные ===
+# Google Service Account credentials
+credentials.json
+
+# Telegram Bot Token
+bot_token.txt
+
+# Google Sheet ID
+sheet_id.txt
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# === Python (Bot) ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+ENV/
+env/
+
+# Bot logs
+bot.log
+*.log
+
+# === Node.js (Worker) ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log*
+.npm
+.eslintcache
+.node_repl_history
+.yarn-integrity
+
+# Cloudflare Workers
+.wrangler/
+.dev.vars
+worker/.dev.vars
+wrangler.toml.backup
+
+# === IDE / Editors ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# === Replit ===
+.replit
+replit.nix
+.upm/
+.cache/
+.config/
+
+# === Временные файлы ===
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# === OS файлы ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# === Testing ===
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/

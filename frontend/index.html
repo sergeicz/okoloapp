@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Mini App Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root {
+  --bg-color: #121212;
+  --primary-color: #4f9dff;
+  --accent-color: #28a745;
+  --text-color: #f0f0f0;
+}
+body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg,#0f0f0f,#1a1a1a); color: var(--text-color); padding:10px; min-height:100vh; }
+.avatar-container{text-align:center;margin-bottom:20px;}
+.avatar-container img{width:100px;height:100px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);box-shadow:0 4px 12px rgba(0,0,0,0.5);}
+h1{text-align:center;padding:10px 0 20px;font-size:26px;color: var(--primary-color);}
+.category{background: rgba(255,255,255,0.05);backdrop-filter: blur(10px);border-radius: 16px;border:1px solid rgba(255,255,255,0.1);padding:15px;margin-bottom:15px;box-shadow:0 8px 32px rgba(0,0,0,0.37);transition:transform 0.2s,box-shadow 0.2s;}
+.category:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.5);}
+.category h2{font-size:20px;margin-bottom:10px;color: var(--primary-color);}
+.link-btn{display:block;width:100%;padding:12px;margin:6px 0;text-align:center;color:#fff;text-decoration:none;border-radius:12px;font-size:16px;background: rgba(255,255,255,0.1);backdrop-filter: blur(8px);border:1px solid rgba(255,255,255,0.2);box-shadow:0 4px 16px rgba(0,0,0,0.3);transition:transform 0.2s,background 0.2s;}
+.link-btn:hover{transform:translateY(-2px);background: rgba(255,255,255,0.15);}
+#adminBtn{display:none;width:90%;margin:10px auto;padding:12px;text-align:center;font-size:16px;border-radius:12px;color:#fff;cursor:pointer;background: rgba(40, 167, 69,0.2);backdrop-filter: blur(10px);border:1px solid rgba(40,167,69,0.4);box-shadow:0 4px 16px rgba(0,0,0,0.3);}
+#adminBtn:hover{transform:translateY(-2px);background: rgba(40,167,69,0.3);}
+#adminPanel{display:none;padding:10px;}
+#adminPanel h2{color: var(--accent-color); margin-top:10px;}
+.user-table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+.user-table th,.user-table td{border:1px solid rgba(255,255,255,0.2);padding:5px;text-align:center;}
+#pushForm input,#pushForm textarea{width:100%;margin:5px 0;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;}
+#pushForm button{width:100%;padding:10px;margin-top:5px;border:none;border-radius:12px;background:var(--accent-color);color:#fff;cursor:pointer;transition:0.2s;}
+#pushForm button:hover{background:#1e7e34;}
+@media(max-width:480px){h1{font-size:22px;}.category h2{font-size:18px;}.link-btn{font-size:15px;padding:10px;}#pushForm button{font-size:15px;padding:8px;}}
+</style>
+</head>
+<body>
+<div class="avatar-container">
+  <img src="https://i.pravatar.cc/150?img=12" alt="Аватар">
+</div>
+<h1>Партнерские ссылки</h1>
+<div id="categories"></div>
+<button id="adminBtn">Админка</button>
+<div id="adminPanel">
+  <h2>Статистика пользователей</h2>
+  <div id="stats"></div>
+  <h2>Список пользователей</h2>
+  <table class="user-table" id="userTable">
+    <tr><th>Username</th><th>Telegram ID</th><th>Подписан</th></tr>
+  </table>
+  <h2>Рассылка пушей</h2>
+  <form id="pushForm">
+    <input type="text" id="pushTitle" placeholder="Заголовок">
+    <textarea id="pushMessage" rows="3" placeholder="Сообщение"></textarea>
+    <input type="text" id="pushLink" placeholder="Ссылка для кнопки">
+    <button type="submit">Отправить всем подписанным</button>
+  </form>
+</div>
+<script>
+// Конфигурация API
+const CONFIG = {
+  API_URL: 'https://telegram-miniapp-api.worknotdead.workers.dev',  // ПРОДАКШЕН
+};
+
+const tg = Telegram.WebApp;
+
+// Получаем данные пользователя из Telegram
+let user = tg.initDataUnsafe.user || {
+  id: 0,
+  username: 'guest',
+  first_name: 'Guest',
+  language_code: 'ru'
+};
+
+console.log('👤 Пользователь:', user);
+
+// Расширение Telegram WebApp
+if (tg.expand) tg.expand();
+if (tg.ready) tg.ready();
+
+// Утилита для безопасных fetch запросов с обработкой ошибок
+async function safeFetch(url, options = {}) {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Fetch error:', error);
+    showError(error.message || 'Ошибка сети. Проверьте подключение.');
+    throw error;
+  }
+}
+
+// Показ ошибок пользователю
+function showError(message) {
+  console.error('❌ Ошибка:', message);
+  if (tg.showAlert) {
+    tg.showAlert(message);
+  } else {
+    alert(message);
+  }
+}
+
+// Показ успешного действия
+function showSuccess(message) {
+  console.log('✅ Успех:', message);
+  if (tg.showAlert) {
+    tg.showAlert(message);
+  } else {
+    alert(message);
+  }
+}
+
+// Показ загрузки
+function showLoading(elementId) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.innerHTML = '<p style="text-align:center;">⏳ Загрузка...</p>';
+  }
+}
+
+// Инициализация приложения
+async function initApp() {
+  try {
+    console.log('🚀 Инициализация приложения...');
+    console.log('👤 Пользователь:', user);
+    
+    // Регистрация пользователя
+    await safeFetch(`${CONFIG.API_URL}/api/user`, {
+      method: 'POST',
+      body: JSON.stringify(user),
+    }).catch(err => console.warn('User registration failed:', err));
+
+    // Проверка прав администратора
+    console.log('🔐 Проверка прав администратора...');
+    await checkAdmin();
+
+    // Загрузка партнеров
+    console.log('📦 Загрузка партнерских ссылок...');
+    await loadPartners();
+    
+    console.log('✅ Инициализация завершена!');
+
+  } catch (error) {
+    console.error('❌ Init error:', error);
+    showError('Ошибка инициализации приложения');
+  }
+}
+
+// Проверка прав администратора
+async function checkAdmin() {
+  try {
+    const data = await safeFetch(`${CONFIG.API_URL}/api/me`, {
+      method: 'POST',
+      body: JSON.stringify(user),
+    });
+
+    if (data.is_admin) {
+      const btn = document.getElementById('adminBtn');
+      btn.style.display = 'block';
+      btn.onclick = toggleAdminPanel;
+    }
+  } catch (error) {
+    console.error('Admin check failed:', error);
+  }
+}
+
+// Переключение панели администратора
+function toggleAdminPanel() {
+  const panel = document.getElementById('adminPanel');
+  
+  // Получаем computed style, так как inline style может быть пустым
+  const currentDisplay = window.getComputedStyle(panel).display;
+  const isVisible = currentDisplay !== 'none';
+  
+  console.log('🔄 Переключение админ-панели. Текущее состояние:', isVisible ? 'видна' : 'скрыта');
+  
+  if (isVisible) {
+    panel.style.display = 'none';
+    console.log('❌ Админ-панель скрыта');
+  } else {
+    panel.style.display = 'block';
+    console.log('✅ Админ-панель показана');
+    loadAdminData();
+  }
+}
+
+// Загрузка партнеров
+async function loadPartners() {
+  const container = document.getElementById('categories');
+  showLoading('categories');
+
+  try {
+    const partners = await safeFetch(`${CONFIG.API_URL}/api/partners`);
+
+    if (!partners || partners.length === 0) {
+      container.innerHTML = '<p style="text-align:center;">Партнерские ссылки пока не добавлены</p>';
+      return;
+    }
+
+    // Группировка по категориям
+    const categories = {};
+    partners.forEach(p => {
+      if (!categories[p.category]) categories[p.category] = [];
+      categories[p.category].push(p);
+    });
+
+    // Отрисовка категорий
+    container.innerHTML = '';
+    for (const [catName, links] of Object.entries(categories)) {
+      const div = document.createElement('div');
+      div.className = 'category';
+
+      const h = document.createElement('h2');
+      h.textContent = catName;
+      div.appendChild(h);
+
+      links.forEach(link => {
+        const a = document.createElement('a');
+        a.className = 'link-btn';
+        a.href = link.url;
+        a.target = '_blank';
+        a.textContent = link.title;
+        a.onclick = (e) => handleLinkClick(e, link);
+        div.appendChild(a);
+      });
+
+      container.appendChild(div);
+    }
+  } catch (error) {
+    container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки партнеров</p>';
+  }
+}
+
+// Обработка клика по ссылке
+async function handleLinkClick(event, link) {
+  try {
+    // Регистрация клика (не блокируем переход)
+    safeFetch(`${CONFIG.API_URL}/api/click`, {
+      method: 'POST',
+      body: JSON.stringify({
+        telegram_id: user.id,
+        url: link.url,
+      }),
+    }).catch(err => console.warn('Click tracking failed:', err));
+
+    // Вибрация для обратной связи
+    if (tg.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('light');
+    }
+  } catch (error) {
+    console.error('Link click handler error:', error);
+  }
+}
+
+// Загрузка данных администратора
+async function loadAdminData() {
+  const statsDiv = document.getElementById('stats');
+  const table = document.getElementById('userTable');
+
+  showLoading('stats');
+  table.innerHTML = '<tr><th>Username</th><th>Telegram ID</th><th>Подписан</th></tr>';
+
+  try {
+    const users = await safeFetch(`${CONFIG.API_URL}/api/subscribers`);
+
+    // Статистика
+    const subscribed = users.filter(u => u.subscribed).length;
+    const unsubscribed = users.length - subscribed;
+    statsDiv.innerHTML = `
+      <p>
+        <strong>Всего:</strong> ${users.length}<br>
+        <strong>Подписаны:</strong> ${subscribed}<br>
+        <strong>Отписаны:</strong> ${unsubscribed}
+      </p>
+    `;
+
+    // Таблица пользователей
+    users.forEach(u => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${u.username || 'N/A'}</td>
+        <td>${u.telegram_id}</td>
+        <td>${u.subscribed ? '✅' : '❌'}</td>
+      `;
+      table.appendChild(tr);
+    });
+  } catch (error) {
+    statsDiv.innerHTML = '<p style="color:red;">Ошибка загрузки данных</p>';
+  }
+}
+
+// Обработка формы рассылки
+document.getElementById('pushForm').onsubmit = async (e) => {
+  e.preventDefault();
+
+  const title = document.getElementById('pushTitle').value.trim();
+  const msg = document.getElementById('pushMessage').value.trim();
+  const link = document.getElementById('pushLink').value.trim();
+
+  // Валидация
+  if (!title || !msg || !link) {
+    showError('Заполните все поля');
+    return;
+  }
+
+  if (!link.startsWith('http://') && !link.startsWith('https://')) {
+    showError('Ссылка должна начинаться с http:// или https://');
+    return;
+  }
+
+  const submitBtn = e.target.querySelector('button');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = '⏳ Отправка...';
+
+  try {
+    const result = await safeFetch(`${CONFIG.API_URL}/api/push`, {
+      method: 'POST',
+      body: JSON.stringify({ title, msg, link }),
+    });
+
+    showSuccess(`✅ Пуш отправлен! (${result.sent || 0}/${result.total || 0} успешно)`);
+
+    // Очистка формы
+    document.getElementById('pushTitle').value = '';
+    document.getElementById('pushMessage').value = '';
+    document.getElementById('pushLink').value = '';
+
+  } catch (error) {
+    // Ошибка уже показана в safeFetch
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+};
+
+// Запуск приложения при загрузке
+window.addEventListener('DOMContentLoaded', initApp);
+
+// Обработка ошибок приложения
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+});
+</script>
+</body>
+</html>

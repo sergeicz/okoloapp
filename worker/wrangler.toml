@@ -1,0 +1,20 @@
+name = "telegram-miniapp-api"
+main = "index.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Переменные окружения (НЕ ДОБАВЛЯЙТЕ СЮДА СЕКРЕТЫ!)
+# Секреты добавляйте через: wrangler secret put <SECRET_NAME>
+
+# Для установки секретов выполните:
+# wrangler secret put CREDENTIALS_JSON
+# wrangler secret put SHEET_ID
+# wrangler secret put BOT_TOKEN
+
+# Настройки для разработки
+[env.dev]
+# Можете добавить тестовые переменные для dev окружения
+
+# Настройки для продакшена
+[env.production]
+# Продакшен переменные (через wrangler secret put)
