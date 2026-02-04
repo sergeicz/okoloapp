@@ -7,10 +7,9 @@ compatibility_flags = ["nodejs_compat"]
 account_id = "9787bc5a799dbb7d09f45960759b564d"
 
 # KV для хранения состояния создания рассылок
-# ВРЕМЕННО ОТКЛЮЧЕНО для проверки деплоя - нужно добавить права на KV в токен
-# [[kv_namespaces]]
-# binding = "BROADCAST_STATE"
-# id = "b883ce45a3ce4431969d209637709300"
+[[kv_namespaces]]
+binding = "BROADCAST_STATE"
+id = "b883ce45a3ce4431969d209637709300"
 
 # Cron Triggers - автоматическая проверка пользователей каждые 15 минут
 [triggers]
