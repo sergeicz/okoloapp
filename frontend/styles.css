@@ -1075,7 +1075,7 @@ h2 {
 }
 
 /* =====================================================
-   УВЕДОМЛЕНИЕ О ПРОМОКОДЕ
+   УВЕДОМЛЕНИЕ О ПРОМОКОДЕ - GLASS MORPHISM
    ===================================================== */
 
 .promo-notification {
@@ -1083,20 +1083,27 @@ h2 {
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: var(--text-primary);
   padding: 20px 30px;
   border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+  border: 2px solid var(--glass-border);
+  box-shadow: var(--shadow), 0 0 30px rgba(255, 0, 0, 0.3);
   display: flex;
   align-items: center;
   gap: 15px;
   z-index: 10000;
-  min-width: 300px;
+  min-width: 320px;
   max-width: 90%;
   animation: slideDown 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.promo-notification:hover {
+  border-color: var(--brutal-red);
+  box-shadow: var(--shadow), 0 0 40px rgba(255, 0, 0, 0.5);
 }
 
 .promo-notification.hiding {
@@ -1104,8 +1111,10 @@ h2 {
 }
 
 .promo-notification-icon {
-  font-size: 32px;
+  font-size: 36px;
   animation: bounce 0.6s ease-in-out;
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+  flex-shrink: 0;
 }
 
 .promo-notification-content {
@@ -1116,38 +1125,47 @@ h2 {
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 5px;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #FF0000 0%, #FFFFFF 50%, #FF0000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .promo-notification-text {
   font-size: 13px;
-  opacity: 0.95;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
 .promo-notification-close {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  width: 28px;
-  height: 28px;
+  background: rgba(255, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  transition: all 0.2s;
+  font-size: 20px;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  backdrop-filter: blur(10px);
 }
 
 .promo-notification-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
+  background: rgba(255, 0, 0, 0.4);
+  border-color: var(--brutal-red);
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
 }
 
 .promo-notification-close:active {
-  transform: scale(0.95);
+  transform: scale(0.95) rotate(90deg);
 }
 
 @keyframes slideDown {
@@ -1187,10 +1205,12 @@ h2 {
     top: 10px;
     padding: 16px 20px;
     min-width: auto;
+    max-width: calc(100vw - 32px);
+    gap: 12px;
   }
   
   .promo-notification-icon {
-    font-size: 28px;
+    font-size: 30px;
   }
   
   .promo-notification-title {
@@ -1199,5 +1219,36 @@ h2 {
   
   .promo-notification-text {
     font-size: 12px;
+  }
+  
+  .promo-notification-close {
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .promo-notification {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  
+  .promo-notification-icon {
+    font-size: 26px;
+  }
+  
+  .promo-notification-title {
+    font-size: 13px;
+  }
+  
+  .promo-notification-text {
+    font-size: 11px;
+  }
+  
+  .promo-notification-close {
+    width: 26px;
+    height: 26px;
+    font-size: 16px;
   }
 }
