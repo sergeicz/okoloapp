@@ -970,7 +970,14 @@ function showSuccess(message) {
 function showLoading(elementId) {
   const element = document.getElementById(elementId);
   if (element) {
-    element.innerHTML = '<div class="loading">⏳ Загрузка</div>';
+    element.innerHTML = `
+      <div class="loading">
+        <div class="loading-bar-container">
+          <div class="loading-bar"></div>
+        </div>
+        <div class="loading-text">Загрузка...</div>
+      </div>
+    `;
   }
 }
 
