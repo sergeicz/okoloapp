@@ -3,6 +3,11 @@ main = "index.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+# KV для хранения состояния создания рассылок
+[[kv_namespaces]]
+binding = "BROADCAST_STATE"
+id = "b883ce45a3ce4431969d209637709300"
+
 # Переменные окружения (НЕ ДОБАВЛЯЙТЕ СЮДА СЕКРЕТЫ!)
 # Секреты добавляйте через: wrangler secret put <SECRET_NAME>
 

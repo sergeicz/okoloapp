@@ -156,6 +156,65 @@ async function answerCallbackQuery(botToken, callbackQueryId, text = '') {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// ADMIN CHECK
+// ═══════════════════════════════════════════════════════════════
+
+async function checkAdmin(env, user, accessToken) {
+  const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+  
+  console.log('🔍 Admin check - RAW DATA:', {
+    userUsername: user.username,
+    userUsernameType: typeof user.username,
+    userId: user.id,
+    userIdType: typeof user.id,
+    firstName: user.first_name,
+    adminsCount: admins.length,
+    adminsRaw: JSON.stringify(admins)
+  });
+  
+  // Проверяем каждого админа
+  let found = false;
+  for (const admin of admins) {
+    const adminUsername = admin.username || admin.Username || admin['username'];
+    const adminTelegramId = admin.telegram_id || admin.Telegram_id || admin['telegram_id'];
+    
+    console.log('🔎 Checking admin:', {
+      adminUsername: adminUsername,
+      adminUsernameType: typeof adminUsername,
+      adminTelegramId: adminTelegramId,
+      adminTelegramIdType: typeof adminTelegramId,
+      userUsername: user.username,
+      userId: user.id
+    });
+    
+    // Проверка по username
+    if (adminUsername && user.username) {
+      const cleanAdminUsername = String(adminUsername).toLowerCase().replace('@', '').trim();
+      const cleanUserUsername = String(user.username).toLowerCase().replace('@', '').trim();
+      console.log('Username comparison:', cleanAdminUsername, '===', cleanUserUsername, '?', cleanAdminUsername === cleanUserUsername);
+      if (cleanAdminUsername === cleanUserUsername) {
+        found = true;
+        break;
+      }
+    }
+    
+    // Проверка по telegram_id
+    if (adminTelegramId && user.id) {
+      const cleanAdminId = String(adminTelegramId).trim();
+      const cleanUserId = String(user.id).trim();
+      console.log('ID comparison:', cleanAdminId, '===', cleanUserId, '?', cleanAdminId === cleanUserId);
+      if (cleanAdminId === cleanUserId) {
+        found = true;
+        break;
+      }
+    }
+  }
+  
+  console.log('✅ Is admin:', found);
+  return found;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // BOT HANDLERS
 // ═══════════════════════════════════════════════════════════════
 
@@ -177,8 +236,7 @@ async function handleStart(env, chatId, user) {
   }
   
   // Проверяем админа
-  const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
-  const isAdmin = admins.some(a => a.username && a.username.toLowerCase() === user.username?.toLowerCase());
+  const isAdmin = await checkAdmin(env, user, accessToken);
   
   // Клавиатура
   const keyboard = {
@@ -252,10 +310,25 @@ async function handleAdminStats(env, chatId, messageId) {
 }
 
 async function handleAdminBroadcast(env, chatId, messageId) {
-  const text = `📢 *Рассылка*\n\nОтправьте сообщение в следующем формате:\n\n\`\`\`\n/broadcast Заголовок\nТекст сообщения\nhttps://ссылка-для-кнопки.com\n\`\`\`\n\nПример:\n\`\`\`\n/broadcast Новая акция!\nСкидка 50% на все товары до конца недели!\nhttps://example.com\n\`\`\``;
+  // Создаем новое состояние рассылки
+  const state = {
+    step: 'title',
+    chatId: chatId,
+    messageId: messageId,
+    title: null,
+    subtitle: null,
+    image_url: null,
+    button_text: null,
+    button_url: null,
+    started_at: new Date().toISOString()
+  };
+  
+  await env.BROADCAST_STATE.put(`broadcast_${chatId}`, JSON.stringify(state), { expirationTtl: 3600 });
+  
+  const text = `📢 *Создание рассылки*\n\n*Шаг 1 из 4:* Заголовок\n\n📝 Введите *заголовок* рассылки (обязательно):`;
   
   const keyboard = {
-    inline_keyboard: [[{ text: '« Назад', callback_data: 'admin_panel' }]]
+    inline_keyboard: [[{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }]]
   };
   
   await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/editMessageText`, {
@@ -346,6 +419,134 @@ async function handleAdminUsers(env, chatId, messageId) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// BROADCAST STEP-BY-STEP HANDLERS
+// ═══════════════════════════════════════════════════════════════
+
+async function handleBroadcastMessage(env, chatId, messageText, user) {
+  const stateJson = await env.BROADCAST_STATE.get(`broadcast_${chatId}`);
+  if (!stateJson) return false;
+  
+  const state = JSON.parse(stateJson);
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(creds);
+  const isAdmin = await checkAdmin(env, user, accessToken);
+  if (!isAdmin) return false;
+  
+  let text = '';
+  let keyboard = { inline_keyboard: [] };
+  
+  if (state.step === 'title') {
+    state.title = messageText;
+    state.step = 'subtitle';
+    text = `📢 *Создание рассылки*\n\n*Шаг 2 из 4:* Подзаголовок\n\n✅ Заголовок сохранен:\n"${messageText}"\n\n📝 Введите *подзаголовок* (описание):`;
+    keyboard.inline_keyboard = [
+      [{ text: '⏭️ Пропустить', callback_data: 'broadcast_skip_subtitle' }],
+      [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
+    ];
+  } else if (state.step === 'subtitle') {
+    state.subtitle = messageText;
+    state.step = 'image';
+    text = `📢 *Создание рассылки*\n\n*Шаг 3 из 4:* Изображение\n\n✅ Подзаголовок сохранен!\n\n🖼️ Отправьте *ссылку на картинку* (URL):`;
+    keyboard.inline_keyboard = [
+      [{ text: '⏭️ Пропустить', callback_data: 'broadcast_skip_image' }],
+      [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
+    ];
+  } else if (state.step === 'image') {
+    state.image_url = messageText;
+    state.step = 'button';
+    text = `📢 *Создание рассылки*\n\n*Шаг 4 из 4:* Кнопка\n\n✅ Картинка сохранена!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com`;
+    keyboard.inline_keyboard = [
+      [{ text: '⏭️ Пропустить', callback_data: 'broadcast_skip_button' }],
+      [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
+    ];
+  } else if (state.step === 'button') {
+    const parts = messageText.split('|').map(p => p.trim());
+    if (parts.length === 2) {
+      state.button_text = parts[0];
+      state.button_url = parts[1];
+    }
+    return await showBroadcastPreview(env, chatId, state);
+  }
+  
+  await env.BROADCAST_STATE.put(`broadcast_${chatId}`, JSON.stringify(state), { expirationTtl: 3600 });
+  await sendTelegramMessage(env.BOT_TOKEN, chatId, text, keyboard);
+  return true;
+}
+
+async function showBroadcastPreview(env, chatId, state) {
+  let previewText = `📢 *Предпросмотр рассылки*\n\n━━━━━━━━━━━━━━━━\n`;
+  if (state.title) previewText += `\n*${state.title}*\n`;
+  if (state.subtitle) previewText += `\n${state.subtitle}\n`;
+  if (state.image_url) previewText += `\n🖼️ Изображение: Да\n`;
+  if (state.button_text && state.button_url) previewText += `\n🔘 Кнопка: "${state.button_text}"\n`;
+  previewText += `\n━━━━━━━━━━━━━━━━\n\nВсе готово! Отправить рассылку?`;
+  
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: '✅ Отправить всем', callback_data: 'broadcast_confirm' }],
+      [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
+    ]
+  };
+  
+  state.step = 'confirm';
+  await env.BROADCAST_STATE.put(`broadcast_${chatId}`, JSON.stringify(state), { expirationTtl: 3600 });
+  await sendTelegramMessage(env.BOT_TOKEN, chatId, previewText, keyboard);
+  return true;
+}
+
+async function executeBroadcast(env, chatId, state) {
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(creds);
+  const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+  
+  let messageText = '';
+  if (state.title) messageText += `*${state.title}*\n`;
+  if (state.subtitle) messageText += `\n${state.subtitle}`;
+  
+  let keyboard = null;
+  if (state.button_text && state.button_url) {
+    keyboard = { inline_keyboard: [[{ text: state.button_text, url: state.button_url }]] };
+  }
+  
+  let successCount = 0;
+  let failCount = 0;
+  
+  await sendTelegramMessage(env.BOT_TOKEN, chatId, `⏳ Начинаю рассылку...`);
+  
+  for (const user of users) {
+    if (user.telegram_id && user.bot_started === 'TRUE') {
+      try {
+        if (state.image_url) {
+          await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: user.telegram_id,
+              photo: state.image_url,
+              caption: messageText,
+              parse_mode: 'Markdown',
+              reply_markup: keyboard,
+            }),
+          });
+        } else {
+          await sendTelegramMessage(env.BOT_TOKEN, user.telegram_id, messageText, keyboard);
+        }
+        successCount++;
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error(`Failed to send to ${user.telegram_id}:`, error);
+        failCount++;
+      }
+    }
+  }
+  
+  await env.BROADCAST_STATE.delete(`broadcast_${chatId}`);
+  await sendTelegramMessage(env.BOT_TOKEN, chatId, `✅ *Рассылка завершена!*\n\n✉️ Отправлено: ${successCount}\n❌ Ошибок: ${failCount}`, {
+    inline_keyboard: [[{ text: '« Вернуться в админку', callback_data: 'admin_panel' }]]
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // MAIN HANDLER
 // ═══════════════════════════════════════════════════════════════
 
@@ -375,23 +576,18 @@ export default {
       if (path === `/bot${env.BOT_TOKEN}` && request.method === 'POST') {
         const update = await request.json();
         
-        // Обработка команд
+        // Обработка команд и сообщений
         if (update.message) {
           const chatId = update.message.chat.id;
           const text = update.message.text;
           const user = update.message.from;
           
-          if (text === '/start') {
-            await handleStart(env, chatId, user);
-          } else if (text.startsWith('/broadcast')) {
-            // Проверка админа
-            const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
-            const isAdmin = admins.some(a => a.username && a.username.toLowerCase() === user.username?.toLowerCase());
-            
-            if (isAdmin) {
-              await handleBroadcast(env, chatId, text);
-            } else {
-              await sendTelegramMessage(env.BOT_TOKEN, chatId, '❌ У вас нет прав администратора');
+          // Проверяем, есть ли активная рассылка
+          const broadcastHandled = await handleBroadcastMessage(env, chatId, text, user);
+          
+          if (!broadcastHandled) {
+            if (text === '/start') {
+              await handleStart(env, chatId, user);
             }
           }
         }
@@ -405,8 +601,7 @@ export default {
           const user = callbackQuery.from;
           
           // Проверка админа
-          const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
-          const isAdmin = admins.some(a => a.username && a.username.toLowerCase() === user.username?.toLowerCase());
+          const isAdmin = await checkAdmin(env, user, accessToken);
           
           if (!isAdmin && data !== 'back_to_start') {
             await answerCallbackQuery(env.BOT_TOKEN, callbackQuery.id, '❌ У вас нет прав администратора');
@@ -423,6 +618,49 @@ export default {
             await handleAdminUsers(env, chatId, messageId);
           } else if (data === 'back_to_start') {
             await handleStart(env, chatId, user);
+          } else if (data === 'broadcast_skip_subtitle') {
+            const stateJson = await env.BROADCAST_STATE.get(`broadcast_${chatId}`);
+            if (stateJson) {
+              const state = JSON.parse(stateJson);
+              state.step = 'image';
+              await env.BROADCAST_STATE.put(`broadcast_${chatId}`, JSON.stringify(state), { expirationTtl: 3600 });
+              await sendTelegramMessage(env.BOT_TOKEN, chatId, `📢 *Создание рассылки*\n\n*Шаг 3 из 4:* Изображение\n\n🖼️ Отправьте *ссылку на картинку* (URL):`, {
+                inline_keyboard: [
+                  [{ text: '⏭️ Пропустить', callback_data: 'broadcast_skip_image' }],
+                  [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
+                ]
+              });
+            }
+          } else if (data === 'broadcast_skip_image') {
+            const stateJson = await env.BROADCAST_STATE.get(`broadcast_${chatId}`);
+            if (stateJson) {
+              const state = JSON.parse(stateJson);
+              state.step = 'button';
+              await env.BROADCAST_STATE.put(`broadcast_${chatId}`, JSON.stringify(state), { expirationTtl: 3600 });
+              await sendTelegramMessage(env.BOT_TOKEN, chatId, `📢 *Создание рассылки*\n\n*Шаг 4 из 4:* Кнопка\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com`, {
+                inline_keyboard: [
+                  [{ text: '⏭️ Пропустить', callback_data: 'broadcast_skip_button' }],
+                  [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
+                ]
+              });
+            }
+          } else if (data === 'broadcast_skip_button') {
+            const stateJson = await env.BROADCAST_STATE.get(`broadcast_${chatId}`);
+            if (stateJson) {
+              const state = JSON.parse(stateJson);
+              await showBroadcastPreview(env, chatId, state);
+            }
+          } else if (data === 'broadcast_confirm') {
+            const stateJson = await env.BROADCAST_STATE.get(`broadcast_${chatId}`);
+            if (stateJson) {
+              const state = JSON.parse(stateJson);
+              await executeBroadcast(env, chatId, state);
+            }
+          } else if (data === 'broadcast_cancel') {
+            await env.BROADCAST_STATE.delete(`broadcast_${chatId}`);
+            await sendTelegramMessage(env.BOT_TOKEN, chatId, '❌ Создание рассылки отменено.', {
+              inline_keyboard: [[{ text: '« Вернуться в админку', callback_data: 'admin_panel' }]]
+            });
           }
           
           await answerCallbackQuery(env.BOT_TOKEN, callbackQuery.id);
@@ -443,6 +681,7 @@ export default {
           mode: 'production_with_bot_and_sheets',
         });
       }
+
 
       if (path === '/api/partners' && request.method === 'GET') {
         const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
