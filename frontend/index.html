@@ -70,6 +70,11 @@
   100% { background-position: 1000px 0; }
 }
 
+html {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   background: linear-gradient(-45deg, #000000, #1a1a1a, #8B0000, #000000);
@@ -77,17 +82,21 @@ body {
   animation: gradient 15s ease infinite;
   color: var(--text-primary);
   min-height: 100vh;
+  max-width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 20px;
   overflow-x: hidden;
+  position: relative;
 }
 
 .container {
   max-width: 600px;
   width: 100%;
   animation: fadeInUp 0.8s ease-out;
+  overflow-x: hidden;
+  word-wrap: break-word;
 }
 
 /* Avatar Section */
@@ -127,6 +136,8 @@ h1 {
   animation: pulse 2s ease-in-out infinite;
   letter-spacing: 2px;
   text-transform: uppercase;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 h2 {
@@ -136,6 +147,8 @@ h2 {
   margin-bottom: 40px;
   color: var(--text-secondary);
   letter-spacing: 1px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Glassmorphism Card */
@@ -150,6 +163,8 @@ h2 {
   box-shadow: var(--shadow);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeInUp 0.6s ease-out backwards;
+  overflow: hidden;
+  word-wrap: break-word;
 }
 
 .glass-card:nth-child(2) { animation-delay: 0.1s; }
@@ -191,6 +206,7 @@ h2 {
   justify-content: center;
   gap: 12px;
   width: 100%;
+  max-width: 100%;
   padding: 16px 24px;
   margin: 12px 0;
   text-align: center;
@@ -201,6 +217,8 @@ h2 {
   border-radius: 12px;
   background: var(--glass-bg);
   backdrop-filter: blur(20px);
+  word-wrap: break-word;
+  overflow: hidden;
   border: 2px solid var(--glass-border);
   box-shadow: 0 4px 16px rgba(255, 0, 0, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -330,9 +348,12 @@ h2 {
   padding: 30px;
   max-width: 450px;
   width: 100%;
+  max-width: calc(100vw - 40px);
   text-align: center;
   box-shadow: 0 20px 60px rgba(255, 0, 0, 0.4);
   animation: slideUp 0.4s ease;
+  overflow: hidden;
+  word-wrap: break-word;
 }
 
 .cookie-icon {
@@ -352,6 +373,9 @@ h2 {
   line-height: 1.6;
   margin-bottom: 25px;
   text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .cookie-text a {
@@ -619,12 +643,13 @@ h2 {
 /* Responsive - Мобильная адаптация */
 @media (max-width: 768px) {
   body {
-    padding: 15px;
+    padding: 12px;
   }
 
   .container {
-    padding: 25px 15px;
+    padding: 20px 12px;
     max-width: 100%;
+    width: calc(100vw - 24px);
   }
 
   h1 {
@@ -667,12 +692,13 @@ h2 {
 
   /* Cookie Modal Mobile */
   #cookieConsent {
-    padding: 15px;
+    padding: 12px;
   }
 
   .cookie-box {
-    padding: 25px 20px;
-    max-width: 90%;
+    padding: 22px 18px;
+    max-width: calc(100vw - 24px);
+    width: 95%;
   }
 
   .cookie-icon {
@@ -693,11 +719,12 @@ h2 {
 
 @media (max-width: 480px) {
   body {
-    padding: 10px;
+    padding: 8px;
   }
 
   .container {
-    padding: 20px 12px;
+    padding: 16px 10px;
+    width: calc(100vw - 16px);
   }
 
   h1 {
@@ -744,11 +771,13 @@ h2 {
 
   /* Cookie Modal Small Mobile */
   #cookieConsent {
-    padding: 12px;
+    padding: 8px;
   }
 
   .cookie-box {
-    padding: 20px 16px;
+    padding: 18px 14px;
+    max-width: calc(100vw - 16px);
+    width: 96%;
   }
 
   .cookie-icon {
@@ -769,64 +798,127 @@ h2 {
 
 /* Очень маленькие экраны */
 @media (max-width: 360px) {
+  body {
+    padding: 6px;
+  }
+
+  .container {
+    padding: 14px 8px;
+    width: calc(100vw - 12px);
+  }
+
   h1 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
   }
 
   h2 {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+  }
+
+  .glass-card {
+    padding: 14px 10px;
   }
 
   .glass-card h3 {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   .modern-btn {
-    font-size: 0.8rem;
-    padding: 10px 12px;
+    font-size: 0.75rem;
+    padding: 10px 10px;
   }
 
   .modern-btn .btn-logo {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
+  }
+
+  #cookieConsent {
+    padding: 6px;
   }
 
   .cookie-box {
-    padding: 18px 14px;
+    padding: 16px 12px;
+    max-width: calc(100vw - 12px);
+    width: 97%;
   }
 
   .cookie-icon {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+    margin-bottom: 8px;
   }
 
   .cookie-text {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    margin-bottom: 16px;
   }
 
   .cookie-btn {
-    font-size: 0.85rem;
-    padding: 10px 24px;
+    font-size: 0.8rem;
+    padding: 10px 20px;
   }
 }
 
 /* Ландшафтная ориентация для мобильных */
 @media (max-height: 600px) and (orientation: landscape) {
+  body {
+    padding: 8px;
+  }
+
   .cookie-box {
-    padding: 20px;
+    padding: 16px 20px;
+    max-width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
   }
 
   .cookie-icon {
-    font-size: 2rem;
-    margin-bottom: 10px;
+    font-size: 1.8rem;
+    margin-bottom: 8px;
   }
 
   .cookie-text {
-    font-size: 0.85rem;
-    margin-bottom: 15px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin-bottom: 12px;
   }
 
   .cookie-btn {
-    padding: 10px 30px;
+    padding: 8px 24px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Дополнительная защита от горизонтального скролла */
+@media (max-width: 320px) {
+  body {
+    padding: 4px;
+  }
+
+  .container {
+    padding: 12px 6px;
+    width: calc(100vw - 8px);
+  }
+
+  h1 {
+    font-size: 1.1rem;
+    letter-spacing: 0.3px;
+  }
+
+  .cookie-box {
+    padding: 14px 10px;
+    max-width: calc(100vw - 8px);
+  }
+
+  .cookie-text {
+    font-size: 0.7rem;
+  }
+
+  .cookie-btn {
+    padding: 9px 18px;
+    font-size: 0.75rem;
   }
 }
 
@@ -849,7 +941,7 @@ html {
   <div class="cookie-box">
     <div class="cookie-icon">🐹</div>
     <div class="cookie-text">
-      Мы используем cookies для улучшения вашего опыта и аналитики. <br>Продолжая использование вы соглашаетесь с 
+      Мы используем cookies для улучшения вашего опыта и аналитики. <>Продолжая использование вы соглашаетесь с 
       <a href="./policy.html" target="_blank">Политикой конфиденциальности</a> и 
       <a href="./offer.html" target="_blank">Пользовательской офертой</a>
     </div>
