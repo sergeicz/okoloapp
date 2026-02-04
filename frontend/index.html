@@ -347,6 +347,17 @@ h2 {
   margin-bottom: 25px;
 }
 
+.cookie-text a {
+  color: var(--brutal-red);
+  text-decoration: underline;
+  transition: all 0.3s ease;
+}
+
+.cookie-text a:hover {
+  color: #FF4500;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
 .cookie-btn {
   background: var(--primary);
   color: var(--text-primary);
@@ -831,7 +842,9 @@ html {
   <div class="cookie-box">
     <div class="cookie-icon">🍪</div>
     <div class="cookie-text">
-      Мы используем cookies для улучшения вашего опыта и аналитики.
+      Мы используем cookies для улучшения вашего опыта и аналитики.<br>
+      <a href="./policy.html" target="_blank" style="font-size: 0.85rem; margin-top: 10px; display: inline-block;">Политика конфиденциальности</a> • 
+      <a href="./offer.html" target="_blank" style="font-size: 0.85rem;">Пользовательская оферта</a>
     </div>
     <button class="cookie-btn" onclick="acceptCookies()">
       Понятно
