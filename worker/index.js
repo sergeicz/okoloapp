@@ -147,8 +147,22 @@ async function updateSheetRow(sheetId, sheetName, rowIndex, values, accessToken)
   return response.json();
 }
 
-async function deleteSheetRow(sheetId, sheetName, rowIndex, accessToken) {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`;
+async function getSheetIdByName(spreadsheetId, sheetName, accessToken) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const data = await response.json();
+  
+  const sheet = data.sheets.find(s => s.properties.title === sheetName);
+  return sheet ? sheet.properties.sheetId : 0;
+}
+
+async function deleteSheetRow(spreadsheetId, sheetName, rowIndex, accessToken) {
+  // Получаем внутренний ID листа
+  const sheetId = await getSheetIdByName(spreadsheetId, sheetName, accessToken);
+  
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -159,10 +173,10 @@ async function deleteSheetRow(sheetId, sheetName, rowIndex, accessToken) {
       requests: [{
         deleteDimension: {
           range: {
-            sheetId: 0, // Предполагаем что users это первый лист
+            sheetId: sheetId,
             dimension: 'ROWS',
-            startIndex: rowIndex,
-            endIndex: rowIndex + 1
+            startIndex: rowIndex - 1, // 0-based индекс для API
+            endIndex: rowIndex
           }
         }
       }]
@@ -1113,7 +1127,9 @@ export default {
           console.log(`[CLICK] 🆕 New click recorded: ${body.telegram_id} → ${body.url}`);
         }
         
-        return jsonResponse({ ok: true, success: true, clicks: existingClickIndex !== -1 ? parseInt(clicks[existingClickIndex].click || '1') + 1 : 1 });
+        // Возвращаем корректное количество кликов
+        const clickCount = existingClickIndex !== -1 ? newCount : 1;
+        return jsonResponse({ ok: true, success: true, clicks: clickCount });
       }
 
       if (path === '/api/user' && request.method === 'POST') {
