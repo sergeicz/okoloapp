@@ -525,6 +525,18 @@ document.getElementById('pushForm').onsubmit = async (e) => {
 // Запуск приложения при загрузке
 window.addEventListener('DOMContentLoaded', initApp);
 
+// Показ баннера партнёрам через 2 секунды после загрузки категорий
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const partnerBanner = document.querySelector('.partner-banner');
+    
+    if (partnerBanner) {
+      partnerBanner.classList.add('show');
+      console.log('✨ Partner banner shown after 2 seconds');
+    }
+  }, 2000);
+});
+
 // Показ социальных сетей и футера через 5 секунд после загрузки
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
