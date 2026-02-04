@@ -378,6 +378,15 @@ h2 {
   hyphens: auto;
 }
 
+.cookie-text p {
+  margin: 0 0 12px 0;
+  padding: 0;
+}
+
+.cookie-text p:last-child {
+  margin-bottom: 0;
+}
+
 .cookie-text a {
   color: var(--brutal-red);
   text-decoration: underline;
@@ -941,9 +950,8 @@ html {
   <div class="cookie-box">
     <div class="cookie-icon">🐹</div>
     <div class="cookie-text">
-      Мы используем cookies для улучшения вашего опыта и аналитики. <>Продолжая использование вы соглашаетесь с 
-      <a href="./policy.html" target="_blank">Политикой конфиденциальности</a> и 
-      <a href="./offer.html" target="_blank">Пользовательской офертой</a>
+      <p>Мы используем cookies для улучшения вашего опыта и аналитики.</p>
+      <p>Продолжая использование вы соглашаетесь с <a href="./policy.html" target="_blank">Политикой конфиденциальности</a> и <a href="./offer.html" target="_blank">Пользовательской офертой</a></p>
     </div>
     <button class="cookie-btn" onclick="acceptCookies()">
       Понятно
