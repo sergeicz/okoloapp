@@ -1,4 +1,5 @@
 // Cloudflare Worker с grammY + API + Админ-панель в боте
+// Version: 1.0.1 - Auto-deploy test
 import { Bot, webhookCallback, InlineKeyboard } from 'grammy';
 
 // CORS заголовки
