@@ -525,8 +525,8 @@ document.getElementById('pushForm').onsubmit = async (e) => {
 // Запуск приложения при загрузке
 window.addEventListener('DOMContentLoaded', initApp);
 
-// Показ баннера партнёрам при скролле до него
-window.addEventListener('DOMContentLoaded', () => {
+// Показ баннера партнёрам при скролле до него (только после полной загрузки страницы)
+window.addEventListener('load', () => {
   const partnerBanner = document.querySelector('.partner-banner');
   
   if (partnerBanner) {
