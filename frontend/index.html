@@ -17,10 +17,17 @@
 <meta name="theme-color" content="#000000">
 <meta name="msapplication-TileColor" content="#FF0000">
 
+<!-- Preload критичных ресурсов -->
+<link rel="preload" href="styles.css" as="style">
+<link rel="preload" href="img/img.png" as="image">
+
 <!-- Стили -->
 <link rel="stylesheet" href="styles.css">
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- DNS Prefetch для API -->
+<link rel="dns-prefetch" href="https://telegram-miniapp-api.worknotdead.workers.dev">
+
+<script src="https://telegram.org/js/telegram-web-app.js" defer></script>
 </head>
 <body>
 
@@ -41,7 +48,7 @@
 
 <div class="container">
   <div class="avatar-container">
-    <img src="img/img.png?v=3" alt="Логотип">
+    <img src="img/img.png?v=3" alt="Логотип" loading="eager" decoding="async">
   </div>
   
   <h1>⚡ Уникальные предложения</h1>
@@ -83,6 +90,6 @@
 </div>
 
 <!-- Scripts -->
-<script src="app.js"></script>
+<script src="app.js" defer></script>
 </body>
 </html>

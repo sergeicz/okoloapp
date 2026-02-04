@@ -1,6 +1,14 @@
 // =====================================================
 // ПАРТНЁРСКИЕ ССЫЛКИ - ОСНОВНАЯ ЛОГИКА
 // =====================================================
+//
+// ОПТИМИЗАЦИЯ ЗАГРУЗКИ:
+// - Lazy loading для изображений логотипов
+// - Асинхронная декодировка изображений
+// - DNS prefetch для API
+// - Preload критичных ресурсов
+// - Defer для скриптов
+// =====================================================
 
 // Cookie Consent Management
 function checkCookieConsent() {
@@ -282,6 +290,8 @@ async function loadPartners() {
           logo.src = link.logo_url;
           logo.alt = link.title;
           logo.className = 'btn-logo';
+          logo.loading = 'lazy'; // Lazy loading для логотипов
+          logo.decoding = 'async'; // Асинхронная декодировка
           
           logo.onerror = function() {
             console.error('[LOGO] Load failed:', link.logo_url);
