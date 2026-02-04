@@ -2766,7 +2766,7 @@ export default {
             console.log(`[PROMOCODE] Bot created, preparing message...`);
             
             // Формируем сообщение с промокодом
-            const message = `🎁 Ваш промокод от ${partner.title} (${body.url})\n\n` +
+            const message = `🎁 Ваш промокод от [${partner.title}](${body.url})\n\n` +
                           `\`${promocode}\``;
             
             // Кнопка с URL партнера
