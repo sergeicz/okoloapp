@@ -422,7 +422,7 @@ async function handleAdminUsers(env, chatId, messageId) {
 // BROADCAST STEP-BY-STEP HANDLERS
 // ═══════════════════════════════════════════════════════════════
 
-async function handleBroadcastMessage(env, chatId, messageText, user) {
+async function handleBroadcastMessage(env, chatId, messageText, user, photo) {
   const stateJson = await env.BROADCAST_STATE.get(`broadcast_${chatId}`);
   if (!stateJson) return false;
   
@@ -436,6 +436,7 @@ async function handleBroadcastMessage(env, chatId, messageText, user) {
   let keyboard = { inline_keyboard: [] };
   
   if (state.step === 'title') {
+    if (!messageText) return false; // Игнорируем фото на этапе заголовка
     state.title = messageText;
     state.step = 'subtitle';
     text = `📢 *Создание рассылки*\n\n*Шаг 2 из 4:* Подзаголовок\n\n✅ Заголовок сохранен:\n"${messageText}"\n\n📝 Введите *подзаголовок* (описание):`;
@@ -444,27 +445,46 @@ async function handleBroadcastMessage(env, chatId, messageText, user) {
       [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
     ];
   } else if (state.step === 'subtitle') {
+    if (!messageText) return false; // Игнорируем фото на этапе подзаголовка
     state.subtitle = messageText;
     state.step = 'image';
-    text = `📢 *Создание рассылки*\n\n*Шаг 3 из 4:* Изображение\n\n✅ Подзаголовок сохранен!\n\n🖼️ Отправьте *ссылку на картинку* (URL):`;
+    text = `📢 *Создание рассылки*\n\n*Шаг 3 из 4:* Изображение\n\n✅ Подзаголовок сохранен!\n\n🖼️ *Прикрепите изображение* или отправьте ссылку (URL):`;
     keyboard.inline_keyboard = [
       [{ text: '⏭️ Пропустить', callback_data: 'broadcast_skip_image' }],
       [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
     ];
   } else if (state.step === 'image') {
-    state.image_url = messageText;
+    // Проверяем: это фото или текст?
+    if (photo && photo.length > 0) {
+      // Получаем самое большое фото (последнее в массиве)
+      const largestPhoto = photo[photo.length - 1];
+      state.image_file_id = largestPhoto.file_id;
+      console.log('🖼️ Image file_id saved:', largestPhoto.file_id);
+      text = `📢 *Создание рассылки*\n\n*Шаг 4 из 4:* Кнопка\n\n✅ Картинка сохранена!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com`;
+    } else if (messageText) {
+      // Это URL
+      state.image_url = messageText;
+      console.log('🖼️ Image URL saved:', messageText);
+      text = `📢 *Создание рассылки*\n\n*Шаг 4 из 4:* Кнопка\n\n✅ Картинка сохранена!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com`;
+    } else {
+      return false;
+    }
     state.step = 'button';
-    text = `📢 *Создание рассылки*\n\n*Шаг 4 из 4:* Кнопка\n\n✅ Картинка сохранена!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com`;
     keyboard.inline_keyboard = [
       [{ text: '⏭️ Пропустить', callback_data: 'broadcast_skip_button' }],
       [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
     ];
   } else if (state.step === 'button') {
+    if (!messageText) return false; // Игнорируем фото на этапе кнопки
     const parts = messageText.split('|').map(p => p.trim());
     if (parts.length === 2) {
       state.button_text = parts[0];
       state.button_url = parts[1];
+      console.log('🔘 Button saved:', parts[0], '→', parts[1]);
+    } else {
+      console.log('⚠️ Button parse failed, parts:', parts);
     }
+    console.log('📊 Final state before preview:', state);
     return await showBroadcastPreview(env, chatId, state);
   }
   
@@ -474,23 +494,73 @@ async function handleBroadcastMessage(env, chatId, messageText, user) {
 }
 
 async function showBroadcastPreview(env, chatId, state) {
-  let previewText = `📢 *Предпросмотр рассылки*\n\n━━━━━━━━━━━━━━━━\n`;
-  if (state.title) previewText += `\n*${state.title}*\n`;
-  if (state.subtitle) previewText += `\n${state.subtitle}\n`;
-  if (state.image_url) previewText += `\n🖼️ Изображение: Да\n`;
-  if (state.button_text && state.button_url) previewText += `\n🔘 Кнопка: "${state.button_text}"\n`;
-  previewText += `\n━━━━━━━━━━━━━━━━\n\nВсе готово! Отправить рассылку?`;
+  console.log('🔍 Preview state:', {
+    hasTitle: !!state.title,
+    hasSubtitle: !!state.subtitle,
+    hasImageUrl: !!state.image_url,
+    hasImageFileId: !!state.image_file_id,
+    imageUrl: state.image_url,
+    imageFileId: state.image_file_id,
+    hasButton: !!(state.button_text && state.button_url),
+    buttonText: state.button_text,
+    buttonUrl: state.button_url,
+    fullState: state
+  });
   
-  const keyboard = {
-    inline_keyboard: [
-      [{ text: '✅ Отправить всем', callback_data: 'broadcast_confirm' }],
-      [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
-    ]
-  };
+  // Если есть изображение (URL или file_id) - показываем его с подписью
+  const hasImage = (state.image_url && state.image_url.trim() !== '') || (state.image_file_id && state.image_file_id.trim() !== '');
+  
+  if (hasImage) {
+    const photoSource = state.image_file_id || state.image_url;
+    console.log('📸 Showing preview WITH image:', photoSource);
+    let caption = `📢 *Предпросмотр рассылки*\n\n`;
+    if (state.title) caption += `*${state.title}*\n`;
+    if (state.subtitle) caption += `\n${state.subtitle}\n`;
+    if (state.button_text && state.button_url) caption += `\n🔘 Кнопка: "${state.button_text}"\n`;
+    caption += `\n━━━━━━━━━━━━━━━━\n\nВсе готово! Отправить рассылку?`;
+    
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '✅ Отправить всем', callback_data: 'broadcast_confirm' }],
+        [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
+      ]
+    };
+    
+    // Отправляем фото с подписью
+    const response = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        photo: photoSource,
+        caption: caption,
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+      }),
+    });
+    const result = await response.json();
+    console.log('📸 sendPhoto result:', result);
+  } else {
+    console.log('📝 Showing preview WITHOUT image (text only)');
+    // Текстовый предпросмотр без изображения
+    let previewText = `📢 *Предпросмотр рассылки*\n\n━━━━━━━━━━━━━━━━\n`;
+    if (state.title) previewText += `\n*${state.title}*\n`;
+    if (state.subtitle) previewText += `\n${state.subtitle}\n`;
+    if (state.button_text && state.button_url) previewText += `\n🔘 Кнопка: "${state.button_text}"\n`;
+    previewText += `\n━━━━━━━━━━━━━━━━\n\nВсе готово! Отправить рассылку?`;
+    
+    const keyboard = {
+      inline_keyboard: [
+        [{ text: '✅ Отправить всем', callback_data: 'broadcast_confirm' }],
+        [{ text: '❌ Отменить', callback_data: 'broadcast_cancel' }],
+      ]
+    };
+    
+    await sendTelegramMessage(env.BOT_TOKEN, chatId, previewText, keyboard);
+  }
   
   state.step = 'confirm';
   await env.BROADCAST_STATE.put(`broadcast_${chatId}`, JSON.stringify(state), { expirationTtl: 3600 });
-  await sendTelegramMessage(env.BOT_TOKEN, chatId, previewText, keyboard);
   return true;
 }
 
@@ -498,6 +568,12 @@ async function executeBroadcast(env, chatId, state) {
   const creds = JSON.parse(env.CREDENTIALS_JSON);
   const accessToken = await getAccessToken(creds);
   const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+  
+  console.log('📊 Broadcast execution:', {
+    state: state,
+    totalUsers: users.length,
+    usersWithId: users.filter(u => u.telegram_id).length,
+  });
   
   let messageText = '';
   if (state.title) messageText += `*${state.title}*\n`;
@@ -508,30 +584,51 @@ async function executeBroadcast(env, chatId, state) {
     keyboard = { inline_keyboard: [[{ text: state.button_text, url: state.button_url }]] };
   }
   
+  console.log('📝 Message config:', {
+    hasImage: !!state.image_url,
+    imageUrl: state.image_url,
+    messageText: messageText,
+    hasButton: !!keyboard,
+    keyboard: keyboard
+  });
+  
   let successCount = 0;
   let failCount = 0;
   
   await sendTelegramMessage(env.BOT_TOKEN, chatId, `⏳ Начинаю рассылку...`);
   
+  // Отправляем ВСЕМ пользователям с telegram_id
   for (const user of users) {
-    if (user.telegram_id && user.bot_started === 'TRUE') {
+    if (user.telegram_id && String(user.telegram_id).trim() !== '') {
       try {
-        if (state.image_url) {
-          await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
+        const hasImage = (state.image_url && state.image_url.trim() !== '') || (state.image_file_id && state.image_file_id.trim() !== '');
+        
+        if (hasImage) {
+          const photoSource = state.image_file_id || state.image_url;
+          console.log(`📸 Sending photo to ${user.telegram_id}`);
+          const response = await fetch(`https://api.telegram.org/bot${env.BOT_TOKEN}/sendPhoto`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               chat_id: user.telegram_id,
-              photo: state.image_url,
+              photo: photoSource,
               caption: messageText,
               parse_mode: 'Markdown',
               reply_markup: keyboard,
             }),
           });
+          const result = await response.json();
+          if (!result.ok) {
+            console.error(`Failed to send photo to ${user.telegram_id}:`, result);
+            failCount++;
+          } else {
+            successCount++;
+          }
         } else {
+          console.log(`📝 Sending text to ${user.telegram_id}`);
           await sendTelegramMessage(env.BOT_TOKEN, user.telegram_id, messageText, keyboard);
+          successCount++;
         }
-        successCount++;
         await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
         console.error(`Failed to send to ${user.telegram_id}:`, error);
@@ -581,9 +678,10 @@ export default {
           const chatId = update.message.chat.id;
           const text = update.message.text;
           const user = update.message.from;
+          const photo = update.message.photo; // Получаем фото если есть
           
           // Проверяем, есть ли активная рассылка
-          const broadcastHandled = await handleBroadcastMessage(env, chatId, text, user);
+          const broadcastHandled = await handleBroadcastMessage(env, chatId, text, user, photo);
           
           if (!broadcastHandled) {
             if (text === '/start') {
