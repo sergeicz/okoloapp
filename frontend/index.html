@@ -2,58 +2,513 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Mini App Admin</title>
+<title>Партнерские ссылки</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-:root {
-  --bg-color: #121212;
-  --primary-color: #4f9dff;
-  --accent-color: #28a745;
-  --text-color: #f0f0f0;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
-body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg,#0f0f0f,#1a1a1a); color: var(--text-color); padding:10px; min-height:100vh; }
-.avatar-container{text-align:center;margin-bottom:20px;}
-.avatar-container img{width:100px;height:100px;border-radius:50%;border:3px solid rgba(255,255,255,0.3);box-shadow:0 4px 12px rgba(0,0,0,0.5);}
-h1{text-align:center;padding:10px 0 20px;font-size:26px;color: var(--primary-color);}
-.category{background: rgba(255,255,255,0.05);backdrop-filter: blur(10px);border-radius: 16px;border:1px solid rgba(255,255,255,0.1);padding:15px;margin-bottom:15px;box-shadow:0 8px 32px rgba(0,0,0,0.37);transition:transform 0.2s,box-shadow 0.2s;}
-.category:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.5);}
-.category h2{font-size:20px;margin-bottom:10px;color: var(--primary-color);}
-.link-btn{display:block;width:100%;padding:12px;margin:6px 0;text-align:center;color:#fff;text-decoration:none;border-radius:12px;font-size:16px;background: rgba(255,255,255,0.1);backdrop-filter: blur(8px);border:1px solid rgba(255,255,255,0.2);box-shadow:0 4px 16px rgba(0,0,0,0.3);transition:transform 0.2s,background 0.2s;}
-.link-btn:hover{transform:translateY(-2px);background: rgba(255,255,255,0.15);}
-#adminBtn{display:none;width:90%;margin:10px auto;padding:12px;text-align:center;font-size:16px;border-radius:12px;color:#fff;cursor:pointer;background: rgba(40, 167, 69,0.2);backdrop-filter: blur(10px);border:1px solid rgba(40,167,69,0.4);box-shadow:0 4px 16px rgba(0,0,0,0.3);}
-#adminBtn:hover{transform:translateY(-2px);background: rgba(40,167,69,0.3);}
-#adminPanel{display:none;padding:10px;}
-#adminPanel h2{color: var(--accent-color); margin-top:10px;}
-.user-table{width:100%;border-collapse:collapse;margin-bottom:10px;}
-.user-table th,.user-table td{border:1px solid rgba(255,255,255,0.2);padding:5px;text-align:center;}
-#pushForm input,#pushForm textarea{width:100%;margin:5px 0;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#fff;}
-#pushForm button{width:100%;padding:10px;margin-top:5px;border:none;border-radius:12px;background:var(--accent-color);color:#fff;cursor:pointer;transition:0.2s;}
-#pushForm button:hover{background:#1e7e34;}
-@media(max-width:480px){h1{font-size:22px;}.category h2{font-size:18px;}.link-btn{font-size:15px;padding:10px;}#pushForm button{font-size:15px;padding:8px;}}
+
+:root {
+  --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 600px;
+  width: 100%;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+/* Avatar Section */
+.avatar-container {
+  text-align: center;
+  margin-bottom: 30px;
+  animation: float 3s ease-in-out infinite;
+}
+
+.avatar-container img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow), 0 0 40px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.avatar-container img:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: var(--shadow), 0 0 60px rgba(255, 255, 255, 0.4);
+}
+
+/* Title */
+h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 40px;
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Glassmorphism Card */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid var(--glass-border);
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.glass-card:nth-child(2) { animation-delay: 0.1s; }
+.glass-card:nth-child(3) { animation-delay: 0.2s; }
+.glass-card:nth-child(4) { animation-delay: 0.3s; }
+
+.glass-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.glass-card h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.glass-card h2::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 24px;
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+/* Modern Button */
+.modern-btn {
+  display: block;
+  width: 100%;
+  padding: 16px 24px;
+  margin: 12px 0;
+  text-align: center;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 16px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.modern-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.modern-btn:hover::before {
+  left: 100%;
+}
+
+.modern-btn:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.modern-btn:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+/* Gradient Button */
+.gradient-btn {
+  background: var(--primary);
+  border: none;
+  color: white;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.gradient-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.gradient-btn:hover::after {
+  width: 300px;
+  height: 300px;
+}
+
+.gradient-btn:hover {
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+}
+
+/* Admin Button */
+#adminBtn {
+  display: none;
+  margin: 30px 0;
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  border: none;
+  box-shadow: 0 8px 24px rgba(17, 153, 142, 0.4);
+}
+
+#adminBtn:hover {
+  box-shadow: 0 12px 32px rgba(17, 153, 142, 0.6);
+}
+
+/* Categories */
+#categories {
+  display: grid;
+  gap: 20px;
+}
+
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+}
+
+.loading::after {
+  content: '...';
+  animation: shimmer 1.5s infinite;
+}
+
+/* Admin Panel */
+#adminPanel {
+  display: none;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+#adminPanel h2 {
+  font-size: 1.8rem;
+  margin: 30px 0 20px;
+  background: var(--success);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Stats Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card .number {
+  font-size: 2rem;
+  font-weight: 800;
+  background: var(--primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-card .label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 5px;
+}
+
+/* Table */
+.user-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+}
+
+.user-table th,
+.user-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-table th {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.user-table tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Form */
+#pushForm {
+  display: grid;
+  gap: 15px;
+}
+
+#pushForm input,
+#pushForm textarea {
+  width: 100%;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+#pushForm input:focus,
+#pushForm textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+#pushForm input::placeholder,
+#pushForm textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+#pushForm button {
+  padding: 18px;
+  border: none;
+  border-radius: 12px;
+  background: var(--secondary);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#pushForm button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(245, 87, 108, 0.6);
+}
+
+#pushForm button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .glass-card {
+    padding: 20px;
+  }
+
+  .glass-card h2 {
+    font-size: 1.3rem;
+  }
+
+  .modern-btn {
+    padding: 14px 20px;
+    font-size: 0.95rem;
+  }
+
+  .avatar-container img {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .glass-card {
+    padding: 18px;
+  }
+
+  .modern-btn {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection */
+::selection {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
 </style>
 </head>
 <body>
-<div class="avatar-container">
-  <img src="https://i.pravatar.cc/150?img=12" alt="Аватар">
-</div>
-<h1>Партнерские ссылки</h1>
-<div id="categories"></div>
-<button id="adminBtn">Админка</button>
-<div id="adminPanel">
-  <h2>Статистика пользователей</h2>
-  <div id="stats"></div>
-  <h2>Список пользователей</h2>
-  <table class="user-table" id="userTable">
-    <tr><th>Username</th><th>Telegram ID</th><th>Подписан</th></tr>
-  </table>
-  <h2>Рассылка пушей</h2>
-  <form id="pushForm">
-    <input type="text" id="pushTitle" placeholder="Заголовок">
-    <textarea id="pushMessage" rows="3" placeholder="Сообщение"></textarea>
-    <input type="text" id="pushLink" placeholder="Ссылка для кнопки">
-    <button type="submit">Отправить всем подписанным</button>
-  </form>
+<div class="container">
+  <div class="avatar-container">
+    <img src="https://i.pravatar.cc/150?img=12" alt="Аватар">
+  </div>
+  
+  <h1>✨ Партнерские ссылки</h1>
+  
+  <div id="categories"></div>
+  
+  <button id="adminBtn" class="modern-btn gradient-btn">⚙️ Админ-панель</button>
+  
+  <div id="adminPanel">
+    <div class="glass-card">
+      <h2>📊 Статистика</h2>
+      <div id="stats" class="stats-grid"></div>
+    </div>
+    
+    <div class="glass-card">
+      <h2>👥 Пользователи</h2>
+      <table class="user-table" id="userTable">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Telegram ID</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    
+    <div class="glass-card">
+      <h2>📢 Рассылка</h2>
+      <form id="pushForm">
+        <input type="text" id="pushTitle" placeholder="📝 Заголовок сообщения">
+        <textarea id="pushMessage" rows="4" placeholder="💬 Текст сообщения"></textarea>
+        <input type="text" id="pushLink" placeholder="🔗 Ссылка для кнопки">
+        <button type="submit">🚀 Отправить рассылку</button>
+      </form>
+    </div>
+  </div>
 </div>
 <script>
 // Конфигурация API
@@ -125,7 +580,7 @@ function showSuccess(message) {
 function showLoading(elementId) {
   const element = document.getElementById(elementId);
   if (element) {
-    element.innerHTML = '<p style="text-align:center;">⏳ Загрузка...</p>';
+    element.innerHTML = '<div class="loading">⏳ Загрузка</div>';
   }
 }
 
@@ -219,7 +674,7 @@ async function loadPartners() {
     container.innerHTML = '';
     for (const [catName, links] of Object.entries(categories)) {
       const div = document.createElement('div');
-      div.className = 'category';
+      div.className = 'glass-card';
 
       const h = document.createElement('h2');
       h.textContent = catName;
@@ -227,7 +682,7 @@ async function loadPartners() {
 
       links.forEach(link => {
         const a = document.createElement('a');
-        a.className = 'link-btn';
+        a.className = 'modern-btn';
         a.href = link.url;
         a.target = '_blank';
         a.textContent = link.title;
@@ -278,14 +733,23 @@ async function loadAdminData() {
     const subscribed = users.filter(u => u.subscribed).length;
     const unsubscribed = users.length - subscribed;
     statsDiv.innerHTML = `
-      <p>
-        <strong>Всего:</strong> ${users.length}<br>
-        <strong>Подписаны:</strong> ${subscribed}<br>
-        <strong>Отписаны:</strong> ${unsubscribed}
-      </p>
+      <div class="stat-card">
+        <div class="number">${users.length}</div>
+        <div class="label">Всего</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">${subscribed}</div>
+        <div class="label">Подписаны</div>
+      </div>
+      <div class="stat-card">
+        <div class="number">${unsubscribed}</div>
+        <div class="label">Отписаны</div>
+      </div>
     `;
 
     // Таблица пользователей
+    const tbody = table.querySelector('tbody');
+    tbody.innerHTML = '';
     users.forEach(u => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -293,10 +757,10 @@ async function loadAdminData() {
         <td>${u.telegram_id}</td>
         <td>${u.subscribed ? '✅' : '❌'}</td>
       `;
-      table.appendChild(tr);
+      tbody.appendChild(tr);
     });
   } catch (error) {
-    statsDiv.innerHTML = '<p style="color:red;">Ошибка загрузки данных</p>';
+    statsDiv.innerHTML = '<div style="color:#ff6b6b;text-align:center;">Ошибка загрузки данных</div>';
   }
 }
 
