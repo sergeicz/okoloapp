@@ -386,6 +386,7 @@ function setupBot(env) {
     const keyboard = new InlineKeyboard()
       .text('📊 Статистика', 'admin_stats').row()
       .text('📈 Статистика рассылок', 'admin_broadcasts_stats').row()
+      .text('📊 Отчеты по партнерам', 'admin_partner_reports').row()
       .text('📢 Новая рассылка', 'admin_broadcast').row()
       .text('👥 Пользователи', 'admin_users').row()
       .text('« Назад', 'back_to_start');
@@ -697,6 +698,239 @@ function setupBot(env) {
       reply_markup: keyboard
     });
     await ctx.answerCallbackQuery();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // ОТЧЕТЫ ПО ПАРТНЕРАМ (для администраторов)
+  // ═══════════════════════════════════════════════════════════
+
+  // Список партнеров для выбора
+  bot.callbackQuery('admin_partner_reports', async (ctx) => {
+    const isAdmin = await checkAdmin(env, ctx.from);
+    if (!isAdmin) {
+      await ctx.answerCallbackQuery('❌ У вас нет прав администратора');
+      return;
+    }
+    
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(creds);
+    const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+    
+    if (!partners || partners.length === 0) {
+      const keyboard = new InlineKeyboard().text('« Назад', 'admin_panel');
+      await ctx.editMessageText(
+        '📊 *Отчеты по партнерам*\n\n📭 Партнеров пока нет в таблице.',
+        { parse_mode: 'Markdown', reply_markup: keyboard }
+      );
+      await ctx.answerCallbackQuery();
+      return;
+    }
+    
+    const keyboard = new InlineKeyboard();
+    
+    // Добавляем кнопки для каждого партнера (по 2 в ряд)
+    partners.forEach((partner, index) => {
+      const shortTitle = partner.title.length > 25 ? partner.title.substring(0, 25) + '...' : partner.title;
+      keyboard.text(shortTitle, `admin_partner_select_${index}`);
+      if (index % 2 === 1) keyboard.row();
+    });
+    
+    if (partners.length % 2 === 1) keyboard.row();
+    keyboard.text('« Назад', 'admin_panel');
+    
+    await ctx.editMessageText(
+      '📊 *Отчеты по партнерам*\n\nВыберите партнера для отчета:',
+      { parse_mode: 'Markdown', reply_markup: keyboard }
+    );
+    await ctx.answerCallbackQuery();
+  });
+
+  // Выбор периода отчета для партнера
+  bot.callbackQuery(/^admin_partner_select_(\d+)$/, async (ctx) => {
+    const isAdmin = await checkAdmin(env, ctx.from);
+    if (!isAdmin) {
+      await ctx.answerCallbackQuery('❌ У вас нет прав администратора');
+      return;
+    }
+    
+    const partnerIndex = parseInt(ctx.match[1]);
+    
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(creds);
+    const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+    
+    if (!partners[partnerIndex]) {
+      await ctx.answerCallbackQuery('❌ Партнер не найден');
+      return;
+    }
+    
+    const partner = partners[partnerIndex];
+    
+    const keyboard = new InlineKeyboard()
+      .text('📅 За неделю', `admin_partner_period_${partnerIndex}_week`).row()
+      .text('📊 За месяц', `admin_partner_period_${partnerIndex}_month`).row()
+      .text('📈 За все время', `admin_partner_period_${partnerIndex}_all`).row()
+      .text('« Назад', 'admin_partner_reports');
+    
+    await ctx.editMessageText(
+      `📊 *Отчет по партнеру*\n\n` +
+      `🏷️ *Партнер:* ${partner.title}\n` +
+      `📁 *Категория:* ${partner.category || 'Не указана'}\n` +
+      `📅 *Дата размещения:* ${partner.date_release || 'Не указана'}\n\n` +
+      `Выберите период отчета:`,
+      { parse_mode: 'Markdown', reply_markup: keyboard }
+    );
+    await ctx.answerCallbackQuery();
+  });
+
+  // Генерация отчета за выбранный период
+  bot.callbackQuery(/^admin_partner_period_(\d+)_(week|month|all)$/, async (ctx) => {
+    const isAdmin = await checkAdmin(env, ctx.from);
+    if (!isAdmin) {
+      await ctx.answerCallbackQuery('❌ У вас нет прав администратора');
+      return;
+    }
+    
+    const partnerIndex = parseInt(ctx.match[1]);
+    const period = ctx.match[2];
+    
+    await ctx.answerCallbackQuery('📊 Формирую отчет...');
+    
+    try {
+      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const accessToken = await getAccessToken(creds);
+      const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+      const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
+      
+      if (!partners[partnerIndex]) {
+        await ctx.answerCallbackQuery('❌ Партнер не найден');
+        return;
+      }
+      
+      const partner = partners[partnerIndex];
+      const partnerClicks = clicks.filter(c => c.url === partner.url);
+      
+      if (partnerClicks.length === 0) {
+        const keyboard = new InlineKeyboard().text('« Назад', `admin_partner_select_${partnerIndex}`);
+        await ctx.editMessageText(
+          `📊 *Отчет по партнеру*\n\n` +
+          `🏷️ *Партнер:* ${partner.title}\n\n` +
+          `📭 По этой ссылке пока нет переходов.`,
+          { parse_mode: 'Markdown', reply_markup: keyboard }
+        );
+        return;
+      }
+      
+      const now = new Date();
+      let periodName = '';
+      let filteredClicks = partnerClicks;
+      
+      // Фильтруем клики по периоду
+      if (period === 'week') {
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        filteredClicks = partnerClicks.filter(c => {
+          const clickDate = new Date(c.last_click_date || c.first_click_date);
+          return clickDate >= oneWeekAgo;
+        });
+        periodName = 'За последнюю неделю';
+      } else if (period === 'month') {
+        const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        filteredClicks = partnerClicks.filter(c => {
+          const clickDate = new Date(c.last_click_date || c.first_click_date);
+          return clickDate >= oneMonthAgo;
+        });
+        periodName = `За последний месяц (${oneMonthAgo.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })})`;
+      } else {
+        periodName = 'За все время';
+      }
+      
+      // Рассчитываем статистику
+      const totalClicks = filteredClicks.reduce((sum, c) => sum + parseInt(c.click || 1), 0);
+      const uniqueUsers = new Set(filteredClicks.map(c => c.telegram_id)).size;
+      const conversionRate = totalClicks > 0 ? ((uniqueUsers / totalClicks) * 100).toFixed(2) : '0.00';
+      
+      // Статистика по дням
+      const dailyStats = {};
+      filteredClicks.forEach(c => {
+        const date = c.last_click_date || c.first_click_date;
+        if (date) {
+          dailyStats[date] = (dailyStats[date] || 0) + parseInt(c.click || 1);
+        }
+      });
+      
+      const topDays = Object.entries(dailyStats)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([date, clicks]) => `  • ${date}: ${clicks} кликов`)
+        .join('\n');
+      
+      // Первый и последний клик
+      const allDates = filteredClicks
+        .map(c => new Date(c.first_click_date || c.last_click_date))
+        .filter(d => !isNaN(d.getTime()))
+        .sort((a, b) => a - b);
+      
+      const firstClick = allDates.length > 0 ? allDates[0].toLocaleDateString('ru-RU') : 'Н/Д';
+      const lastClick = allDates.length > 0 ? allDates[allDates.length - 1].toLocaleDateString('ru-RU') : 'Н/Д';
+      
+      // Общая статистика за все время (для контекста)
+      const allTimeTotalClicks = partnerClicks.reduce((sum, c) => sum + parseInt(c.click || 1), 0);
+      const allTimeUniqueUsers = new Set(partnerClicks.map(c => c.telegram_id)).size;
+      const allTimeConversion = allTimeTotalClicks > 0 ? ((allTimeUniqueUsers / allTimeTotalClicks) * 100).toFixed(2) : '0.00';
+      
+      let report = `📊 *Отчет по партнеру*\n` +
+                  `📅 *Период:* ${periodName}\n\n` +
+                  `🏷️ *Партнер:* ${partner.title}\n` +
+                  `📁 *Категория:* ${partner.category || 'Не указана'}\n` +
+                  `📅 *Дата размещения:* ${partner.date_release || 'Не указана'}\n` +
+                  `🔗 *Ссылка:* ${partner.url}\n`;
+      
+      if (partner.predstavitel) {
+        report += `👤 *Представитель:* ${partner.predstavitel}\n`;
+      }
+      
+      report += `\n*📈 Статистика за выбранный период:*\n` +
+                `👥 Уникальных пользователей: ${uniqueUsers}\n` +
+                `🖱️ Всего кликов: ${totalClicks}\n` +
+                `📊 Конверсия: ${conversionRate}%\n`;
+      
+      if (totalClicks > 0) {
+        report += `\n📅 *Первый клик:* ${firstClick}\n`;
+        report += `📅 *Последний клик:* ${lastClick}\n`;
+      }
+      
+      if (period !== 'all') {
+        report += `\n*📈 Общая статистика (за все время):*\n` +
+                  `👥 Уникальных пользователей: ${allTimeUniqueUsers}\n` +
+                  `🖱️ Всего кликов: ${allTimeTotalClicks}\n` +
+                  `📊 Конверсия: ${allTimeConversion}%\n`;
+      }
+      
+      if (topDays) {
+        report += `\n*📅 Самые активные дни:*\n${topDays}\n`;
+      }
+      
+      report += `\n_Отчет сформирован: ${now.toLocaleDateString('ru-RU')} ${now.toLocaleTimeString('ru-RU')}_`;
+      
+      const keyboard = new InlineKeyboard()
+        .text('« К выбору периода', `admin_partner_select_${partnerIndex}`).row()
+        .text('« К списку партнеров', 'admin_partner_reports').row()
+        .text('« В админ-панель', 'admin_panel');
+      
+      await ctx.editMessageText(report, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard,
+        disable_web_page_preview: true
+      });
+      
+    } catch (error) {
+      console.error('[ADMIN_PARTNER_REPORT] Error:', error);
+      const keyboard = new InlineKeyboard().text('« Назад', 'admin_partner_reports');
+      await ctx.editMessageText(
+        '❌ Ошибка при формировании отчета. Попробуйте позже.',
+        { reply_markup: keyboard }
+      );
+    }
   });
 
   // Назад к старту
