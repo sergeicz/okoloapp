@@ -35,6 +35,7 @@ body {
 
 .container {
   max-width: 900px;
+  width: 100%;
   margin: 0 auto;
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(30px);
@@ -61,6 +62,7 @@ h1 {
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 3px;
+  word-wrap: break-word;
 }
 
 .subtitle {
@@ -162,7 +164,7 @@ hr {
   text-align: center;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   border-radius: 20px;
-  padding: 40px;
+  padding: 40px 30px;
   margin: 50px 0;
   border: 1px solid rgba(16, 185, 129, 0.3);
   box-shadow: 0 20px 60px rgba(16, 185, 129, 0.3);
@@ -219,21 +221,32 @@ hr {
 .steps {
   counter-reset: step-counter;
   margin: 30px 0;
+  padding-left: 0;
 }
 
 .steps li {
   counter-increment: step-counter;
-  padding-left: 60px;
-  margin: 25px 0;
+  padding: 15px 20px 15px 70px;
+  margin: 20px 0;
   position: relative;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  background: rgba(16, 185, 129, 0.05);
+  border-radius: 12px;
+  border-left: 3px solid var(--primary);
+  transition: all 0.3s ease;
+}
+
+.steps li:hover {
+  background: rgba(16, 185, 129, 0.1);
+  transform: translateX(5px);
 }
 
 .steps li:before {
   content: counter(step-counter);
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   color: #ffffff;
   width: 40px;
@@ -312,20 +325,141 @@ hr {
 }
 
 @media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+  
   .container {
-    padding: 30px 25px;
+    padding: 30px 20px;
   }
   
   h1 {
     font-size: 2rem;
+    letter-spacing: 1px;
   }
   
   h2 {
     font-size: 1.5rem;
+    letter-spacing: 1px;
+  }
+  
+  h3 {
+    font-size: 1.3rem;
+  }
+  
+  p {
+    font-size: 1rem;
   }
   
   .benefit-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .steps li {
+    padding: 12px 15px 12px 60px;
+    font-size: 0.95rem;
+  }
+  
+  .steps li:before {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+    left: 12px;
+  }
+  
+  .cta-section {
+    padding: 30px 20px;
+  }
+  
+  .cta-button {
+    padding: 16px 40px;
+    font-size: 1.1rem;
+  }
+  
+  .subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+  
+  .container {
+    padding: 25px 15px;
+    border-radius: 16px;
+  }
+  
+  h1 {
+    font-size: 1.6rem;
+    letter-spacing: 0.5px;
+  }
+  
+  h2 {
+    font-size: 1.3rem;
+    margin: 35px 0 20px;
+  }
+  
+  h3 {
+    font-size: 1.2rem;
+  }
+  
+  p {
+    font-size: 0.95rem;
+  }
+  
+  ul li {
+    font-size: 0.95rem;
+    padding-left: 25px;
+  }
+  
+  ul li:before {
+    font-size: 1.1rem;
+  }
+  
+  .steps li {
+    padding: 10px 12px 10px 55px;
+    font-size: 0.9rem;
+    margin: 15px 0;
+  }
+  
+  .steps li:before {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+    left: 10px;
+  }
+  
+  .benefit-card {
+    padding: 20px;
+  }
+  
+  .cta-section {
+    padding: 25px 15px;
+    border-radius: 16px;
+  }
+  
+  .cta-button {
+    padding: 14px 30px;
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+    margin-bottom: 35px;
+  }
+  
+  .back-link {
+    padding: 12px 28px;
+    font-size: 0.9rem;
+  }
+  
+  .highlight-box {
+    padding: 15px 20px;
+    font-size: 1rem;
   }
 }
 </style>
@@ -344,9 +478,9 @@ hr {
 
   <h2>Как это работает</h2>
   <ol class="steps">
-    <li>Пользователь заходит в <strong>Telegram Mini App Околотату</strong></li>
+    <li>Пользователь заходит в Telegram Mini App Околотату</li>
     <li>Видит подборку партнёрских предложений</li>
-    <li>Переходит по <strong>уникальной ссылке / коду</strong>, доступному только в Околотату</li>
+    <li>Переходит по уникальной ссылке / коду, доступному только в Околотату</li>
     <li>Автоматически попадает в базу пользователей</li>
     <li>В дальнейшем получает предложения через Telegram-бота</li>
   </ol>
