@@ -79,6 +79,17 @@ h1 {
   letter-spacing: 3px;
   word-wrap: break-word;
   filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.title-icon {
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.4));
 }
 
 .subtitle {
@@ -490,7 +501,7 @@ hr {
 <body>
 
 <div class="container">
-  <h1>🤝 Партнёрам</h1>
+  <h1><img src="img/hand.svg" alt="Partnership" class="title-icon"> Партнёрам</h1>
   <p class="subtitle">Приложение <a href="https://t.me/nononotattoo" target="_blank">Околотату</a></p>
 
   <h2>Что такое «Околотату»</h2>
