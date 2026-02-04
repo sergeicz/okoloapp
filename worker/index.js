@@ -26,7 +26,21 @@ function errorResponse(message, status = 500) {
 // GOOGLE SHEETS API
 // ═══════════════════════════════════════════════════════════════
 
-async function getAccessToken(creds) {
+// Кэшированное получение токена доступа (кэш на 55 минут)
+async function getAccessToken(env, creds) {
+  const cacheKey = 'google_access_token';
+  
+  // Проверяем кэш
+  const cached = await env.BROADCAST_STATE.get(cacheKey);
+  if (cached) {
+    const { token, expires } = JSON.parse(cached);
+    // Если токен еще валиден (с запасом 1 минута)
+    if (Date.now() < expires - 60000) {
+      return token;
+    }
+  }
+  
+  // Создаем новый токен
   const jwt = await createJWT(creds);
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -37,6 +51,21 @@ async function getAccessToken(creds) {
     }),
   });
   const data = await response.json();
+  
+  if (!data.access_token) {
+    console.error('[getAccessToken] Failed to get token:', data);
+    throw new Error('Failed to get Google access token');
+  }
+  
+  // Кэшируем на 55 минут (токен живет 60 минут)
+  await env.BROADCAST_STATE.put(cacheKey, JSON.stringify({
+    token: data.access_token,
+    expires: Date.now() + 55 * 60 * 1000
+  }), {
+    expirationTtl: 3600 // KV автоудаление через 1 час
+  });
+  
+  console.log('[getAccessToken] ✅ New token cached');
   return data.access_token;
 }
 
@@ -98,9 +127,9 @@ function str2ab(str) {
 }
 
 async function getSheetData(sheetId, sheetName, accessToken) {
+  // НЕ кодируем диапазон - Google Sheets API принимает его как есть
   const range = `${sheetName}!A:Z`;
-  const encodedRange = encodeURIComponent(range);
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodedRange}`;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}`;
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -128,9 +157,9 @@ async function getSheetData(sheetId, sheetName, accessToken) {
 }
 
 async function appendSheetRow(sheetId, sheetName, values, accessToken) {
+  // НЕ кодируем диапазон - просто добавляем :append к URL
   const range = `${sheetName}!A:Z`;
-  const encodedRange = encodeURIComponent(range);
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodedRange}:append?valueInputOption=RAW`;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}:append?valueInputOption=RAW`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -151,9 +180,9 @@ async function appendSheetRow(sheetId, sheetName, values, accessToken) {
 
 async function updateSheetRow(sheetId, sheetName, rowIndex, values, accessToken) {
   // rowIndex - это индекс строки (1-based, где 1 = заголовок, 2 = первая строка данных)
+  // НЕ кодируем диапазон
   const range = `${sheetName}!A${rowIndex}:Z${rowIndex}`;
-  const encodedRange = encodeURIComponent(range);
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodedRange}?valueInputOption=RAW`;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?valueInputOption=RAW`;
   const response = await fetch(url, {
     method: 'PUT',
     headers: {
@@ -242,13 +271,64 @@ async function checkUserActive(bot, userId) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// CACHE HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+// Кэшируем список админов на 5 минут
+async function getCachedAdmins(env) {
+  const cacheKey = 'cache:admins';
+  const cached = await env.BROADCAST_STATE.get(cacheKey);
+  
+  if (cached) {
+    return JSON.parse(cached);
+  }
+  
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(env, creds);
+  const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+  
+  // Кэшируем на 5 минут
+  await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(admins), {
+    expirationTtl: 300
+  });
+  
+  return admins;
+}
+
+// Кэшируем список партнеров на 5 минут
+async function getCachedPartners(env) {
+  const cacheKey = 'cache:partners';
+  const cached = await env.BROADCAST_STATE.get(cacheKey);
+  
+  if (cached) {
+    return JSON.parse(cached);
+  }
+  
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(env, creds);
+  const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+  
+  // Кэшируем на 5 минут
+  await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(partners), {
+    expirationTtl: 300
+  });
+  
+  return partners;
+}
+
+// Инвалидация кэша (вызывать при обновлении данных)
+async function invalidateCache(env, type) {
+  const cacheKey = `cache:${type}`;
+  await env.BROADCAST_STATE.delete(cacheKey);
+  console.log(`[Cache] Invalidated cache for: ${type}`);
+}
+
+// ═══════════════════════════════════════════════════════════════
 // ADMIN CHECK HELPER
 // ═══════════════════════════════════════════════════════════════
 
 async function checkAdmin(env, user) {
-  const creds = JSON.parse(env.CREDENTIALS_JSON);
-  const accessToken = await getAccessToken(creds);
-  const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+  const admins = await getCachedAdmins(env);
   
   const isAdmin = admins.some(a => {
     const usernameMatch = a.username && user.username && 
@@ -268,9 +348,7 @@ async function checkRepresentative(env, user) {
       return null; // Нет username - не может быть представителем
     }
     
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
-    const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+    const partners = await getCachedPartners(env);
     
     // Нормализуем username пользователя (убираем @ и приводим к нижнему регистру)
     const normalizedUsername = user.username.toLowerCase().replace('@', '').trim();
@@ -318,6 +396,36 @@ function setupBot(env) {
   const bot = new Bot(env.BOT_TOKEN);
 
   // ═══════════════════════════════════════════════════════════
+  // ГЛОБАЛЬНЫЙ ERROR HANDLER
+  // ═══════════════════════════════════════════════════════════
+  
+  bot.catch((err) => {
+    const ctx = err.ctx;
+    console.error(`[BOT ERROR] Update ${ctx.update.update_id}:`);
+    console.error('[BOT ERROR] Error:', err.error);
+    console.error('[BOT ERROR] Stack:', err.stack);
+    
+    // Пытаемся уведомить пользователя
+    if (ctx.chat) {
+      ctx.reply('❌ Произошла ошибка. Попробуйте позже или обратитесь к администратору.')
+        .catch(e => console.error('[BOT ERROR] Failed to send error message:', e));
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // MIDDLEWARE: Кэширование проверок прав
+  // ═══════════════════════════════════════════════════════════
+  
+  bot.use(async (ctx, next) => {
+    if (ctx.from) {
+      // Кэшируем проверки прав для этого запроса
+      ctx.isAdmin = await checkAdmin(env, ctx.from);
+      ctx.partnerData = await checkRepresentative(env, ctx.from);
+    }
+    await next();
+  });
+
+  // ═══════════════════════════════════════════════════════════
   // КОМАНДА /START
   // ═══════════════════════════════════════════════════════════
   
@@ -327,7 +435,7 @@ function setupBot(env) {
     
     // Регистрируем пользователя
     const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
+    const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
     const existing = users.find(u => String(u.telegram_id) === String(chatId));
     
@@ -457,7 +565,7 @@ function setupBot(env) {
     }
     
     const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
+    const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
     const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
     
@@ -481,7 +589,7 @@ function setupBot(env) {
     }
     
     const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
+    const accessToken = await getAccessToken(env, creds);
     
     try {
       const broadcasts = await getSheetData(env.SHEET_ID, 'broadcasts', accessToken);
@@ -554,7 +662,7 @@ function setupBot(env) {
     
     const broadcastId = ctx.match[1];
     const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
+    const accessToken = await getAccessToken(env, creds);
     
     try {
       const broadcasts = await getSheetData(env.SHEET_ID, 'broadcasts', accessToken);
@@ -688,7 +796,7 @@ function setupBot(env) {
     const partnerIndex = parseInt(ctx.match[1]);
     
     const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
+    const accessToken = await getAccessToken(env, creds);
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
     
     if (!partners[partnerIndex]) {
@@ -809,7 +917,7 @@ function setupBot(env) {
     
     try {
       const creds = JSON.parse(env.CREDENTIALS_JSON);
-      const accessToken = await getAccessToken(creds);
+      const accessToken = await getAccessToken(env, creds);
       const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
       
@@ -915,7 +1023,7 @@ function setupBot(env) {
     
     try {
       const creds = JSON.parse(env.CREDENTIALS_JSON);
-      const accessToken = await getAccessToken(creds);
+      const accessToken = await getAccessToken(env, creds);
       const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
       
@@ -1022,7 +1130,7 @@ function setupBot(env) {
     
     try {
       const creds = JSON.parse(env.CREDENTIALS_JSON);
-      const accessToken = await getAccessToken(creds);
+      const accessToken = await getAccessToken(env, creds);
       const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
       
@@ -1107,7 +1215,7 @@ function setupBot(env) {
     }
     
     const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
+    const accessToken = await getAccessToken(env, creds);
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
     
     if (!partners || partners.length === 0) {
@@ -1150,7 +1258,7 @@ function setupBot(env) {
     const partnerIndex = parseInt(ctx.match[1]);
     
     const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
+    const accessToken = await getAccessToken(env, creds);
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
     
     if (!partners[partnerIndex]) {
@@ -1192,7 +1300,7 @@ function setupBot(env) {
     
     try {
       const creds = JSON.parse(env.CREDENTIALS_JSON);
-      const accessToken = await getAccessToken(creds);
+      const accessToken = await getAccessToken(env, creds);
       const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
       
@@ -1401,7 +1509,7 @@ function setupBot(env) {
     
     try {
       const creds = JSON.parse(env.CREDENTIALS_JSON);
-      const accessToken = await getAccessToken(creds);
+      const accessToken = await getAccessToken(env, creds);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
       
       // Собираем статистику ТОЛЬКО по этому партнеру
@@ -1479,7 +1587,7 @@ function setupBot(env) {
     
     try {
       const creds = JSON.parse(env.CREDENTIALS_JSON);
-      const accessToken = await getAccessToken(creds);
+      const accessToken = await getAccessToken(env, creds);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
       
       // Собираем статистику ТОЛЬКО по этому партнеру
@@ -1576,7 +1684,7 @@ function setupBot(env) {
     
     try {
       const creds = JSON.parse(env.CREDENTIALS_JSON);
-      const accessToken = await getAccessToken(creds);
+      const accessToken = await getAccessToken(env, creds);
       const broadcasts = await getSheetData(env.SHEET_ID, 'broadcasts', accessToken);
       
       // Фильтруем рассылки только по партнеру представителя
@@ -1676,7 +1784,7 @@ function setupBot(env) {
       
       // Получаем список партнеров
       const creds = JSON.parse(env.CREDENTIALS_JSON);
-      const accessToken = await getAccessToken(creds);
+      const accessToken = await getAccessToken(env, creds);
       const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
       
       keyboard = new InlineKeyboard();
@@ -1938,9 +2046,49 @@ async function showBroadcastPreview(ctx, env, state) {
   await saveBroadcastState(env, ctx.chat.id, state);
 }
 
+// Helper функция для отправки одного сообщения рассылки
+async function sendBroadcastToUser(api, user, messageText, keyboard, mediaType, mediaSource) {
+  const userId = user.telegram_id;
+  
+  if (mediaType === 'photo') {
+    await api.sendPhoto(userId, mediaSource, {
+      caption: messageText,
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else if (mediaType === 'video') {
+    await api.sendVideo(userId, mediaSource, {
+      caption: messageText,
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  } else if (mediaType === 'voice') {
+    if (messageText) {
+      await api.sendMessage(userId, messageText, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    }
+    await api.sendVoice(userId, mediaSource);
+  } else if (mediaType === 'video_note') {
+    if (messageText) {
+      await api.sendMessage(userId, messageText, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    }
+    await api.sendVideoNote(userId, mediaSource);
+  } else {
+    await api.sendMessage(userId, messageText, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard
+    });
+  }
+}
+
 async function executeBroadcast(ctx, env, state) {
   const creds = JSON.parse(env.CREDENTIALS_JSON);
-  const accessToken = await getAccessToken(creds);
+  const accessToken = await getAccessToken(env, creds);
   const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
   
   let messageText = '';
@@ -1950,9 +2098,7 @@ async function executeBroadcast(ctx, env, state) {
   // Создаем промежуточную ссылку для отслеживания кликов
   let keyboard = null;
   if (state.button_text && state.button_url) {
-    // Кодируем URL партнера
     const encodedPartnerUrl = encodeURIComponent(state.button_url);
-    // Создаем ссылку через наш воркер для отслеживания
     const trackedUrl = `https://telegram-miniapp-api.worknotdead.workers.dev/r/${state.broadcast_id}/${encodedPartnerUrl}`;
     keyboard = new InlineKeyboard().url(state.button_text, trackedUrl);
   }
@@ -1973,89 +2119,76 @@ async function executeBroadcast(ctx, env, state) {
   
   await ctx.reply(`📊 Найдено пользователей: ${validUsers.length}\n⏳ Начинаю рассылку...`);
   
-  for (const user of validUsers) {
-    try {
-      if (mediaType === 'photo') {
-        await ctx.api.sendPhoto(user.telegram_id, mediaSource, {
-          caption: messageText,
-          parse_mode: 'Markdown',
-          reply_markup: keyboard
-        });
-      } else if (mediaType === 'video') {
-        await ctx.api.sendVideo(user.telegram_id, mediaSource, {
-          caption: messageText,
-          parse_mode: 'Markdown',
-          reply_markup: keyboard
-        });
-      } else if (mediaType === 'voice') {
-        if (messageText) {
-          await ctx.api.sendMessage(user.telegram_id, messageText, {
-            parse_mode: 'Markdown',
-            reply_markup: keyboard
+  // ✅ ОПТИМИЗАЦИЯ: Батчинг - отправляем по 20 сообщений параллельно
+  const BATCH_SIZE = 20;
+  const totalUsers = validUsers.length;
+  
+  for (let i = 0; i < totalUsers; i += BATCH_SIZE) {
+    const batch = validUsers.slice(i, i + BATCH_SIZE);
+    
+    // Отправляем батч параллельно
+    const results = await Promise.allSettled(
+      batch.map(user => sendBroadcastToUser(ctx.api, user, messageText, keyboard, mediaType, mediaSource))
+    );
+    
+    // Обрабатываем результаты
+    results.forEach((result, idx) => {
+      const user = batch[idx];
+      
+      if (result.status === 'fulfilled') {
+        successCount++;
+      } else {
+        failCount++;
+        const error = result.reason;
+        const errorCode = error.error_code;
+        const errorDescription = error.description || error.message;
+        
+        console.error(`Failed to send to ${user.telegram_id}:`, errorCode, errorDescription);
+        
+        // Классифицируем ошибки
+        if (errorCode === 403) {
+          inactiveUsers.push({
+            telegram_id: user.telegram_id,
+            username: user.username,
+            date_on: user.date_registered || user.first_seen || '',
+            reason: 'Заблокировал бота'
+          });
+          inactiveCount++;
+        } else if (errorCode === 400 && errorDescription?.includes('chat not found')) {
+          inactiveUsers.push({
+            telegram_id: user.telegram_id,
+            username: user.username,
+            date_on: user.date_registered || user.first_seen || '',
+            reason: 'Удалил аккаунт'
+          });
+          inactiveCount++;
+        } else if (errorCode === 400 && errorDescription?.includes('user is deactivated')) {
+          inactiveUsers.push({
+            telegram_id: user.telegram_id,
+            username: user.username,
+            date_on: user.date_registered || user.first_seen || '',
+            reason: 'Деактивирован'
+          });
+          inactiveCount++;
+        } else {
+          errors.push({
+            telegram_id: user.telegram_id,
+            username: user.username,
+            error: `${errorCode}: ${errorDescription?.substring(0, 50) || 'Unknown'}`
           });
         }
-        await ctx.api.sendVoice(user.telegram_id, mediaSource);
-      } else if (mediaType === 'video_note') {
-        if (messageText) {
-          await ctx.api.sendMessage(user.telegram_id, messageText, {
-            parse_mode: 'Markdown',
-            reply_markup: keyboard
-          });
-        }
-        await ctx.api.sendVideoNote(user.telegram_id, mediaSource);
-      } else {
-        await ctx.api.sendMessage(user.telegram_id, messageText, {
-          parse_mode: 'Markdown',
-          reply_markup: keyboard
-        });
       }
-      successCount++;
-      await new Promise(resolve => setTimeout(resolve, 100));
-    } catch (error) {
-      failCount++;
-      
-      // Анализируем ошибку
-      const errorCode = error.error_code;
-      const errorDescription = error.description || error.message;
-      
-      console.error(`Failed to send to ${user.telegram_id}:`, errorCode, errorDescription);
-      
-      // Классифицируем ошибки
-      if (errorCode === 403) {
-        // Бот заблокирован пользователем
-        inactiveUsers.push({
-          telegram_id: user.telegram_id,
-          username: user.username,
-          date_on: user.date_registered || user.first_seen || '',
-          reason: 'Заблокировал бота'
-        });
-        inactiveCount++;
-      } else if (errorCode === 400 && errorDescription?.includes('chat not found')) {
-        // Пользователь удалил аккаунт
-        inactiveUsers.push({
-          telegram_id: user.telegram_id,
-          username: user.username,
-          date_on: user.date_registered || user.first_seen || '',
-          reason: 'Удалил аккаунт'
-        });
-        inactiveCount++;
-      } else if (errorCode === 400 && errorDescription?.includes('user is deactivated')) {
-        // Аккаунт деактивирован
-        inactiveUsers.push({
-          telegram_id: user.telegram_id,
-          username: user.username,
-          date_on: user.date_registered || user.first_seen || '',
-          reason: 'Деактивирован'
-        });
-        inactiveCount++;
-      } else {
-        // Другие ошибки
-        errors.push({
-          telegram_id: user.telegram_id,
-          username: user.username,
-          error: `${errorCode}: ${errorDescription?.substring(0, 50) || 'Unknown'}`
-        });
-      }
+    });
+    
+    // Прогресс каждые 100 пользователей
+    if ((i + BATCH_SIZE) % 100 === 0 || i + BATCH_SIZE >= totalUsers) {
+      const progress = Math.min(i + BATCH_SIZE, totalUsers);
+      await ctx.reply(`📊 Прогресс: ${progress}/${totalUsers} (успешно: ${successCount}, ошибок: ${failCount})`);
+    }
+    
+    // Небольшая задержка между батчами для Telegram API rate limits
+    if (i + BATCH_SIZE < totalUsers) {
+      await new Promise(resolve => setTimeout(resolve, 50));
     }
   }
   
@@ -2303,7 +2436,7 @@ async function checkAllUsers(env) {
   
   try {
     const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
+    const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
     
     const bot = new Bot(env.BOT_TOKEN);
@@ -2451,7 +2584,7 @@ async function sendWeeklyPartnerReports(env) {
     console.log('[WEEKLY_REPORT] 📊 Starting weekly partner reports...');
     
     const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
+    const accessToken = await getAccessToken(env, creds);
     
     // Получаем всех партнеров
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
@@ -2573,7 +2706,7 @@ async function sendMonthlyPartnerReports(env) {
     console.log('[MONTHLY_REPORT] 📊 Starting monthly partner reports...');
     
     const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(creds);
+    const accessToken = await getAccessToken(env, creds);
     
     // Получаем всех партнеров
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
@@ -2759,7 +2892,7 @@ export default {
       }
 
       const creds = JSON.parse(env.CREDENTIALS_JSON);
-      const accessToken = await getAccessToken(creds);
+      const accessToken = await getAccessToken(env, creds);
 
       // ═══════════════════════════════════════════════════════════
       // TELEGRAM BOT WEBHOOK (с grammY)
@@ -3107,3 +3240,4 @@ export default {
     }
   },
 };
+

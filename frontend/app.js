@@ -73,28 +73,59 @@ if (tg.ready) tg.ready();
 // УТИЛИТЫ
 // =====================================================
 
-// Утилита для безопасных fetch запросов с обработкой ошибок
-async function safeFetch(url, options = {}) {
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
+// Утилита для безопасных fetch запросов с обработкой ошибок и retry logic
+async function safeFetch(url, options = {}, retries = 3) {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000); // 10 секунд таймаут
+      
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeout);
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new Error(error.error || `HTTP ${response.status}`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || `HTTP ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+      console.error(`Fetch error (attempt ${attempt}/${retries}):`, error);
+      
+      // Не повторяем если это abort
+      if (error.name === 'AbortError') {
+        console.error('Request timeout');
+        break;
+      }
+      
+      // Не повторяем если это client error (4xx)
+      if (error.message.includes('HTTP 4')) {
+        break;
+      }
+      
+      // Ждем перед следующей попыткой (exponential backoff)
+      if (attempt < retries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        console.log(`Повторная попытка через ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Fetch error:', error);
-    showError(error.message || 'Ошибка сети. Проверьте подключение.');
-    throw error;
   }
+  
+  // Все попытки исчерпаны
+  showError(lastError?.message || 'Ошибка сети. Проверьте подключение.');
+  throw lastError;
 }
 
 // Показ ошибок пользователю
