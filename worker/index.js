@@ -1472,18 +1472,20 @@ async function sendWeeklyPartnerReports(env) {
     const now = new Date();
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     
+    // ⚠️ ВАЖНО: Каждый представитель получает отчет ТОЛЬКО по своему партнеру
     for (const partner of partners) {
-      // Проверяем что есть представитель
-      if (!partner.predstavitel || partner.predstavitel.trim() === '') {
+      // Проверяем что есть представитель для ЭТОГО партнера
+      if (!partner.predstavitel || partner.przedstawitel.trim() === '') {
         console.log(`[WEEKLY_REPORT] ⏭️ Skipping ${partner.title}: no representative`);
         continue;
       }
       
       const username = partner.predstavitel.replace('@', '').trim();
-      console.log(`[WEEKLY_REPORT] 📧 Processing report for ${partner.title} → @${username}`);
+      console.log(`[WEEKLY_REPORT] 📧 Processing report for partner "${partner.title}" → representative @${username}`);
       
-      // Собираем статистику по партнеру
+      // Собираем статистику ТОЛЬКО по этому партнеру (по его URL)
       const partnerClicks = clicks.filter(c => c.url === partner.url);
+      console.log(`[WEEKLY_REPORT] 📊 Found ${partnerClicks.length} click records for ${partner.url}`);
       
       if (partnerClicks.length === 0) {
         console.log(`[WEEKLY_REPORT] ⏭️ Skipping ${partner.title}: no clicks yet`);
@@ -1503,9 +1505,9 @@ async function sendWeeklyPartnerReports(env) {
       const weekTotalClicks = weekClicks.reduce((sum, c) => sum + parseInt(c.click || 1), 0);
       const weekUniqueUsers = new Set(weekClicks.map(c => c.telegram_id)).size;
       
-      // Формируем отчет
+      // Формируем отчет ТОЛЬКО по этому партнеру
       const report = `📊 *Еженедельный отчет по партнерству*\n\n` +
-                    `🏷️ *Партнер:* ${partner.title}\n` +
+                    `🏷️ *Ваш партнер:* ${partner.title}\n` +
                     `📁 *Категория:* ${partner.category || 'Не указана'}\n` +
                     `📅 *Дата размещения:* ${partner.date_release || 'Не указана'}\n` +
                     `🔗 *Ссылка:* ${partner.url}\n\n` +
@@ -1519,31 +1521,31 @@ async function sendWeeklyPartnerReports(env) {
                     `_Отчет отправлен: ${now.toLocaleDateString('ru-RU')} ${now.toLocaleTimeString('ru-RU')}_`;
       
       try {
-        // Получаем пользователя по username
+        // Находим представителя ЭТОГО партнера в базе пользователей
         const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
         const user = users.find(u => 
           u.username && u.username.toLowerCase() === username.toLowerCase()
         );
         
         if (!user) {
-          console.log(`[WEEKLY_REPORT] ⚠️ User @${username} not found in database`);
+          console.log(`[WEEKLY_REPORT] ⚠️ Representative @${username} for "${partner.title}" not found in database`);
           reportsFailed++;
           continue;
         }
         
         if (!user.telegram_id) {
-          console.log(`[WEEKLY_REPORT] ⚠️ User @${username} has no telegram_id`);
+          console.log(`[WEEKLY_REPORT] ⚠️ Representative @${username} has no telegram_id`);
           reportsFailed++;
           continue;
         }
         
-        // Отправляем отчет
+        // Отправляем отчет представителю ТОЛЬКО по его партнеру
         await bot.api.sendMessage(user.telegram_id, report, {
           parse_mode: 'Markdown',
           disable_web_page_preview: true
         });
         
-        console.log(`[WEEKLY_REPORT] ✅ Report sent to @${username} (${user.telegram_id})`);
+        console.log(`[WEEKLY_REPORT] ✅ Report for "${partner.title}" sent to representative @${username} (${user.telegram_id})`);
         reportsSent++;
         
       } catch (error) {
@@ -1593,18 +1595,20 @@ async function sendMonthlyPartnerReports(env) {
     const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
     const previousMonthName = oneMonthAgo.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
     
+    // ⚠️ ВАЖНО: Каждый представитель получает отчет ТОЛЬКО по своему партнеру
     for (const partner of partners) {
-      // Проверяем что есть представитель
+      // Проверяем что есть представитель для ЭТОГО партнера
       if (!partner.predstavitel || partner.predstavitel.trim() === '') {
         console.log(`[MONTHLY_REPORT] ⏭️ Skipping ${partner.title}: no representative`);
         continue;
       }
       
       const username = partner.predstavitel.replace('@', '').trim();
-      console.log(`[MONTHLY_REPORT] 📧 Processing report for ${partner.title} → @${username}`);
+      console.log(`[MONTHLY_REPORT] 📧 Processing report for partner "${partner.title}" → representative @${username}`);
       
-      // Собираем статистику по партнеру
+      // Собираем статистику ТОЛЬКО по этому партнеру (по его URL)
       const partnerClicks = clicks.filter(c => c.url === partner.url);
+      console.log(`[MONTHLY_REPORT] 📊 Found ${partnerClicks.length} click records for ${partner.url}`);
       
       if (partnerClicks.length === 0) {
         console.log(`[MONTHLY_REPORT] ⏭️ Skipping ${partner.title}: no clicks yet`);
@@ -1639,10 +1643,10 @@ async function sendMonthlyPartnerReports(env) {
         .map(([date, clicks]) => `  • ${date}: ${clicks} кликов`)
         .join('\n');
       
-      // Формируем отчет
+      // Формируем отчет ТОЛЬКО по этому партнеру
       const report = `📊 *Ежемесячный отчет по партнерству*\n` +
                     `📅 *Период:* ${previousMonthName}\n\n` +
-                    `🏷️ *Партнер:* ${partner.title}\n` +
+                    `🏷️ *Ваш партнер:* ${partner.title}\n` +
                     `📁 *Категория:* ${partner.category || 'Не указана'}\n` +
                     `📅 *Дата размещения:* ${partner.date_release || 'Не указана'}\n` +
                     `🔗 *Ссылка:* ${partner.url}\n\n` +
@@ -1658,31 +1662,31 @@ async function sendMonthlyPartnerReports(env) {
                     `_Отчет отправлен: ${now.toLocaleDateString('ru-RU')} ${now.toLocaleTimeString('ru-RU')}_`;
       
       try {
-        // Получаем пользователя по username
+        // Находим представителя ЭТОГО партнера в базе пользователей
         const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
         const user = users.find(u => 
           u.username && u.username.toLowerCase() === username.toLowerCase()
         );
         
         if (!user) {
-          console.log(`[MONTHLY_REPORT] ⚠️ User @${username} not found in database`);
+          console.log(`[MONTHLY_REPORT] ⚠️ Representative @${username} for "${partner.title}" not found in database`);
           reportsFailed++;
           continue;
         }
         
         if (!user.telegram_id) {
-          console.log(`[MONTHLY_REPORT] ⚠️ User @${username} has no telegram_id`);
+          console.log(`[MONTHLY_REPORT] ⚠️ Representative @${username} has no telegram_id`);
           reportsFailed++;
           continue;
         }
         
-        // Отправляем отчет
+        // Отправляем отчет представителю ТОЛЬКО по его партнеру
         await bot.api.sendMessage(user.telegram_id, report, {
           parse_mode: 'Markdown',
           disable_web_page_preview: true
         });
         
-        console.log(`[MONTHLY_REPORT] ✅ Report sent to @${username} (${user.telegram_id})`);
+        console.log(`[MONTHLY_REPORT] ✅ Report for "${partner.title}" sent to representative @${username} (${user.telegram_id})`);
         reportsSent++;
         
       } catch (error) {
