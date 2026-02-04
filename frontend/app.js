@@ -525,16 +525,26 @@ document.getElementById('pushForm').onsubmit = async (e) => {
 // Запуск приложения при загрузке
 window.addEventListener('DOMContentLoaded', initApp);
 
-// Показ баннера партнёрам через 2 секунды после загрузки категорий
+// Показ баннера партнёрам при скролле до него
 window.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const partnerBanner = document.querySelector('.partner-banner');
+  const partnerBanner = document.querySelector('.partner-banner');
+  
+  if (partnerBanner) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          partnerBanner.classList.add('show');
+          console.log('✨ Partner banner shown on scroll');
+          observer.unobserve(partnerBanner);
+        }
+      });
+    }, {
+      threshold: 0.2,
+      rootMargin: '0px 0px -50px 0px'
+    });
     
-    if (partnerBanner) {
-      partnerBanner.classList.add('show');
-      console.log('✨ Partner banner shown after 2 seconds');
-    }
-  }, 2000);
+    observer.observe(partnerBanner);
+  }
 });
 
 // Показ социальных сетей и футера через 5 секунд после загрузки
