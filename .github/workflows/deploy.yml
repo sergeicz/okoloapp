@@ -26,6 +26,15 @@ jobs:
         working-directory: ./worker
         run: npm ci
 
+      - name: Check Wrangler configuration
+        working-directory: ./worker
+        run: |
+          echo "📋 Checking wrangler.toml..."
+          cat wrangler.toml
+          echo ""
+          echo "📦 Checking package.json..."
+          cat package.json
+
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
