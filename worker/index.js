@@ -1625,11 +1625,13 @@ export default {
         const currentTime = now.toISOString().split('T')[1].split('.')[0]; // HH:MM:SS
         const timestamp = now.toISOString();
         
+        let newCount = 1; // По умолчанию для нового клика
+        
         if (existingClickIndex !== -1) {
           // Обновляем существующую запись - увеличиваем счетчик
           const existingClick = clicks[existingClickIndex];
           const currentCount = parseInt(existingClick.click || '1') || 1;
-          const newCount = currentCount + 1;
+          newCount = currentCount + 1;
           
           const rowIndex = existingClickIndex + 2; // +2 для заголовка и 1-based индекса
           
