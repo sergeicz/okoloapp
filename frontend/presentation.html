@@ -16,7 +16,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="/tg_miniapps_links/frontend/img/favicon/android-chrome-512x512.png">
 <link rel="manifest" href="/tg_miniapps_links/frontend/img/favicon/site.webmanifest">
 <meta name="theme-color" content="#000000">
-<meta name="msapplication-TileColor" content="#10b981">
+<meta name="msapplication-TileColor" content="#7c3aed">
 <style>
 * {
   margin: 0;
@@ -25,10 +25,10 @@
 }
 
 :root {
-  --primary: #10b981;
-  --secondary: #059669;
-  --accent: #34d399;
-  --gold: #fbbf24;
+  --primary: #7c3aed;
+  --secondary: #5b21b6;
+  --accent: #a78bfa;
+  --gold: #c084fc;
   --dark: #0f172a;
   --dark-gray: #1e293b;
   --darker-gray: #0a0f1e;
@@ -38,7 +38,7 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  background: linear-gradient(135deg, #0a0f1e 0%, #1e293b 50%, #0f172a 100%);
+  background: linear-gradient(135deg, #0f0a1e 0%, #1e1b3b 50%, #0f172a 100%);
   color: var(--text-primary);
   line-height: 1.8;
   min-height: 100vh;
@@ -49,13 +49,16 @@ body {
   max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(30px);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(50px) saturate(180%);
+  -webkit-backdrop-filter: blur(50px) saturate(180%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 32px;
   padding: 50px;
   animation: fadeIn 0.8s ease;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 100px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 
+              0 0 100px rgba(124, 58, 237, 0.2),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 @keyframes fadeIn {
@@ -66,7 +69,7 @@ body {
 h1 {
   font-size: 3rem;
   font-weight: 900;
-  background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #fbbf24 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #c084fc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -75,6 +78,7 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 3px;
   word-wrap: break-word;
+  filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.4));
 }
 
 .subtitle {
@@ -148,28 +152,35 @@ a:hover {
 
 hr {
   border: none;
-  border-top: 1px solid rgba(16, 185, 129, 0.2);
+  border-top: 1px solid rgba(124, 58, 237, 0.3);
   margin: 40px 0;
 }
 
 .highlight-box {
-  background: rgba(16, 185, 129, 0.1);
-  backdrop-filter: blur(10px);
+  background: rgba(124, 58, 237, 0.1);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
   border-left: 4px solid var(--primary);
   padding: 20px 25px;
   margin: 30px 0;
-  border-radius: 12px;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 20px;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 .cta-section {
   text-align: center;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  border-radius: 20px;
+  background: rgba(124, 58, 237, 0.15);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-radius: 28px;
   padding: 40px 30px;
   margin: 50px 0;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  box-shadow: 0 20px 60px rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  box-shadow: 0 20px 60px rgba(124, 58, 237, 0.3),
+              0 10px 30px rgba(0, 0, 0, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.2);
   position: relative;
   overflow: hidden;
 }
@@ -233,15 +244,19 @@ hr {
   margin: 20px 0;
   position: relative;
   font-size: 1.05rem;
-  background: rgba(16, 185, 129, 0.05);
-  border-radius: 12px;
+  background: rgba(124, 58, 237, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
   border-left: 3px solid var(--primary);
   transition: all 0.3s ease;
+  border: 1px solid rgba(124, 58, 237, 0.2);
 }
 
 .steps li:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(124, 58, 237, 0.15);
   transform: translateX(5px);
+  border-color: rgba(124, 58, 237, 0.4);
 }
 
 .steps li:before {
@@ -260,8 +275,8 @@ hr {
   justify-content: center;
   font-weight: 900;
   font-size: 1.2rem;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-  border: 2px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.5);
+  border: 2px solid rgba(124, 58, 237, 0.4);
 }
 
 .benefit-grid {
@@ -272,14 +287,17 @@ hr {
 }
 
 .benefit-card {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 24px;
   padding: 25px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 .benefit-card::before {
@@ -289,7 +307,7 @@ hr {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.15), transparent);
   transition: left 0.5s;
 }
 
@@ -299,32 +317,39 @@ hr {
 
 .benefit-card:hover {
   transform: translateY(-5px);
-  border-color: var(--primary);
-  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+  border-color: rgba(124, 58, 237, 0.5);
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3),
+              0 4px 16px rgba(0, 0, 0, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
 .back-link {
   display: inline-block;
   margin-top: 40px;
   padding: 14px 36px;
-  background: rgba(16, 185, 129, 0.1);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(124, 58, 237, 0.15);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(124, 58, 237, 0.4);
   color: var(--text-primary);
   border-radius: 50px;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: 700;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 .back-link:hover {
-  background: var(--primary);
-  color: var(--dark);
+  background: rgba(124, 58, 237, 0.3);
+  color: var(--text-primary);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.5),
+              0 4px 16px rgba(0, 0, 0, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.2);
   border-bottom: none;
+  border-color: rgba(124, 58, 237, 0.6);
 }
 
 @media (max-width: 768px) {
@@ -466,7 +491,7 @@ hr {
 
 <div class="container">
   <h1>🤝 Партнёрам</h1>
-  <p class="subtitle">Платформа <a href="https://t.me/nononotattoo" target="_blank">Околотату</a></p>
+  <p class="subtitle">Приложение <a href="https://t.me/nononotattoo" target="_blank">Околотату</a></p>
 
   <h2>Что такое «Околотату»</h2>
   <p><a href="https://t.me/nononotattoo" target="_blank">Околотату</a> — это Telegram-платформа для работы с тату-аудиторией через Mini App и Telegram-бота.</p>
@@ -477,9 +502,9 @@ hr {
   <h2>Как это работает</h2>
   <ul class="steps">
     <li>Пользователь заходит в Telegram Mini App Околотату</li>
-    <li>Видит подборку партнёрских предложений</li>
-    <li>Переходит по уникальной ссылке / коду, доступному только в Околотату</li>
-    <li>Автоматически попадает в базу пользователей</li>
+    <li>Видит подборку уникальных партнёрских предложений</li>
+    <li>Переходит по ссылке / бот пришлёт уникальный промокод</li>
+    <li>После чего автоматически попадает в базу пользователей</li>
     <li>В дальнейшем получает предложения через Telegram-бота</li>
   </ul>
   
@@ -492,9 +517,8 @@ hr {
 
   <div class="benefit-grid">
     <div class="benefit-card">
-      <h3>🔗 Уникальные ссылки и коды</h3>
+      <h3>🔗 Уникальносьть</h3>
       <ul>
-        <li>персональные коды только для аудитории Околотату</li>
         <li>легко отслеживать эффективность</li>
         <li>высокий уровень доверия к предложениям</li>
       </ul>
@@ -511,7 +535,7 @@ hr {
     </div>
 
     <div class="benefit-card">
-      <h3>🎯 Живая тату-аудитория</h3>
+      <h3>🎯 Живая аудитория</h3>
       <ul>
         <li>тату-мастера</li>
         <li>клиенты тату-студий</li>
@@ -535,16 +559,16 @@ hr {
   <ul>
     <li>тату-студии и мастера</li>
     <li>бренды расходников и оборудования</li>
-    <li>уход за тату и кожей</li>
-    <li>фестивали, мероприятия, курсы</li>
-    <li>сервисы и платформы для тату-индустрии</li>
+    <li>бренды косметики по уходу за тату</li>
+    <li>фестивали, мероприятия, образовательные мероприятия</li>
+    <li>сервисы и платформы тату-индустрии</li>
   </ul>
   <hr>
 
   <h2>Форматы сотрудничества</h2>
   <ul>
     <li>размещение предложения в Mini App</li>
-    <li>эксклюзивные ссылки и коды</li>
+    <li>пакетное размещение</li>
     <li>рассылки по базе пользователей</li>
     <li>спецпроекты под задачи партнёра</li>
   </ul>
@@ -563,7 +587,7 @@ hr {
   <div class="cta-section">
     <h2 style="color: #ffffff; margin-top: 0;">Как стать партнёром</h2>
     <p style="color: rgba(255,255,255,0.95); font-size: 1.2rem;">Для обсуждения партнёрства и размещения предложения<br>свяжитесь с администрацией через Telegram:</p>
-    <a href="https://t.me/nononotattoo" class="cta-button" target="_blank">👉 Околотату</a>
+    <a href="https://t.me/feedback_svr_bot" class="cta-button" target="_blank">👉 Напишите нам</a>
   </div>
 
   <div class="highlight-box" style="text-align: center; font-size: 1.2rem;">
