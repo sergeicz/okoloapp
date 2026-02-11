@@ -1,76 +1,25 @@
-name: Deploy Frontend & Backend
+# .github/workflows/deploy.yml
+name: Deploy to VPS
 
 on:
   push:
     branches:
-      - main
+      - main # Или другая ветка, которую вы используете для деплоя
 
 jobs:
-  # Job 1: Deploy Frontend to GitHub Pages
-  deploy-frontend:
+  deploy:
     runs-on: ubuntu-latest
-    name: Deploy Frontend to GitHub Pages
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+    - name: Setup SSH Key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Frontend deployment notification
-        if: success()
-        run: |
-          echo "✅ Frontend deployed successfully to GitHub Pages!"
-          echo "🌐 URL: https://sergeicz.github.io/tg_miniapps_links/frontend/"
-          echo "🚀 Version: ${{ github.sha }}"
-
-  # Job 2: Deploy Backend (Worker) to Cloudflare
-  deploy-backend:
-    runs-on: ubuntu-latest
-    name: Deploy Backend to Cloudflare Workers
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        working-directory: ./worker
-        run: npm ci
-
-      - name: Deploy to Cloudflare Workers
-        working-directory: ./worker
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          echo "🚀 Starting Wrangler deployment..."
-          npx wrangler deploy
-
-      - name: Backend deployment notification
-        if: success()
-        run: |
-          echo "✅ Worker deployed successfully to Cloudflare!"
-          echo "🌐 URL: https://telegram-miniapp-api.worknotdead.workers.dev"
-          echo "🚀 Version: ${{ github.sha }}"
-          echo "📅 Time: $(date)"
+    # Замените user на имя вашего пользователя на VPS
+    - name: Deploy to VPS
+      run: |
+        rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" . user@46.17.44.239:/home/user/okoloapp/html/
+        ssh -o StrictHostKeyChecking=no user@46.17.44.239 "cd /home/user/okoloapp && sudo docker compose up -d"

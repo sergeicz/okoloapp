@@ -1,0 +1,22 @@
+# ~/okoloapp/docker-compose.yml
+version: '3.8'
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # Для HTTP/3 (опционально)
+    volumes:
+      - $PWD/Caddyfile:/etc/caddy/Caddyfile
+      - $PWD/html:/usr/share/caddy/html # Папка с файлами вашего сайта
+      - caddy_data:/data # Для хранения сертификатов Let's Encrypt
+      - caddy_config:/config # Для конфигурации Caddy
+    environment:
+      - ACME_AGREE=true # Подтверждаете условия использования Let's Encrypt
+
+volumes:
+  caddy_data:
+  caddy_config:

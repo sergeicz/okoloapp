@@ -1,0 +1,20 @@
+# ~/okoloapp/Caddyfile
+app.okolotattooing.ru {
+    encode gzip zstd
+    root * /usr/share/caddy/html
+    file_server
+    # Запретить прямой доступ к файлам .env, .git, etc., если они есть
+    @forbidden {
+        path /.*\.env*
+        path /.git/*
+    }
+    respond @forbidden 404
+
+    # Настройки безопасности (пример)
+    header {
+        Strict-Transport-Security max-age=31536000;
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer-when-downgrade
+    }
+}
