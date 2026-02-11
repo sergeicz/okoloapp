@@ -18,8 +18,15 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    # Замените user на имя вашего пользователя на VPS
-    - name: Deploy to VPS
+    # Копируем Caddyfile и docker-compose.yml в корень ~/okoloapp
+    - name: Copy config files to VPS
       run: |
-        rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" . user@46.17.44.239:/home/user/okoloapp/html/
-        ssh -o StrictHostKeyChecking=no user@46.17.44.239 "cd /home/user/okoloapp && sudo docker compose up -d"
+        scp -o StrictHostKeyChecking=no Caddyfile docker-compose.yml root@46.17.44.239:/root/okoloapp/
+    # Копируем содержимое frontend/ (включая index.html, app.js и т.д.) в ~/okoloapp/html/
+    - name: Deploy frontend files to VPS html directory
+      run: |
+        rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./frontend/ root@46.17.44.239:/root/okoloapp/html/
+    # Перезапускаем контейнеры
+    - name: Restart Docker Compose
+      run: |
+        ssh -o StrictHostKeyChecking=no root@46.17.44.239 "cd /root/okoloapp && sudo docker compose up -d"
