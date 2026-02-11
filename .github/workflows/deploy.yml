@@ -18,15 +18,50 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+    # Шаг: Проверка и установка Docker и docker-compose-plugin (если необходимо)
+    - name: Ensure Docker and Docker Compose Plugin are installed on VPS
+      run: |
+        if ! ssh -o StrictHostKeyChecking=no root@46.17.44.239 "command -v docker >/dev/null 2>&1 && command -v docker-compose-plugin >/dev/null 2>&1"; then
+          echo "Docker or docker-compose-plugin not found. Installing..."
+          ssh -o StrictHostKeyChecking=no root@46.17.44.239 "
+            apt-get update &&
+            apt-get install -y ca-certificates curl gnupg lsb-release &&
+            mkdir -p /etc/apt/keyrings &&
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg &&
+            echo \"deb [arch=\$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable\" | tee /etc/apt/sources.list.d/docker.list > /dev/null &&
+            apt-get update &&
+            apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin &&
+            systemctl enable docker &&
+            systemctl start docker
+          "
+        else
+          echo "Docker and docker-compose-plugin are already installed."
+        fi
+
     # Копируем Caddyfile и docker-compose.yml в корень ~/okoloapp
     - name: Copy config files to VPS
       run: |
         scp -o StrictHostKeyChecking=no Caddyfile docker-compose.yml root@46.17.44.239:/root/okoloapp/
+
     # Копируем содержимое frontend/ (включая index.html, app.js и т.д.) в ~/okoloapp/html/
     - name: Deploy frontend files to VPS html directory
       run: |
         rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./frontend/ root@46.17.44.239:/root/okoloapp/html/
-    # Перезапускаем контейнеры
-    - name: Restart Docker Compose
+
+    # --- Новый шаг: Остановка и удаление старых контейнеров ---
+    - name: Stop and remove old containers
+      run: |
+        ssh -o StrictHostKeyChecking=no root@46.17.44.239 "
+          cd /root/okoloapp &&
+          # docker compose down остановит и удалит контейнеры, определённые в docker-compose.yml
+          # Флаг -v удаляет именованные тома, если они есть (обычно не нужно для статических сайтов)
+          # docker compose down -v
+          # Без -v удаляет только контейнеры и сети, но сохраняет тома
+          sudo docker compose down
+        "
+    # --- Конец нового шага ---
+
+    # Перезапускаем контейнеры из нового compose файла
+    - name: Start new containers
       run: |
         ssh -o StrictHostKeyChecking=no root@46.17.44.239 "cd /root/okoloapp && sudo docker compose up -d"
