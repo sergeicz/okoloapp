@@ -206,9 +206,10 @@ async function appendSheetRow(sheetId, sheetName, values, accessToken) {
   });
   const result = await response.json();
 
-  // Log for debugging
+  // Log for debugging and throw error if API returned error
   if (result.error) {
     console.error(`[appendSheetRow] ❌ Error appending to sheet "${sheetName}":`, result.error);
+    throw new Error(`Google Sheets API error: ${result.error.message || JSON.stringify(result.error)}`);
   }
 
   return result;
@@ -2911,6 +2912,7 @@ app.get('/api/debug/broadcasts', async (req, res) => {
     // Try to write a test row
     let writeError = null;
     let writeSuccess = false;
+    let writeResult = null;
     try {
       const testData = [
         'TEST_' + Date.now(),
@@ -2919,20 +2921,33 @@ app.get('/api/debug/broadcasts', async (req, res) => {
         new Date().toISOString().split('T')[1].split('.')[0],
         '0', '0', '0', '', '', '', '', '0', '0', '0', ''
       ];
-      await appendSheetRow(env.SHEET_ID, 'broadcasts', testData, accessToken);
-      writeSuccess = true;
+      writeResult = await appendSheetRow(env.SHEET_ID, 'broadcasts', testData, accessToken);
+      writeSuccess = !writeResult.error;
+      if (writeResult.error) {
+        writeError = JSON.stringify(writeResult.error);
+      }
     } catch (error) {
       writeError = error.message;
+    }
+
+    // Re-read to check if write worked
+    let broadcastsAfterWrite = [];
+    try {
+      broadcastsAfterWrite = await getSheetData(env.SHEET_ID, 'broadcasts', accessToken);
+    } catch (error) {
+      // ignore
     }
 
     res.json({
       ok: true,
       sheet_exists: !readError,
       read_error: readError,
-      broadcasts_count: broadcasts.length,
-      broadcasts_sample: broadcasts.slice(0, 3),
+      broadcasts_count_before: broadcasts.length,
+      broadcasts_count_after: broadcastsAfterWrite.length,
+      broadcasts_sample: broadcastsAfterWrite.slice(-3), // Last 3
       write_test: writeSuccess ? 'success' : 'failed',
       write_error: writeError,
+      write_result: writeResult,
       sheet_id: env.SHEET_ID
     });
   } catch (error) {
