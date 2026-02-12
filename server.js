@@ -4876,6 +4876,12 @@ app.post('/api/click', async (req, res) => {
       console.log(`[PROMOCODE] ⏭️ No promocode to send for ${partner.title} (promocode is empty or missing)`);
     }
 
+    // Check for "Молодой хомяк" achievement (first partner click)
+    const totalClicks = clicks.filter(c => String(c.telegram_id) === String(user_id)).length;
+    if (totalClicks >= 1) {
+      await checkAndUnlockAchievements(env, user_id, 'partner_click', totalClicks);
+    }
+
     // Return click count
     const clickCount = existingClickIndex !== -1
       ? parseInt(clicks[existingClickIndex].click_count || 1) + 1
