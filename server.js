@@ -476,7 +476,7 @@ async function initializeRequiredSheets(env) {
       },
       {
         name: 'user_achievements',
-        headers: ['user_id', 'achievement_id', 'progress', 'is_unlocked', 'unlocked_at', 'created_at', 'updated_at']
+        headers: ['telegram_id', 'achievement_id', 'progress', 'is_unlocked', 'unlocked_at', 'created_at', 'updated_at']
       },
       {
         name: 'referrals',
@@ -484,7 +484,7 @@ async function initializeRequiredSheets(env) {
       },
       {
         name: 'daily_activity',
-        headers: ['user_id', 'activity_date', 'actions_count', 'created_at']
+        headers: ['telegram_id', 'activity_date', 'actions_count', 'created_at']
       }
     ];
     
@@ -731,13 +731,13 @@ async function getUserAchievementProgress(env, userId, achievementId) {
     const userAchievements = await getSheetData(env.SHEET_ID, 'user_achievements', accessToken);
     
     const userAchievement = userAchievements.find(ua => 
-      String(ua.user_id) === String(userId) && 
+      String(ua.telegram_id) === String(userId) && 
       String(ua.achievement_id) === String(achievementId)
     );
     
     if (userAchievement) {
       const progress = {
-        user_id: userId,
+        telegram_id: userId,
         achievement_id: achievementId,
         progress: parseInt(userAchievement.progress) || 0,
         is_unlocked: userAchievement.is_unlocked === 'TRUE' || userAchievement.is_unlocked === true,
@@ -756,7 +756,7 @@ async function getUserAchievementProgress(env, userId, achievementId) {
   
   // Return default if not found in sheets
   const defaultProgress = {
-    user_id: userId,
+    telegram_id: userId,
     achievement_id: achievementId,
     progress: 0,
     is_unlocked: false,
@@ -772,7 +772,7 @@ async function updateUserAchievementProgress(env, userId, achievementId, progres
   const cacheKey = `user_achievement:${userId}:${achievementId}`;
   
   const achievementData = {
-    user_id: userId,
+    telegram_id: userId,
     achievement_id: achievementId,
     progress: progress,
     is_unlocked: isUnlocked,
@@ -787,7 +787,7 @@ async function updateUserAchievementProgress(env, userId, achievementId, progres
     const userAchievements = await getSheetData(env.SHEET_ID, 'user_achievements', accessToken);
     
     const existingIndex = userAchievements.findIndex(ua => 
-      String(ua.user_id) === String(userId) && 
+      String(ua.telegram_id) === String(userId) && 
       String(ua.achievement_id) === String(achievementId)
     );
     
@@ -921,7 +921,7 @@ async function getUserStats(env, userId) {
     
     if (user) {
       const stats = {
-        user_id: userId,
+        telegram_id: userId,
         total_points: parseInt(user.total_points) || 0,
         current_streak: parseInt(user.current_streak) || 0,
         longest_streak: parseInt(user.longest_streak) || 0,
@@ -946,7 +946,7 @@ async function getUserStats(env, userId) {
   
   // Return default stats if not found
   return {
-    user_id: userId,
+    telegram_id: userId,
     total_points: 0,
     current_streak: 0,
     longest_streak: 0,
@@ -1296,13 +1296,13 @@ async function calculateUserPartnerConversion(env, userId, partnerTitle) {
     // Get clicks for this user and partner
     const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
     const userPartnerClicks = clicks.filter(c => 
-      String(c.user_id) === String(userId) && 
+      String(c.telegram_id) === String(userId) && 
       c.title === partnerTitle
     );
     
     if (userPartnerClicks.length === 0) {
       return {
-        user_id: userId,
+        telegram_id: userId,
         partner_title: partnerTitle,
         user_clicks: 0,
         conversion_status: 'no clicks'
@@ -1318,7 +1318,7 @@ async function calculateUserPartnerConversion(env, userId, partnerTitle) {
     const converted = false; // This would be determined by additional criteria
     
     return {
-      user_id: userId,
+      telegram_id: userId,
       partner_title: partnerTitle,
       user_clicks: userClicks,
       converted: converted,
@@ -1327,7 +1327,7 @@ async function calculateUserPartnerConversion(env, userId, partnerTitle) {
   } catch (error) {
     console.error(`Error calculating user-partner conversion for user ${userId}, partner ${partnerTitle}:`, error);
     return {
-      user_id: userId,
+      telegram_id: userId,
       partner_title: partnerTitle,
       user_clicks: 0,
       conversion_status: 'error',
@@ -1356,7 +1356,7 @@ async function updateConversionRate(env, partnerTitle) {
     // Update conversion rate for each row of this partner
     for (const click of partnerClicks) {
       const rowIndex = clicks.findIndex(c => 
-        String(c.user_id) === String(click.user_id) && 
+        String(c.telegram_id) === String(click.telegram_id) && 
         c.title === click.title
       ) + 2; // +2 because: +1 for header, +1 for 1-based index
       
@@ -1412,7 +1412,7 @@ async function trackDailyActivity(env, userId) {
       const dailyActivities = await getSheetData(env.SHEET_ID, 'daily_activity', accessToken);
       
       const existingIndex = dailyActivities.findIndex(da => 
-        String(da.user_id) === String(userId) && 
+        String(da.telegram_id) === String(userId) && 
         da.activity_date === today
       );
       
@@ -1441,7 +1441,7 @@ async function trackDailyActivity(env, userId) {
   
   // New day, create activity record
   const newActivity = {
-    user_id: userId,
+    telegram_id: userId,
     activity_date: today,
     actions_count: 1,
     created_at: new Date().toISOString()
