@@ -78,40 +78,64 @@ if (!user || user.id === 0 || !user.id) {
   console.error('❌ Приложение открыто не через бота! User ID отсутствует.');
   console.log('⚠️ Пожалуйста, открой приложение через кнопку в боте.');
 
-  // Show warning to user
+  // Show warning to user with blurred background
   setTimeout(() => {
-    const warningDiv = document.createElement('div');
-    warningDiv.style.cssText = `
+    // Create overlay with blur
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #ff4444;
-      color: white;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999999;
       padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      z-index: 10000;
-      max-width: 80%;
-      font-size: 16px;
-      line-height: 1.5;
+      animation: fadeIn 0.3s ease;
     `;
-    warningDiv.innerHTML = `
-      <div style="font-size: 48px; margin-bottom: 10px; text-align: center;">⚠️</div>
-      <div style="font-weight: bold; margin-bottom: 10px; text-align: center;">Приложение открыто некорректно!</div>
-      <div style="text-align: center; margin-bottom: 10px;">
+
+    // Create warning box
+    const warningBox = document.createElement('div');
+    warningBox.style.cssText = `
+      background: rgba(18, 18, 18, 0.8);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 2px solid rgba(255, 68, 68, 0.5);
+      border-radius: 32px;
+      padding: 35px 30px;
+      max-width: min(450px, calc(100vw - 40px));
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8),
+                  0 10px 30px rgba(255, 68, 68, 0.4),
+                  inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      color: white;
+    `;
+
+    warningBox.innerHTML = `
+      <div style="font-size: 4rem; margin-bottom: 20px; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));">⚠️</div>
+      <div style="font-weight: bold; font-size: 1.3rem; margin-bottom: 20px; color: rgba(255, 255, 255, 0.95);">Приложение открыто некорректно!</div>
+      <div style="font-size: 1rem; line-height: 1.6; margin-bottom: 20px; color: rgba(255, 255, 255, 0.85);">
         Пожалуйста, открой приложение через кнопку<br>"🚀 Открыть Mini App" в боте
       </div>
-      <div style="text-align: center; margin-bottom: 15px;">
+      <div style="margin-bottom: 20px;">
         <a href="https://t.me/okolotattoo_bot"
-           style="color: white; text-decoration: underline; font-weight: bold; font-size: 18px;"
+           style="color: #ff4444; text-decoration: underline; font-weight: bold; font-size: 1.1rem; text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);"
            target="_blank">
           https://t.me/okolotattoo_bot
         </a>
       </div>
-      <div style="margin-top: 10px; font-size: 14px; opacity: 0.9; text-align: center;">Без этого промокоды не будут работать.</div>
+      <div style="margin-top: 15px; font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">Без этого промокоды не будут работать.</div>
     `;
-    document.body.appendChild(warningDiv);
+
+    overlay.appendChild(warningBox);
+    document.body.appendChild(overlay);
   }, 1000);
 }
 
