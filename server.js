@@ -2444,11 +2444,9 @@ function setupBot(env) {
       keyboard.row().text('📊 Кабинет партнёра', 'representative_cabinet');
     }
 
-    // Add profile and referral buttons for all users except admins
-    if (!isAdmin) {
-      keyboard.row().text('👤 Мой профиль', 'show_profile');
-      keyboard.row().text('👥 Рефералка', 'show_referral');
-    }
+    // Add profile and referral buttons for ALL users (including admins)
+    keyboard.row().text('👤 Мой профиль', 'show_profile');
+    keyboard.row().text('👥 Рефералка', 'show_referral');
 
     await ctx.reply(
       `👋 Привет, *${user.first_name}*!\n\n` +
