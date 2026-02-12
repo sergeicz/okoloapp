@@ -2150,9 +2150,19 @@ async function executeBroadcast(ctx, env, state) {
   const readCount = successCount;
 
   // Сохраняем статистику в таблицу broadcasts
-  // Формат таблицы: broadcast_id, name, date, time, sent_count, read_count, click_count, title, subtitle, button_text, button_url, total_users, fail_count, archived_count, partner
   let saveError = null;
   try {
+    // Проверяем, есть ли заголовки в листе broadcasts, и если нет - добавляем их
+    const broadcastHeaders = ['broadcast_id', 'name', 'date', 'time', 'sent_count', 'read_count', 'click_count', 'title', 'subtitle', 'button_text', 'button_url', 'total_users', 'fail_count', 'archived_count', 'partner'];
+    
+    // Сначала проверим, есть ли уже какие-то данные в листе
+    const existingBroadcasts = await getSheetData(env.SHEET_ID, 'broadcasts', accessToken);
+    
+    // Если лист пустой, добавим заголовки
+    if (existingBroadcasts.length === 0) {
+      await appendSheetRow(env.SHEET_ID, 'broadcasts', broadcastHeaders, accessToken);
+    }
+    
     const broadcastData = [
       state.broadcast_id || '',                    // broadcast_id
       state.broadcast_name || 'Без названия',      // name
