@@ -3396,7 +3396,8 @@ function setupBot(env) {
       }
 
       const partner = partners[partnerIndex];
-      const partnerClicks = clicks.filter(c => c.url === partner.url);
+      const partnerUrl = partner.url || partner.link; // Support both field names
+      const partnerClicks = clicks.filter(c => c.url === partnerUrl);
 
       if (partnerClicks.length === 0) {
         const keyboard = new InlineKeyboard().text('« Назад', `admin_partner_select_${partnerIndex}`);
@@ -3471,7 +3472,7 @@ function setupBot(env) {
         `🏷️ *Партнер:* ${partner.title}\n` +
         `📁 *Категория:* ${partner.category || 'Не указана'}\n` +
         `📅 *Дата размещения:* ${partner.date_release || 'Не указана'}\n` +
-        `🔗 *Ссылка:* ${partner.url}\n`;
+        `🔗 *Ссылка:* ${partnerUrl}\n`;
 
       if (partner.predstavitel) {
         report += `👤 *Представитель:* ${partner.predstavitel}\n`;
@@ -4757,7 +4758,7 @@ app.post('/api/click', async (req, res) => {
           firstName,                  // first_name
           partner.title,              // title
           category,                   // category
-          partner_url || partner.url, // url
+          partner_url || partner.url || partner.link, // url - support both field names
           String(newCount),           // click
           partner.date_release || '', // date_release (from partners table)
           existingClick.first_click_date || existingClick.first_click || currentTimestamp, // first_click_date
@@ -4791,7 +4792,7 @@ app.post('/api/click', async (req, res) => {
           firstName,                  // first_name
           partner.title,              // title
           category,                   // category
-          partner_url || partner.url, // url
+          partner_url || partner.url || partner.link, // url - support both field names
           '1',                        // click
           partner.date_release || '', // date_release (from partners table)
           currentTimestamp,           // first_click_date
