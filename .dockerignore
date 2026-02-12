@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+.github
+
+# Node modules (will be installed in container)
+node_modules
+npm-debug.log
+
+# Environment files (will be mounted separately)
+.env
+.env.*
+
+# Logs
+logs
+*.log
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Cloudflare Workers (legacy)
+worker/wrangler.toml
+worker/.wrangler
+.wrangler
+
+# Development files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Documentation
+*.md
+LICENSE
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist
+build

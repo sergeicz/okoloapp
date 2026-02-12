@@ -1,0 +1,123 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+    - name: Add VPS to known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H 46.17.44.239 >> ~/.ssh/known_hosts
+
+    - name: Create .env file
+      run: |
+        cat > .env << 'EOF'
+        BOT_TOKEN=${{ secrets.BOT_TOKEN }}
+        WEBAPP_URL=${{ secrets.WEBAPP_URL }}
+        SHEET_ID=${{ secrets.SHEET_ID }}
+        CREDENTIALS_JSON=${{ secrets.CREDENTIALS_JSON }}
+        REDIS_HOST=redis
+        REDIS_PORT=6379
+        NODE_ENV=production
+        PORT=3000
+        SERVER_URL=https://app.okolotattooing.ru
+        EOF
+
+    - name: Deploy to VPS
+      run: |
+        # Create directory if it doesn't exist
+        ssh root@46.17.44.239 "mkdir -p /opt/telegram-miniapp"
+
+        # Copy files to VPS
+        rsync -avz --delete \
+          --exclude '.git' \
+          --exclude '.github' \
+          --exclude 'node_modules' \
+          --exclude 'worker' \
+          --exclude '.wrangler' \
+          --exclude 'logs' \
+          ./ root@46.17.44.239:/opt/telegram-miniapp/
+
+        # Deploy on VPS
+        ssh root@46.17.44.239 << 'ENDSSH'
+          cd /opt/telegram-miniapp
+
+          # Stop containers
+          docker-compose down || true
+
+          # Remove old images
+          docker-compose build --no-cache
+
+          # Start containers
+          docker-compose up -d
+
+          # Show logs
+          echo "Deployment completed. Showing logs..."
+          docker-compose logs --tail=50
+        ENDSSH
+
+    - name: Wait for services to start
+      run: |
+        echo "Waiting 15 seconds for services to start..."
+        sleep 15
+
+    - name: Set Telegram Webhook
+      run: |
+        response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/setWebhook?url=https://app.okolotattooing.ru/bot${{ secrets.BOT_TOKEN }}")
+        echo "Webhook response: $response"
+
+        # Check if webhook was set successfully
+        if echo "$response" | grep -q '"ok":true'; then
+          echo "✅ Webhook set successfully"
+        else
+          echo "❌ Failed to set webhook"
+          exit 1
+        fi
+
+    - name: Health Check
+      run: |
+        echo "Running health check..."
+
+        # Retry up to 5 times with 5 second delay
+        for i in {1..5}; do
+          if curl -f -s https://app.okolotattooing.ru/api/health; then
+            echo "✅ Health check passed"
+            exit 0
+          fi
+          echo "Attempt $i failed, retrying in 5 seconds..."
+          sleep 5
+        done
+
+        echo "❌ Health check failed after 5 attempts"
+        exit 1
+
+    - name: Verify Deployment
+      run: |
+        echo "=== Deployment Verification ==="
+
+        # Check container status
+        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker-compose ps"
+
+        echo ""
+        echo "=== Recent Logs ==="
+        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker-compose logs --tail=20 app"
+
+    - name: Notify on Failure
+      if: failure()
+      run: |
+        echo "🚨 Deployment failed! Check the logs above for details."
+        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker-compose logs --tail=100" || true

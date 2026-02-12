@@ -50,7 +50,7 @@ window.addEventListener('DOMContentLoaded', checkCookieConsent);
 // =====================================================
 
 const CONFIG = {
-  API_URL: 'https://telegram-miniapp-api.worknotdead.workers.dev',  // ПРОДАКШЕН
+  API_URL: 'https://app.okolotattooing.ru',  // VPS ПРОДАКШЕН
 };
 
 const tg = Telegram.WebApp;

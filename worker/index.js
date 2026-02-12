@@ -271,6 +271,35 @@ async function checkUserActive(bot, userId) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// RATE LIMITING & SECURITY
+// ═══════════════════════════════════════════════════════════════
+
+async function checkRateLimit(env, key, limit, windowSeconds) {
+  const cacheKey = `ratelimit:${key}`;
+  const current = await env.BROADCAST_STATE.get(cacheKey);
+  const count = current ? parseInt(current) : 0;
+
+  if (count >= limit) {
+    throw new Error('Rate limit exceeded');
+  }
+
+  await env.BROADCAST_STATE.put(cacheKey, String(count + 1), {
+    expirationTtl: windowSeconds
+  });
+
+  return count + 1;
+}
+
+function validateCredentials(creds) {
+  if (!creds || typeof creds !== 'object') {
+    throw new Error('Invalid credentials format');
+  }
+  if (!creds.client_email || !creds.private_key) {
+    throw new Error('Missing client_email or private_key in credentials');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // CACHE HELPERS
 // ═══════════════════════════════════════════════════════════════
 
@@ -2851,25 +2880,46 @@ export default {
     const hour = now.getHours();
 
     // Проверка и архивация неактивных пользователей (каждые 5 минут)
-    const usersResult = await checkAllUsers(env);
-    console.log('[CRON] 📊 Users check result:', usersResult);
+    try {
+      if (!env.CREDENTIALS_JSON || !env.SHEET_ID) {
+        console.error('[CRON] ❌ Missing configuration');
+        return;
+      }
 
-    // Удаление старых сообщений с промокодами (каждые 5 минут)
-    const promoResult = await deleteOldPromocodes(env);
-    console.log('[CRON] 🗑️ Promocodes cleanup result:', promoResult);
+      // Проверка структуры Credentials
+      try {
+        const credsTest = JSON.parse(env.CREDENTIALS_JSON);
+        validateCredentials(credsTest);
+      } catch (e) {
+        console.error('[CRON] ❌ Invalid credentials:', e.message);
+        return;
+      }
 
-    // Еженедельные отчеты партнерам (каждый понедельник в 10:00 UTC)
-    if (dayOfWeek === 1 && hour === 10) {
-      console.log('[CRON] 📊 Sending weekly partner reports...');
-      const weeklyReportsResult = await sendWeeklyPartnerReports(env);
-      console.log('[CRON] 📧 Weekly reports result:', weeklyReportsResult);
-    }
+      const usersResult = await checkAllUsers(env);
+      console.log('[CRON] 📊 Users check result:', usersResult);
 
-    // Ежемесячные отчеты партнерам (1-го числа каждого месяца в 12:00 UTC)
-    if (dayOfMonth === 1 && hour === 12) {
-      console.log('[CRON] 📊 Sending monthly partner reports...');
-      const monthlyReportsResult = await sendMonthlyPartnerReports(env);
-      console.log('[CRON] 📧 Monthly reports result:', monthlyReportsResult);
+      // Удаление старых сообщений с промокодами (каждые 5 минут)
+      const promoResult = await deleteOldPromocodes(env);
+      console.log('[CRON] 🗑️ Promocodes cleanup result:', promoResult);
+
+      // Еженедельные отчеты партнерам (каждый понедельник в 10:00 UTC)
+      if (dayOfWeek === 1 && hour === 10) {
+        console.log('[CRON] 📊 Sending weekly partner reports...');
+        const weeklyReportsResult = await sendWeeklyPartnerReports(env);
+        console.log('[CRON] 📧 Weekly reports result:', weeklyReportsResult);
+      }
+
+      // Ежемесячные отчеты партнерам (1-го числа каждого месяца в 12:00 UTC)
+      if (dayOfMonth === 1 && hour === 12) {
+        console.log('[CRON] 📊 Sending monthly partner reports...');
+        const monthlyReportsResult = await sendMonthlyPartnerReports(env);
+        console.log('[CRON] 📧 Monthly reports result:', monthlyReportsResult);
+      }
+
+      console.log('[CRON] ✅ Scheduled task completed successfully');
+    } catch (error) {
+      console.error('[CRON] ❌ Fatal error in scheduled task:', error);
+      // Здесь можно добавить отправку алерта админу в Telegram
     }
   },
 

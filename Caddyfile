@@ -1,0 +1,41 @@
+app.okolotattooing.ru {
+    # Encode responses
+    encode gzip
+
+    # API endpoints to backend
+    handle /api/* {
+        reverse_proxy app:3000
+    }
+
+    # Bot webhook endpoint
+    handle /bot* {
+        reverse_proxy app:3000
+    }
+
+    # Broadcast redirect tracking
+    handle /r/* {
+        reverse_proxy app:3000
+    }
+
+    # Serve frontend static files
+    handle /* {
+        root * /srv/frontend
+        file_server
+        try_files {path} {path}/ /index.html
+    }
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Logging
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+}

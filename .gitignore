@@ -61,6 +61,17 @@ yarn.lock
 worker/.dev.vars
 wrangler.toml.backup
 
+# === Docker ===
+# Docker volumes and data
+logs/
+*.log
+caddy-data/
+caddy-config/
+redis-data/
+
+# Docker compose override
+docker-compose.override.yml
+
 # === IDE / Editors ===
 .vscode/
 .idea/
