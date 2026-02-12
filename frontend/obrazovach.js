@@ -172,7 +172,10 @@ async function loadEducationMaterials() {
 
   try {
     // Загрузка данных из API
+    console.log('[EDUCATION] Attempting to fetch data from:', `${EDUCATION_CONFIG.API_URL}/api/obrazovach`);
     const response = await safeFetchEducation(`${EDUCATION_CONFIG.API_URL}/api/obrazovach`);
+    console.log('[EDUCATION] Raw response:', response);
+    
     const materials = response.materials || [];
     console.log('[EDUCATION] Data loaded:', materials);
     console.log('[EDUCATION] Total materials:', materials.length);
@@ -200,6 +203,10 @@ async function loadEducationMaterials() {
         coverImg.style.marginBottom = '15px';
         coverImg.style.objectFit = 'cover';
         coverImg.style.height = '200px';
+        coverImg.onerror = function() {
+          console.error('[EDUCATION] Failed to load image:', material.url_cover);
+          this.style.display = 'none';
+        };
         card.appendChild(coverImg);
       }
 
@@ -233,7 +240,8 @@ async function loadEducationMaterials() {
     // Закрываем теги
     container.innerHTML += '</div></div>';
   } catch (error) {
-    container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки образовательных материалов</p>';
+    console.error('[EDUCATION] Error loading materials:', error);
+    container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки образовательных материалов: ' + error.message + '</p>';
   }
 }
 

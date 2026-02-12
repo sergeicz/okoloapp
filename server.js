@@ -4936,7 +4936,21 @@ app.get('/api/obrazovach', async (req, res) => {
   try {
     const creds = JSON.parse(env.CREDENTIALS_JSON);
     const accessToken = await getAccessToken(env, creds);
-    const materials = await getSheetData(env.SHEET_ID, 'obrazovach', accessToken);
+    
+    console.log('[API] Attempting to fetch data from obrazovach sheet...');
+    
+    let materials = [];
+    try {
+      materials = await getSheetData(env.SHEET_ID, 'obrazovach', accessToken);
+      console.log('[API] Raw materials from sheet:', materials);
+    } catch (sheetError) {
+      console.error('[API] Error reading obrazovach sheet:', sheetError);
+      // Return empty array if sheet doesn't exist
+      return res.json({
+        ok: true,
+        materials: []
+      });
+    }
 
     // Filter and format educational materials
     const formattedMaterials = materials
@@ -4949,6 +4963,8 @@ app.get('/api/obrazovach', async (req, res) => {
         url_video: m.url_video
       }));
 
+    console.log('[API] Formatted materials:', formattedMaterials);
+    
     res.json({
       ok: true,
       materials: formattedMaterials
