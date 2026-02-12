@@ -414,21 +414,9 @@ async function checkRepresentative(env, user) {
       return null; // No username - can't be representative
     }
 
-    // Check if user is an admin - if so, they can't be a partner representative
+    // Admins can also be partner representatives
     const creds = JSON.parse(env.CREDENTIALS_JSON);
     const accessToken = await getAccessToken(env, creds);
-    const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
-    
-    const isAdmin = admins.some(a => {
-      const idMatch = a.telegram_id && String(a.telegram_id) === String(user.id);
-      return idMatch;
-    });
-    
-    if (isAdmin) {
-      console.log(`[REPRESENTATIVE] Admin ${user.username} is not eligible to be a partner representative`);
-      return null;
-    }
-
     const partners = await getCachedPartners(env);
 
     // Normalize user username (remove @ and lowercase)
