@@ -62,14 +62,20 @@ async function safeFetchEducation(url, options = {}, retries = 3) {
       clearTimeout(timeout);
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(error.error || `HTTP ${response.status}`);
+        const errorText = await response.text(); // Получаем текст ошибки
+        console.error(`HTTP ${response.status} Response:`, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       return await response.json();
     } catch (error) {
       lastError = error;
       console.error(`Fetch error (attempt ${attempt}/${retries}):`, error);
+      console.error(`Error details:`, {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
 
       // Не повторяем если это abort
       if (error.name === 'AbortError') {
@@ -77,8 +83,10 @@ async function safeFetchEducation(url, options = {}, retries = 3) {
         break;
       }
 
-      // Не повторяем если это client error (4xx)
-      if (error.message.includes('HTTP 4')) {
+      // Не повторяем если это CORS или network error
+      if (error.message.includes('HTTP 4') || 
+          error.message.includes('Failed to fetch') || 
+          error.message.includes('CORS')) {
         break;
       }
 
@@ -270,6 +278,11 @@ async function loadEducationMaterials() {
     });
   } catch (error) {
     console.error('[EDUCATION] Error loading materials:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки образовательных материалов: ' + error.message + '</p>';
   }
 }
@@ -334,8 +347,10 @@ async function initEducationApp() {
   try {
     console.log('🚀 Инициализация образовательного приложения...');
     console.log('👤 Пользователь:', user);
+    console.log('🌐 API URL:', EDUCATION_CONFIG.API_URL);
 
     // Регистрация пользователя
+    console.log('📝 Регистрация пользователя...');
     await safeFetchEducation(`${EDUCATION_CONFIG.API_URL}/api/user`, {
       method: 'POST',
       body: JSON.stringify(user),
@@ -347,6 +362,7 @@ async function initEducationApp() {
 
     // Track page view in Yandex.Metrika
     if (window.metrikaTrack) {
+      console.log('📊 Отправка просмотра страницы в Metrika');
       window.metrikaTrack.obrazovachPageView();
     }
 
@@ -354,8 +370,14 @@ async function initEducationApp() {
 
   } catch (error) {
     console.error('❌ Education app init error:', error);
-    showError('Ошибка инициализации образовательного приложения');
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
+    showError('Ошибка инициализации образовательного приложения: ' + error.message);
   } finally {
+    console.log('🔄 Пытаемся скрыть preloader...');
     // ВСЕГДА скрываем preloader после завершения инициализации
     hidePreloader();
   }
