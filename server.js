@@ -4909,23 +4909,35 @@ app.post('/api/user', async (req, res) => {
     const currentDate = new Date().toISOString().split('T')[0];
 
     if (!existing) {
-      // Add new user
+      // Add new user with all required fields
+      const registrationNumber = users.length + 1;
+
       await appendSheetRow(
         env.SHEET_ID,
         'users',
         [
-          id,
-          username || 'N/A',
-          first_name || 'Unknown',
-          currentDate,  // date_registered
-          'бот запущен',  // bot_started
-          currentDate   // last_active
+          id,                        // telegram_id
+          username || 'N/A',         // username
+          first_name || 'Unknown',   // first_name
+          currentDate,               // date_registered
+          'бот запущен',             // bot_started
+          currentDate,               // last_active
+          '0',                       // total_points
+          '0',                       // current_streak
+          '0',                       // longest_streak
+          currentDate,               // last_active_date
+          '0',                       // referrals_count
+          '0',                       // education_views_count
+          '0',                       // events_registered
+          '0',                       // partners_subscribed
+          '0',                       // total_donations
+          String(registrationNumber) // registration_number
         ],
         accessToken
       );
-      console.log(`[API] 🆕 New user registered via API: ${id}`);
+      console.log(`[API] 🆕 New user registered via API: ${id}, registration #${registrationNumber}`);
     } else {
-      // Update existing user
+      // Update existing user with all fields
       const userIndex = users.findIndex(u => String(u.telegram_id) === String(id));
       if (userIndex !== -1) {
         const rowIndex = userIndex + 2;
@@ -4934,12 +4946,22 @@ app.post('/api/user', async (req, res) => {
           'users',
           rowIndex,
           [
-            id,
-            username || existing.username || 'N/A',
-            first_name || existing.first_name || 'Unknown',
-            existing.date_registered || currentDate,
-            'бот запущен',  // bot_started
-            currentDate  // last_active (update)
+            id,                                          // telegram_id
+            username || existing.username || 'N/A',      // username
+            first_name || existing.first_name || 'Unknown', // first_name
+            existing.date_registered || currentDate,     // date_registered
+            'бот запущен',                               // bot_started
+            currentDate,                                 // last_active (update)
+            String(existing.total_points || '0'),        // total_points
+            String(existing.current_streak || '0'),      // current_streak
+            String(existing.longest_streak || '0'),      // longest_streak
+            existing.last_active_date || currentDate,    // last_active_date
+            String(existing.referrals_count || '0'),     // referrals_count
+            String(existing.education_views_count || '0'), // education_views_count
+            String(existing.events_registered || '0'),   // events_registered
+            String(existing.partners_subscribed || '0'), // partners_subscribed
+            String(existing.total_donations || '0'),     // total_donations
+            String(existing.registration_number || '')   // registration_number
           ],
           accessToken
         );
