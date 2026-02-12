@@ -5108,14 +5108,56 @@ app.post('/api/send-video', async (req, res) => {
       console.log(`[API] ✅ Text message sent to user ${user_id}: ${title}`);
     }
 
-    // Update user's education views count
-    const userStats = await getUserStats(env, user_id);
-    const updatedStats = await updateUserStats(env, user_id, {
-      education_views_count: (userStats.education_views_count || 0) + 1
-    });
+    // Check if this video was already viewed by this user
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
 
-    // Check for education view achievement
-    await checkAndUnlockAchievements(env, user_id, 'education_view', updatedStats.education_views_count);
+    let educationViews = [];
+    try {
+      educationViews = await getSheetData(env.SHEET_ID, 'education_views', accessToken);
+    } catch (error) {
+      console.log('[API] education_views sheet does not exist yet, will create on first view');
+      educationViews = [];
+    }
+
+    // Check if user already viewed this specific video
+    const alreadyViewed = educationViews.some(view =>
+      String(view.telegram_id) === String(user_id) &&
+      view.video_url === video_url
+    );
+
+    if (!alreadyViewed) {
+      // This is a new unique video view - record it
+      const currentDate = new Date().toISOString().split('T')[0];
+      const currentTime = new Date().toISOString().split('T')[1].split('.')[0];
+
+      await appendSheetRow(
+        env.SHEET_ID,
+        'education_views',
+        [
+          user_id,           // telegram_id
+          username || '',    // username
+          title || '',       // title
+          video_url,         // video_url
+          currentDate,       // view_date
+          currentTime        // view_time
+        ],
+        accessToken
+      );
+
+      // Update user's education views count (only for unique videos)
+      const userStats = await getUserStats(env, user_id);
+      const updatedStats = await updateUserStats(env, user_id, {
+        education_views_count: (userStats.education_views_count || 0) + 1
+      });
+
+      // Check for education view achievement
+      await checkAndUnlockAchievements(env, user_id, 'education_view', updatedStats.education_views_count);
+
+      console.log(`[API] ✅ New unique video view recorded for user ${user_id}: ${title}`);
+    } else {
+      console.log(`[API] ℹ️ User ${user_id} already viewed this video: ${title}`);
+    }
 
     res.json({
       ok: true,
