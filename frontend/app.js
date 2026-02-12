@@ -194,8 +194,12 @@ function showLoading(elementId) {
   if (element) {
     element.innerHTML = `
       <div class="loading">
-        <div class="loading-bar-container">
-          <div class="loading-bar"></div>
+        <div class="hamster-container">
+          <span class="hamster hamster-1">🐹</span>
+          <span class="hamster hamster-2">🐹</span>
+          <span class="hamster hamster-3">🐹</span>
+          <span class="hamster hamster-4">🐹</span>
+          <span class="hamster hamster-5">🐹</span>
         </div>
         <div class="loading-text">Загрузка...</div>
       </div>
@@ -394,7 +398,7 @@ async function loadPartners() {
     const partners = response.partners || [];
     console.log('[PARTNERS] Data loaded:', partners);
     console.log('[PARTNERS] Total partners:', partners.length);
-    
+
     // Логируем партнеров с промокодами
     partners.forEach(p => {
       if (p.promocode && p.promocode.trim() !== '') {
@@ -414,8 +418,9 @@ async function loadPartners() {
       categories[p.category].push(p);
     });
 
-    // Отрисовка категорий
-    container.innerHTML = '';
+    // Отрисовка категорий как горизонтального карусели
+    container.innerHTML = '<div class="categories-container"><div class="categories-swipe">';
+    
     for (const [catName, links] of Object.entries(categories)) {
       const div = document.createElement('div');
       div.className = 'glass-card category-item';
@@ -429,46 +434,49 @@ async function loadPartners() {
         console.log(`[BTN] - Logo: ${link.logo_url || 'none'}`);
         console.log(`[BTN] - URL: ${link.url}`);
         console.log(`[BTN] - Promocode: ${link.promocode || 'none'}`);
-        
+
         const a = document.createElement('a');
         a.className = 'modern-btn';
         a.href = link.url;
         a.target = '_blank';
         a.onclick = (e) => handleLinkClick(e, link);
-        
+
         // Добавляем логотип если есть
         if (link.logo_url && link.logo_url.trim() !== '') {
           console.log('[LOGO] Adding:', link.logo_url);
-          
+
           const logo = document.createElement('img');
           logo.src = link.logo_url;
           logo.alt = link.title;
           logo.className = 'btn-logo';
           logo.loading = 'lazy'; // Lazy loading для логотипов
           logo.decoding = 'async'; // Асинхронная декодировка
-          
+
           logo.onerror = function() {
             console.error('[LOGO] Load failed:', link.logo_url);
             this.style.display = 'none';
           };
-          
+
           logo.onload = function() {
             console.log('[LOGO] Load success:', link.logo_url);
           };
-          
+
           a.appendChild(logo);
         }
-        
+
         // Добавляем текст
         const text = document.createElement('span');
         text.textContent = link.title;
         a.appendChild(text);
-        
+
         div.appendChild(a);
       });
 
-      container.appendChild(div);
+      container.querySelector('.categories-swipe').appendChild(div);
     }
+    
+    // Закрываем теги
+    container.innerHTML += '</div></div>';
   } catch (error) {
     container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки партнеров</p>';
   }
