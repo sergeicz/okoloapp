@@ -2284,7 +2284,7 @@ function setupBot(env) {
   bot.command('start', async (ctx) => {
     const user = ctx.from;
     const chatId = ctx.chat.id;
-    const startPayload = ctx.message.text.split(' ')[1]; // Get the payload after /start
+    const startPayload = ctx.match; // Get the payload after /start
 
     // Check if this is a referral link
     let referrerId = null;
