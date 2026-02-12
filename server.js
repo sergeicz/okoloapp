@@ -910,22 +910,26 @@ async function getUserStats(env, userId) {
     if (user) {
       const stats = {
         telegram_id: userId,
-        total_points: parseInt(user.total_points) || 0,
-        current_streak: parseInt(user.current_streak) || 0,
-        longest_streak: parseInt(user.longest_streak) || 0,
+        total_points: !isNaN(parseInt(user.total_points)) ? parseInt(user.total_points) : 0,
+        current_streak: !isNaN(parseInt(user.current_streak)) ? parseInt(user.current_streak) : 0,
+        longest_streak: !isNaN(parseInt(user.longest_streak)) ? parseInt(user.longest_streak) : 0,
         last_active_date: user.last_active_date || user.last_active || new Date().toISOString().split('T')[0],
-        referrals_count: parseInt(user.referrals_count) || 0,
-        education_views_count: parseInt(user.education_views_count) || 0,
-        events_registered: parseInt(user.events_registered) || 0,
-        partners_subscribed: parseInt(user.partners_subscribed) || 0,
-        total_donations: parseInt(user.total_donations) || 0,
+        referrals_count: !isNaN(parseInt(user.referrals_count)) ? parseInt(user.referrals_count) : 0,
+        education_views_count: !isNaN(parseInt(user.education_views_count)) ? parseInt(user.education_views_count) : 0,
+        events_registered: !isNaN(parseInt(user.events_registered)) ? parseInt(user.events_registered) : 0,
+        partners_subscribed: !isNaN(parseInt(user.partners_subscribed)) ? parseInt(user.partners_subscribed) : 0,
+        total_donations: !isNaN(parseInt(user.total_donations)) ? parseInt(user.total_donations) : 0,
         date_registered: user.date_registered || new Date().toISOString().split('T')[0],
         updated_at: new Date().toISOString()
       };
-      
+
       // Cache for 10 minutes
-      await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(stats), { expirationTtl: 600 });
-      
+      try {
+        await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(stats), { expirationTtl: 600 });
+      } catch (cacheError) {
+        console.error(`Error caching stats for ${userId}:`, cacheError);
+      }
+
       return stats;
     }
   } catch (error) {
