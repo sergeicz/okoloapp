@@ -105,22 +105,71 @@ async function safeFetchEducation(url, options = {}, retries = 3) {
 }
 
 // Показ ошибок пользователю
-function showError(message) {
+function showError(message, subtext = '', duration = 4000) {
   console.error('❌ Ошибка:', message);
-  if (educationTg.showAlert) {
-    educationTg.showAlert(message);
-  } else {
-    alert(message);
-  }
+
+  // Используем тот же popup, но с красной иконкой
+  showSuccess(message, subtext, '❌', duration);
 }
 
 // Показ успешных уведомлений
-function showSuccess(message) {
+function showSuccess(message, subtext = '', icon = '✅', duration = 3000) {
   console.log('✅ Успех:', message);
-  if (educationTg.showAlert) {
-    educationTg.showAlert(message);
+
+  // Получаем элементы popup
+  const popup = document.getElementById('notificationPopup');
+  const iconElement = document.getElementById('notificationIcon');
+  const textElement = document.getElementById('notificationText');
+  const subtextElement = document.getElementById('notificationSubtext');
+
+  if (!popup || !iconElement || !textElement || !subtextElement) {
+    // Fallback если элементы не найдены
+    if (educationTg && educationTg.showAlert) {
+      educationTg.showAlert(message);
+    } else {
+      alert(message);
+    }
+    return;
+  }
+
+  // Устанавливаем содержимое
+  iconElement.textContent = icon;
+  textElement.textContent = message;
+  subtextElement.textContent = subtext;
+
+  // Скрываем subtext если его нет
+  if (!subtext) {
+    subtextElement.style.display = 'none';
   } else {
-    alert(message);
+    subtextElement.style.display = 'block';
+  }
+
+  // Показываем popup
+  popup.classList.add('show');
+  popup.classList.remove('hide');
+
+  // Вибрация
+  if (educationTg && educationTg.HapticFeedback) {
+    educationTg.HapticFeedback.notificationOccurred('success');
+  }
+
+  // Автоматически скрываем через duration миллисекунд
+  setTimeout(() => {
+    hideNotification();
+  }, duration);
+}
+
+// Скрытие notification popup
+function hideNotification() {
+  const popup = document.getElementById('notificationPopup');
+  if (popup) {
+    popup.classList.remove('show');
+    popup.classList.add('hide');
+
+    // Полностью убираем классы после анимации
+    setTimeout(() => {
+      popup.classList.remove('hide');
+    }, 300);
   }
 }
 
@@ -331,8 +380,13 @@ async function handleVideoButtonClick(event, material) {
           window.metrikaTrack.educationVideoClick(material.title);
         }
 
-        // Показываем уведомление
-        showSuccess('Видео отправлено в бот. Проверьте сообщения.');
+        // Показываем красивое уведомление
+        showSuccess(
+          'Видео отправлено в бот! 🎉',
+          'Откройте Telegram и проверьте сообщения',
+          '🎥',
+          3000
+        );
       }
     } else {
       console.error('[VIDEO CLICK] Request failed:', response.status);
@@ -421,10 +475,21 @@ function waitForTelegramWebApp(timeout = 10000) {
 document.addEventListener('DOMContentLoaded', async () => {
   // Ждем загрузки Telegram WebApp SDK
   await waitForTelegramWebApp();
-  
+
   // Инициализируем Telegram WebApp
   initTelegramWebApp();
-  
+
   // Запускаем приложение
   initEducationApp();
+
+  // Добавляем обработчик клика на popup для закрытия
+  const popup = document.getElementById('notificationPopup');
+  if (popup) {
+    popup.addEventListener('click', (e) => {
+      // Закрываем только если клик был на фоне, а не на самом notification-box
+      if (e.target === popup) {
+        hideNotification();
+      }
+    });
+  }
 });
