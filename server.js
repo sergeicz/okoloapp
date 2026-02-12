@@ -4265,6 +4265,7 @@ app.get('/api/partners', async (req, res) => {
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
 
     // Filter and format partners
+    // Check for different possible field names for promocodes
     const formattedPartners = partners
       .filter(p => p.title && p.url)
       .map(p => ({
@@ -4274,7 +4275,7 @@ app.get('/api/partners', async (req, res) => {
         logo: p.logo || '',
         description: p.description || '',
         category: p.category || 'Другое',
-        promocode: p.promocode || '',
+        promocode: p.promocode || p.promo_code || p['Промокод'] || p['промокод'] || p.PromoCode || p.Promocode || '',
         predstavitel: p.predstavitel || ''
       }));
 
@@ -4467,11 +4468,14 @@ app.post('/api/click', async (req, res) => {
     }
 
     // Send promocode if available
-    if (partner.promocode && partner.promocode.trim() !== '') {
+    // Check for different possible field names for promocodes
+    const promocode = partner.promocode || partner.promo_code || partner['Промокод'] || partner['промокод'] || partner.PromoCode || partner.Promocode || '';
+    
+    if (promocode && promocode.trim() !== '') {
       try {
         const bot = new Bot(env.BOT_TOKEN);
         const message = `🎁 <b>Промокод от ${partner.title}</b>\n\n` +
-          `<code>${partner.promocode}</code>\n\n` +
+          `<code>${promocode}</code>\n\n` +
           `Скопируйте промокод и используйте его на сайте партнера!\n\n` +
           `<i>Это сообщение будет автоматически удалено через 24 часа</i>`;
 
@@ -4936,9 +4940,9 @@ app.get('/api/obrazovach', async (req, res) => {
   try {
     const creds = JSON.parse(env.CREDENTIALS_JSON);
     const accessToken = await getAccessToken(env, creds);
-    
+
     console.log('[API] Attempting to fetch data from obrazovach sheet...');
-    
+
     let materials = [];
     try {
       materials = await getSheetData(env.SHEET_ID, 'obrazovach', accessToken);
@@ -4964,7 +4968,7 @@ app.get('/api/obrazovach', async (req, res) => {
       }));
 
     console.log('[API] Formatted materials:', formattedMaterials);
-    
+
     res.json({
       ok: true,
       materials: formattedMaterials
