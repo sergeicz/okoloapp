@@ -446,6 +446,13 @@ function hidePreloader() {
     preloader.style.transition = 'opacity 0.5s ease-out';
     setTimeout(() => {
       preloader.style.display = 'none';
+      // Полностью удаляем из DOM
+      setTimeout(() => {
+        if (preloader.parentNode) {
+          preloader.parentNode.removeChild(preloader);
+          console.log('✅ Preloader removed from DOM');
+        }
+      }, 100);
       console.log('✅ Preloader hidden');
     }, 500);
   }

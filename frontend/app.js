@@ -778,6 +778,13 @@ window.addEventListener('load', () => {
     // Actually hide after transition completes
     setTimeout(() => {
       preloader.style.display = 'none';
+      // Полностью удаляем из DOM
+      setTimeout(() => {
+        if (preloader.parentNode) {
+          preloader.parentNode.removeChild(preloader);
+          console.log('✅ Preloader removed from DOM');
+        }
+      }, 100);
     }, 500);
   }
 });
