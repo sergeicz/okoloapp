@@ -1125,8 +1125,11 @@ async function checkAndUnlockAchievements(env, userId, conditionType, conditionV
       // For now, we'll use the partners_subscribed stat
       newProgress = userStats.partners_subscribed;
     } else if (conditionType === 'early_user') {
-      // Check if user is among first 100
-      newProgress = userStats.registration_number <= 100 ? 1 : 0;
+      // Check if user is among first 100 (excluding admins with a_ prefix)
+      const regNum = String(userStats.registration_number || '');
+      const isRegularUser = !regNum.startsWith('a_');
+      const isEarlyUser = isRegularUser && Number(regNum) <= 100;
+      newProgress = isEarlyUser ? 1 : 0;
     }
     
     // Check if achievement should be unlocked
@@ -2353,8 +2356,24 @@ function setupBot(env) {
     if (!existing) {
       console.log(`[REGISTER] 🆕 New user: ${chatId} (@${user.username || 'no-username'})`);
 
-      // Determine registration number (based on current user count)
-      const registrationNumber = users.length + 1;
+      // Check if user is admin
+      const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+      const isAdmin = admins.some(a => {
+        const idMatch = a.telegram_id && String(a.telegram_id) === String(chatId);
+        return idMatch;
+      });
+
+      // Determine registration number
+      let registrationNumber;
+      if (isAdmin) {
+        // For admins: count existing admins and assign a_N
+        const adminUsers = users.filter(u => u.registration_number && String(u.registration_number).startsWith('a_'));
+        registrationNumber = `a_${adminUsers.length + 1}`;
+      } else {
+        // For regular users: count non-admin users and assign number
+        const regularUsers = users.filter(u => u.registration_number && !String(u.registration_number).startsWith('a_'));
+        registrationNumber = String(regularUsers.length + 1);
+      }
 
       // Get user avatar
       const avatarUrl = await getUserAvatarUrl(chatId);
@@ -2396,23 +2415,11 @@ function setupBot(env) {
         await handleReferralLink(env, referrerId, chatId);
       }
       
-      // Check for early user achievement (only for non-admin users)
-      if (registrationNumber <= 100) {
-        // Check if user is admin
-        const creds = JSON.parse(env.CREDENTIALS_JSON);
-        const accessToken = await getAccessToken(env, creds);
-        const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
-        
-        const isAdmin = admins.some(a => {
-          const idMatch = a.telegram_id && String(a.telegram_id) === String(chatId);
-          return idMatch;
-        });
-        
-        if (!isAdmin) {
-          await checkAndUnlockAchievements(env, chatId, 'early_user', 1);
-        } else {
-          console.log(`[REGISTRATION] Skipping early user achievement for admin ${chatId}`);
-        }
+      // Check for early user achievement (only for non-admin users with number <= 100)
+      if (!isAdmin && !String(registrationNumber).startsWith('a_') && Number(registrationNumber) <= 100) {
+        await checkAndUnlockAchievements(env, chatId, 'early_user', 1);
+      } else if (isAdmin) {
+        console.log(`[REGISTRATION] Skipping early user achievement for admin ${chatId} (${registrationNumber})`);
       }
     } else {
       console.log(`[REGISTER] ✓ Existing user: ${chatId} (@${user.username || 'no-username'})`);
@@ -4960,8 +4967,24 @@ app.post('/api/user', async (req, res) => {
     const avatarUrl = await getUserAvatarUrl(id);
 
     if (!existing) {
-      // Add new user with all required fields
-      const registrationNumber = users.length + 1;
+      // Check if user is admin
+      const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+      const isAdmin = admins.some(a => {
+        const idMatch = a.telegram_id && String(a.telegram_id) === String(id);
+        return idMatch;
+      });
+
+      // Determine registration number
+      let registrationNumber;
+      if (isAdmin) {
+        // For admins: count existing admins and assign a_N
+        const adminUsers = users.filter(u => u.registration_number && String(u.registration_number).startsWith('a_'));
+        registrationNumber = `a_${adminUsers.length + 1}`;
+      } else {
+        // For regular users: count non-admin users and assign number
+        const regularUsers = users.filter(u => u.registration_number && !String(u.registration_number).startsWith('a_'));
+        registrationNumber = String(regularUsers.length + 1);
+      }
 
       await appendSheetRow(
         env.SHEET_ID,
