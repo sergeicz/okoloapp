@@ -2155,3 +2155,48 @@ social.show {
   margin-top: 15px;
   text-align: center;
 }
+
+/* =====================================================
+   КАТЕГОРИИ - ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ
+   ===================================================== */
+
+.categories-container {
+  width: 100%;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.categories-swipe {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 10px 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.categories-swipe::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Opera */
+}
+
+.categories-swipe > .glass-card {
+  flex: 0 0 auto;
+  min-width: calc(100vw - 60px);
+  max-width: 400px;
+  scroll-snap-align: start;
+}
+
+/* Адаптивность для категорий */
+@media (min-width: 600px) {
+  .categories-swipe > .glass-card {
+    min-width: 350px;
+  }
+}
+
+@media (min-width: 800px) {
+  .categories-swipe > .glass-card {
+    min-width: 400px;
+  }
+}
