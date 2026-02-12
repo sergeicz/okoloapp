@@ -80,22 +80,31 @@ if (!user || user.id === 0 || !user.id) {
 
   // Show warning to user with blurred background
   setTimeout(() => {
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+
     // Create overlay with blur
     const overlay = document.createElement('div');
     overlay.style.cssText = `
       position: fixed;
       top: 0;
       left: 0;
+      right: 0;
+      bottom: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.9);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
+      min-height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(40px) saturate(150%);
+      -webkit-backdrop-filter: blur(40px) saturate(150%);
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 999999;
+      z-index: 99999999;
       padding: 20px;
+      margin: 0;
+      overflow: hidden;
       animation: fadeIn 0.3s ease;
     `;
 
