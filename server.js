@@ -916,7 +916,8 @@ async function executeBroadcast(ctx, env, state) {
   let keyboard = null;
   if (state.button_text && state.button_url) {
     const encodedPartnerUrl = encodeURIComponent(state.button_url);
-    const trackedUrl = `https://telegram-miniapp-api.worknotdead.workers.dev/r/${state.broadcast_id}/${encodedPartnerUrl}`;
+    const baseUrl = env.SERVER_URL || env.BASE_URL || 'https://app.okolotattooing.ru';
+    const trackedUrl = `${baseUrl}/r/${state.broadcast_id}/${encodedPartnerUrl}`;
     keyboard = new InlineKeyboard().url(state.button_text, trackedUrl);
   }
 
