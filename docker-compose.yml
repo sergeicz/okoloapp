@@ -23,8 +23,8 @@ services:
     image: redis:7-alpine
     container_name: telegram-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    # Port NOT exposed externally for security
+    # Redis is only accessible within Docker network
     networks:
       - app-network
     volumes:

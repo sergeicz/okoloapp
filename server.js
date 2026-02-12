@@ -854,7 +854,8 @@ app.use((req, res, next) => {
 // TELEGRAM BOT WEBHOOK
 // ═══════════════════════════════════════════════════════════════
 
-app.post(`/bot${env.BOT_TOKEN}`, async (req, res) => {
+// Fixed webhook path (no token in URL for security)
+app.post('/bot', async (req, res) => {
   try {
     const bot = setupBot(env);
     const handleUpdate = webhookCallback(bot, 'express');
@@ -1255,7 +1256,7 @@ app.listen(PORT, () => {
   console.log('🚀 Express Server Started');
   console.log('═══════════════════════════════════════════════════════════════');
   console.log(`📡 Server listening on port ${PORT}`);
-  console.log(`🤖 Bot webhook: http://localhost:${PORT}/bot${env.BOT_TOKEN}`);
+  console.log(`🤖 Bot webhook: /bot (Telegram will POST here)`);
   console.log(`🔗 API available at: http://localhost:${PORT}/api/*`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log('═══════════════════════════════════════════════════════════════');

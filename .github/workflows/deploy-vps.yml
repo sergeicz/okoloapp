@@ -28,6 +28,8 @@ jobs:
         cat > .env << 'EOF'
         BOT_TOKEN=${{ secrets.BOT_TOKEN }}
         WEBAPP_URL=${{ secrets.WEBAPP_URL }}
+        WEBHOOK_URL=https://app.okolotattooing.ru
+        BASE_URL=https://app.okolotattooing.ru
         SHEET_ID=${{ secrets.SHEET_ID }}
         CREDENTIALS_JSON=${{ secrets.CREDENTIALS_JSON }}
         REDIS_HOST=redis
@@ -141,12 +143,17 @@ jobs:
 
     - name: Set Telegram Webhook
       run: |
-        response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/setWebhook?url=https://app.okolotattooing.ru/bot${{ secrets.BOT_TOKEN }}")
+        # Set webhook to fixed path /bot (no token in URL for security)
+        response=$(curl -s -X POST "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/setWebhook?url=https://app.okolotattooing.ru/bot")
         echo "Webhook response: $response"
 
         # Check if webhook was set successfully
         if echo "$response" | grep -q '"ok":true'; then
           echo "✅ Webhook set successfully"
+
+          # Verify webhook info
+          info=$(curl -s "https://api.telegram.org/bot${{ secrets.BOT_TOKEN }}/getWebhookInfo")
+          echo "Webhook info: $info"
         else
           echo "❌ Failed to set webhook"
           exit 1
