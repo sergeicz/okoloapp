@@ -1123,6 +1123,14 @@ async function executeBroadcast(ctx, env, state) {
     saveError = error.message || String(error);
     console.error(`[РАССЫЛКА] ❌ Не удалось сохранить статистику в лист broadcasts:`, error);
     console.error(`[РАССЫЛКА] ❌ Детали ошибки:`, JSON.stringify(error, null, 2));
+    console.error(`[РАССЫЛКА] ❌ Stack trace:`, error.stack);
+
+    // Send error to admin
+    try {
+      await ctx.reply(`⚠️ *Предупреждение:* Рассылка отправлена, но не удалось сохранить статистику в таблицу.\n\nОшибка: ${saveError}`, { parse_mode: 'Markdown' });
+    } catch (e) {
+      console.error(`[РАССЫЛКА] ❌ Не удалось отправить сообщение об ошибке:`, e);
+    }
   }
 
   await deleteBroadcastState(env, ctx.chat.id);
@@ -2881,6 +2889,54 @@ app.get('/api/partners', async (req, res) => {
     });
   } catch (error) {
     console.error('[API] Error getting partners:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
+// Diagnostic endpoint for broadcasts sheet
+app.get('/api/debug/broadcasts', async (req, res) => {
+  try {
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+
+    // Try to read broadcasts sheet
+    let broadcasts = [];
+    let readError = null;
+    try {
+      broadcasts = await getSheetData(env.SHEET_ID, 'broadcasts', accessToken);
+    } catch (error) {
+      readError = error.message;
+    }
+
+    // Try to write a test row
+    let writeError = null;
+    let writeSuccess = false;
+    try {
+      const testData = [
+        'TEST_' + Date.now(),
+        'Test Broadcast',
+        new Date().toISOString().split('T')[0],
+        new Date().toISOString().split('T')[1].split('.')[0],
+        '0', '0', '0', '', '', '', '', '0', '0', '0', ''
+      ];
+      await appendSheetRow(env.SHEET_ID, 'broadcasts', testData, accessToken);
+      writeSuccess = true;
+    } catch (error) {
+      writeError = error.message;
+    }
+
+    res.json({
+      ok: true,
+      sheet_exists: !readError,
+      read_error: readError,
+      broadcasts_count: broadcasts.length,
+      broadcasts_sample: broadcasts.slice(0, 3),
+      write_test: writeSuccess ? 'success' : 'failed',
+      write_error: writeError,
+      sheet_id: env.SHEET_ID
+    });
+  } catch (error) {
+    console.error('[DEBUG] Error checking broadcasts:', error);
     res.status(500).json({ error: error.message, success: false });
   }
 });
