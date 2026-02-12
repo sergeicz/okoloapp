@@ -4789,11 +4789,18 @@ app.post('/api/click', async (req, res) => {
     // Get clicks sheet
     const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
 
-    // Check if user already clicked this partner
+    // Determine the URL to use for matching
+    const clickUrl = partner_url || partner.url || partner.link;
+
+    console.log(`[API] 🔍 Searching for existing click: user=${user_id}, url=${clickUrl}`);
+
+    // Check if user already clicked this exact URL (more specific than just title)
     const existingClickIndex = clicks.findIndex(c =>
       String(c.telegram_id) === String(user_id) &&
-      c.title === partner.title
+      c.url === clickUrl
     );
+
+    console.log(`[API] 🔍 Found existing click at index: ${existingClickIndex}`);
 
     const currentTimestamp = new Date().toISOString();
 

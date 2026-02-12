@@ -640,20 +640,41 @@ async function loadPartners() {
   }
 }
 
+// Track last click timestamps to prevent duplicates
+const lastClickTime = new Map();
+const CLICK_COOLDOWN = 1000; // 1 second cooldown between clicks on same link
+
 // Обработка клика по ссылке
 async function handleLinkClick(event, link) {
   // ВАЖНО: Предотвращаем стандартное поведение ссылки
   event.preventDefault();
-  
+
+  // Create unique key for this click
+  const clickKey = `${user.id}_${link.url}`;
+  const now = Date.now();
+
+  // Check if this link was clicked recently
+  const lastClick = lastClickTime.get(clickKey);
+  if (lastClick && (now - lastClick) < CLICK_COOLDOWN) {
+    console.log('[CLICK] ⏭️ Click too soon after previous, skipping... (cooldown: ${CLICK_COOLDOWN}ms)');
+    if (tg.HapticFeedback) {
+      tg.HapticFeedback.notificationOccurred('warning');
+    }
+    return;
+  }
+
+  // Update last click time
+  lastClickTime.set(clickKey, now);
+
   console.log('[CLICK] Tracking click:', link.title || link.url);
   console.log('[CLICK] User ID:', user.id);
   console.log('[CLICK] Partner data:', { title: link.title, url: link.url, promocode: link.promocode });
-  
+
   // Вибрация для обратной связи
   if (tg.HapticFeedback) {
     tg.HapticFeedback.impactOccurred('light');
   }
-  
+
   // Отправляем данные о клике и ЖДЕМ завершения
   try {
     console.log('[CLICK] Sending tracking request...');
