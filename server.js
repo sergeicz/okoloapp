@@ -5092,6 +5092,14 @@ app.post('/api/send-video', async (req, res) => {
   }
 });
 
+// Robots.txt - disallow indexing
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.send(`User-agent: *
+Disallow: /
+`);
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found', success: false });
