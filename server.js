@@ -4071,7 +4071,8 @@ function setupBot(env) {
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
 
       // Собираем статистику ТОЛЬКО по этому партнеру
-      const partnerClicks = clicks.filter(c => c.url === partnerData.url);
+      const partnerUrl = partnerData.url || partnerData.link; // Support both field names
+      const partnerClicks = clicks.filter(c => c.url === partnerUrl);
 
       if (partnerClicks.length === 0) {
         const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
@@ -4104,7 +4105,7 @@ function setupBot(env) {
         `🏷️ *Ваш партнер:* ${partnerData.title}\n` +
         `📁 *Категория:* ${partnerData.category || 'Не указана'}\n` +
         `📅 *Дата размещения:* ${partnerData.date_release || 'Не указана'}\n` +
-        `🔗 *Ссылка:* ${partnerData.url}\n\n` +
+        `🔗 *Ссылка:* ${partnerUrl}\n\n` +
         `*📈 Общая статистика:*\n` +
         `👥 Уникальных пользователей: ${uniqueUsers}\n` +
         `🖱️ Всего кликов: ${totalClicks}\n` +
@@ -4149,7 +4150,8 @@ function setupBot(env) {
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
 
       // Собираем статистику ТОЛЬКО по этому партнеру
-      const partnerClicks = clicks.filter(c => c.url === partnerData.url);
+      const partnerUrl = partnerData.url || partnerData.link; // Support both field names
+      const partnerClicks = clicks.filter(c => c.url === partnerUrl);
 
       if (partnerClicks.length === 0) {
         const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
@@ -4199,7 +4201,7 @@ function setupBot(env) {
         `🏷️ *Ваш партнер:* ${partnerData.title}\n` +
         `📁 *Категория:* ${partnerData.category || 'Не указана'}\n` +
         `📅 *Дата размещения:* ${partnerData.date_release || 'Не указана'}\n` +
-        `🔗 *Ссылка:* ${partnerData.url}\n\n` +
+        `🔗 *Ссылка:* ${partnerUrl}\n\n` +
         `*📈 Общая статистика (за все время):*\n` +
         `👥 Уникальных пользователей: ${uniqueUsers}\n` +
         `🖱️ Всего кликов: ${totalClicks}\n` +
