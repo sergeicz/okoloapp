@@ -263,6 +263,15 @@ function initSwipeForCategories() {
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize swipe functionality after a short delay to ensure elements are rendered
   setTimeout(initSwipeForCategories, 500);
+  
+  // Add event listener for education button
+  const educationBtn = document.getElementById('educationBtn');
+  if (educationBtn) {
+    educationBtn.addEventListener('click', () => {
+      // Open the education page in the same window or as a Web App
+      window.location.href = './obrazovach.html';
+    });
+  }
 });
 
 // =====================================================
