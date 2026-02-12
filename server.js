@@ -919,7 +919,7 @@ async function getUserStats(env, userId) {
         events_registered: parseInt(user.events_registered) || 0,
         partners_subscribed: parseInt(user.partners_subscribed) || 0,
         total_donations: parseInt(user.total_donations) || 0,
-        registration_number: parseInt(user.registration_number) || null,
+        date_registered: user.date_registered || new Date().toISOString().split('T')[0],
         updated_at: new Date().toISOString()
       };
       
@@ -944,7 +944,7 @@ async function getUserStats(env, userId) {
     events_registered: 0,
     partners_subscribed: 0,
     total_donations: 0,
-    registration_number: null,
+    date_registered: new Date().toISOString().split('T')[0],
     updated_at: new Date().toISOString()
   };
 }
@@ -2467,7 +2467,7 @@ function setupBot(env) {
       // Format profile message
       let profileMessage = `📊 *Ваш профиль*\n\n`;
       profileMessage += `👤 @${user.username || 'не указан'}\n`;
-      profileMessage += `🆔 Регистрация: #${userStats.registration_number || 'N/A'}\n\n`;
+      profileMessage += `🆔 Регистрация: ${userStats.date_registered || 'N/A'}\n\n`;
 
       profileMessage += `⭐ *Баллы:* ${userStats.total_points}\n`;
       profileMessage += `🔥 *Серия:* ${userStats.current_streak} дней (рекорд: ${userStats.longest_streak})\n`;
@@ -2528,15 +2528,21 @@ function setupBot(env) {
       const referralLink = `https://t.me/${env.BOT_USERNAME || 'okolotattoo_bot'}?start=ref_${userId}`;
 
       let referralMessage = `👥 *Реферальная программа*\n\n`;
-      referralMessage += `Приглашайте друзей и получайте бонусы!\n\n`;
-      referralMessage += `📊 *Ваша статистика:*\n`;
-      referralMessage += `👥 Приглашено: ${userStats.referrals_count || 0}\n`;
-      referralMessage += `⭐ Бонусные баллы: ${(userStats.referrals_count || 0) * 10}\n\n`;
-      referralMessage += `🔗 *Ваша реферальная ссылка:*\n`;
-      referralMessage += `\`${referralLink}\`\n\n`;
-      referralMessage += `Скопируйте ссылку и отправьте друзьям. За каждого приглашенного друга вы получите 10 баллов!`;
+      referralMessage += `🔗 *Ваша ссылка для копирования:*\n\`${referralLink}\`\n\n`;
+      referralMessage += `_Нажмите на ссылку, чтобы скопировать_\n\n`;
+
+      referralMessage += `📊 *Статистика:*\n`;
+      referralMessage += `• Приглашено друзей: ${userStats.referrals_count}\n`;
+      referralMessage += `• Заработано баллов: ${userStats.referrals_count * 10}\n`;
+      referralMessage += `• Активных рефералов: ${Math.min(userStats.referrals_count, 10)}\n\n`;
+
+      referralMessage += `🎁 *Награды:*\n`;
+      referralMessage += `• За каждого друга: +10 баллов\n`;
+      referralMessage += `• Пригласи 10 друзей → 👑 Проактивный хомяк (+100 баллов)\n\n`;
 
       const keyboard = new InlineKeyboard()
+        .switchInline('📤 Поделиться ссылкой', `Присоединяйся к околохомячкам! ${referralLink}`).row()
+        .text('👥 Мои рефералы', 'show_referral_list').row()
         .text('🔄 Обновить', 'show_referral');
 
       await ctx.reply(referralMessage, {
@@ -3508,7 +3514,7 @@ function setupBot(env) {
       // Format profile message
       let profileMessage = `📊 *Ваш профиль*\n\n`;
       profileMessage += `👤 @${user.username || 'не указан'}\n`;
-      profileMessage += `🆔 Регистрация: #${userStats.registration_number || 'N/A'}\n\n`;
+      profileMessage += `🆔 Регистрация: ${userStats.date_registered || 'N/A'}\n\n`;
       
       profileMessage += `⭐ *Баллы:* ${userStats.total_points}\n`;
       profileMessage += `🔥 *Серия:* ${userStats.current_streak} дней (рекорд: ${userStats.longest_streak})\n`;
@@ -3668,19 +3674,20 @@ function setupBot(env) {
       const referralLink = `https://t.me/${env.BOT_USERNAME || 'okolotattoo_bot'}?start=ref_${userId}`;
       
       let referralMessage = `👥 *Реферальная программа*\n\n`;
-      referralMessage += `🔗 *Ваша ссылка:*\n${referralLink}\n\n`;
-      
+      referralMessage += `🔗 *Ваша ссылка для копирования:*\n\`${referralLink}\`\n\n`;
+      referralMessage += `_Нажмите на ссылку, чтобы скопировать_\n\n`;
+
       referralMessage += `📊 *Статистика:*\n`;
       referralMessage += `• Приглашено друзей: ${userStats.referrals_count}\n`;
       referralMessage += `• Заработано баллов: ${userStats.referrals_count * 10}\n`; // 10 per referral
       referralMessage += `• Активных рефералов: ${Math.min(userStats.referrals_count, 10)}\n\n`; // Placeholder for active count
-      
+
       referralMessage += `🎁 *Награды:*\n`;
       referralMessage += `• За каждого друга: +10 баллов\n`;
       referralMessage += `• Пригласи 10 друзей → 👑 Проактивный хомяк (+100 баллов)\n\n`;
-      
+
       const keyboard = new InlineKeyboard()
-        .url('📋 Скопировать ссылку', referralLink).row()
+        .switchInline('📤 Поделиться ссылкой', `Присоединяйся к околохомячкам! ${referralLink}`).row()
         .text('👥 Мои рефералы', 'show_referral_list').row()
         .text('« Назад', 'back_to_start');
       
@@ -4353,6 +4360,11 @@ app.get('/api/partners', async (req, res) => {
     const accessToken = await getAccessToken(env, creds);
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
 
+    console.log('[API /partners] Raw partners from sheet:', partners.length);
+    if (partners.length > 0) {
+      console.log('[API /partners] First partner:', partners[0]);
+    }
+
     // Filter and format partners
     // Check for different possible field names for promocodes
     const formattedPartners = partners
@@ -4361,12 +4373,15 @@ app.get('/api/partners', async (req, res) => {
         id: p.id || p.title,
         title: p.title,
         url: p.url,
-        logo: p.logo || '',
+        logo_url: p.logo_url || p.logo || '',
         description: p.description || '',
         category: p.category || 'Другое',
         promocode: p.promocode || p.promo_code || p['Промокод'] || p['промокод'] || p.PromoCode || p.Promocode || '',
         predstavitel: p.predstavitel || ''
       }));
+
+    console.log('[API /partners] Formatted partners:', formattedPartners.length);
+    console.log('[API /partners] Sending response with', formattedPartners.length, 'partners');
 
     res.json({
       ok: true,
@@ -5071,7 +5086,8 @@ app.get('/api/obrazovach', async (req, res) => {
         url_cover: m.url_cover,
         title: m.title,
         subtitle: m.subtitle || '',
-        url_video: m.url_video
+        url_video: m.url_video,
+        text_button: m.text_button || 'Смотреть видео'
       }));
 
     console.log('[API] Formatted materials:', formattedMaterials);
@@ -5089,7 +5105,7 @@ app.get('/api/obrazovach', async (req, res) => {
 // Send video message to user via bot
 app.post('/api/send-video', async (req, res) => {
   try {
-    const { user_id, username, video_url, title } = req.body;
+    const { user_id, username, video_url, title, subtitle, url_cover } = req.body;
 
     if (!user_id || !video_url) {
       return res.status(400).json({ error: 'Missing required fields', success: false });
@@ -5100,15 +5116,40 @@ app.post('/api/send-video', async (req, res) => {
 
     // Send video message to user via bot
     const bot = new Bot(env.BOT_TOKEN);
-    
-    // Create message with video URL and button
-    const message = `🎥 <b>${title || 'Образовательное видео'}</b>\n\nСсылка на видео:`; 
+
+    // Create caption with title and subtitle
+    let caption = `🎥 <b>${title || 'Образовательное видео'}</b>`;
+    if (subtitle) {
+      caption += `\n\n${subtitle}`;
+    }
+
     const keyboard = new InlineKeyboard().url('▶️ Открыть видео', video_url);
 
-    await bot.api.sendMessage(user_id, message, { 
-      parse_mode: 'HTML',
-      reply_markup: keyboard
-    });
+    // Send photo with caption and button if url_cover is provided
+    if (url_cover && url_cover.trim() !== '') {
+      try {
+        await bot.api.sendPhoto(user_id, url_cover, {
+          caption: caption,
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
+        console.log(`[API] ✅ Photo message sent to user ${user_id}: ${title}`);
+      } catch (photoError) {
+        console.error(`[API] ⚠️ Failed to send photo, falling back to text message:`, photoError.message);
+        // Fallback to text message if photo fails
+        await bot.api.sendMessage(user_id, caption, {
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
+      }
+    } else {
+      // Send text message if no cover image
+      await bot.api.sendMessage(user_id, caption, {
+        parse_mode: 'HTML',
+        reply_markup: keyboard
+      });
+      console.log(`[API] ✅ Text message sent to user ${user_id}: ${title}`);
+    }
 
     // Update user's education views count
     const userStats = await getUserStats(env, user_id);
@@ -5118,8 +5159,6 @@ app.post('/api/send-video', async (req, res) => {
 
     // Check for education view achievement
     await checkAndUnlockAchievements(env, user_id, 'education_view', updatedStats.education_views_count);
-
-    console.log(`[API] ✅ Video message sent to user ${user_id}: ${title}`);
 
     res.json({
       ok: true,

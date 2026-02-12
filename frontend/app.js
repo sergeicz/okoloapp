@@ -81,10 +81,19 @@ if (!user || user.id === 0 || !user.id) {
       line-height: 1.5;
     `;
     warningDiv.innerHTML = `
-      <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
-      <div style="font-weight: bold; margin-bottom: 10px;">Приложение открыто некорректно!</div>
-      <div>Пожалуйста, откройте приложение через кнопку "🚀 Открыть Mini App" в боте.</div>
-      <div style="margin-top: 15px; font-size: 14px; opacity: 0.9;">Без этого промокоды не будут работать.</div>
+      <div style="font-size: 48px; margin-bottom: 10px; text-align: center;">⚠️</div>
+      <div style="font-weight: bold; margin-bottom: 10px; text-align: center;">Приложение открыто некорректно!</div>
+      <div style="text-align: center; margin-bottom: 10px;">
+        Пожалуйста, откройте приложение через кнопку<br>"🚀 Открыть Mini App" в боте
+      </div>
+      <div style="text-align: center; margin-bottom: 15px;">
+        <a href="https://t.me/okolotattoo_bot"
+           style="color: white; text-decoration: underline; font-weight: bold; font-size: 18px;"
+           target="_blank">
+          https://t.me/okolotattoo_bot
+        </a>
+      </div>
+      <div style="margin-top: 10px; font-size: 14px; opacity: 0.9; text-align: center;">Без этого промокоды не будут работать.</div>
     `;
     document.body.appendChild(warningDiv);
   }, 1000);

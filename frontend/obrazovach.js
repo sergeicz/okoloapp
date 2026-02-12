@@ -185,13 +185,17 @@ async function loadEducationMaterials() {
       return;
     }
 
-    // Создание контейнера для карточек
-    container.innerHTML = '<div class="categories-container"><div class="education-swipe">';
-    
-    // Отрисовка карточек
+    // Создание контейнера для карточек (вертикальное отображение)
+    container.innerHTML = '<div class="education-vertical-list"></div>';
+
+    const listContainer = container.querySelector('.education-vertical-list');
+
+    // Отрисовка карточек вертикально
     materials.forEach(material => {
       const card = document.createElement('div');
-      card.className = 'glass-card category-item';
+      card.className = 'glass-card education-card';
+      card.style.marginBottom = '20px';
+      card.style.width = '100%';
 
       // Обложка
       if (material.url_cover) {
@@ -225,20 +229,17 @@ async function loadEducationMaterials() {
         card.appendChild(subtitle);
       }
 
-      // Кнопка
+      // Кнопка - текст берётся из text_button
       const button = document.createElement('a');
       button.className = 'modern-btn';
       button.href = '#';
-      button.textContent = 'Смотреть видео';
+      button.textContent = material.text_button || 'Смотреть видео'; // Используем text_button из таблицы
       button.onclick = (e) => handleVideoButtonClick(e, material);
-      
+
       card.appendChild(button);
 
-      container.querySelector('.education-swipe').appendChild(card);
+      listContainer.appendChild(card);
     });
-    
-    // Закрываем теги
-    container.innerHTML += '</div></div>';
   } catch (error) {
     console.error('[EDUCATION] Error loading materials:', error);
     container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки образовательных материалов: ' + error.message + '</p>';
@@ -272,6 +273,8 @@ async function handleVideoButtonClick(event, material) {
         username: user.username || '',
         video_url: material.url_video,
         title: material.title,
+        subtitle: material.subtitle || '',
+        url_cover: material.url_cover,
       }),
     });
 
