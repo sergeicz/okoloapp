@@ -76,7 +76,7 @@ console.log('👤 Пользователь:', user);
 // IMPORTANT: Check if user ID is valid
 if (!user || user.id === 0 || !user.id) {
   console.error('❌ Приложение открыто не через бота! User ID отсутствует.');
-  console.log('⚠️ Пожалуйста, откройте приложение через кнопку в боте.');
+  console.log('⚠️ Пожалуйста, открой приложение через кнопку в боте.');
 
   // Show warning to user
   setTimeout(() => {
@@ -100,7 +100,7 @@ if (!user || user.id === 0 || !user.id) {
       <div style="font-size: 48px; margin-bottom: 10px; text-align: center;">⚠️</div>
       <div style="font-weight: bold; margin-bottom: 10px; text-align: center;">Приложение открыто некорректно!</div>
       <div style="text-align: center; margin-bottom: 10px;">
-        Пожалуйста, откройте приложение через кнопку<br>"🚀 Открыть Mini App" в боте
+        Пожалуйста, открой приложение через кнопку<br>"🚀 Открыть Mini App" в боте
       </div>
       <div style="text-align: center; margin-bottom: 15px;">
         <a href="https://t.me/okolotattoo_bot"
@@ -174,7 +174,7 @@ async function safeFetch(url, options = {}, retries = 3) {
   }
   
   // Все попытки исчерпаны
-  showError(lastError?.message || 'Ошибка сети. Проверьте подключение.');
+  showError(lastError?.message || 'Ошибка сети. Проверь подключение.');
   throw lastError;
 }
 
@@ -213,7 +213,7 @@ function showPromoNotification() {
     <div class="promo-notification-icon">🎁</div>
     <div class="promo-notification-content">
       <div class="promo-notification-title">Промокод отправлен!</div>
-      <div class="promo-notification-text">Проверьте личные сообщения с ботом</div>
+      <div class="promo-notification-text">Проверь личные сообщения с ботом</div>
     </div>
     <button class="promo-notification-close">×</button>
   `;
@@ -641,7 +641,7 @@ document.getElementById('pushForm').onsubmit = async (e) => {
 
   // Валидация
   if (!title || !msg || !link) {
-    showError('Заполните все поля');
+    showError('Заполни все поля');
     return;
   }
 

@@ -2442,9 +2442,9 @@ function setupBot(env) {
       donateMessage += `📊 *Ваша статистика:*\n`;
       donateMessage += `• Всего задонатили: ${userStats.total_donations || 0} ⭐\n\n`;
       donateMessage += `🎁 *Бонусы:*\n`;
-      donateMessage += `• За каждый донат вы получаете баллы\n`;
+      donateMessage += `• За каждый донат ты получаешь баллы\n`;
       donateMessage += `• Достижение "💳 Щедрый хомяк" за 1000+ ⭐\n\n`;
-      donateMessage += `Выберите сумму:`;
+      donateMessage += `Выбери сумму:`;
 
       const donateKeyboard = new InlineKeyboard()
         .text('⭐ 50 Stars', 'donate_50').text('⭐ 100 Stars', 'donate_100').row()
@@ -2570,7 +2570,7 @@ function setupBot(env) {
 
       let referralMessage = `👥 *Реферальная программа*\n\n`;
       referralMessage += `🔗 *Ваша ссылка для копирования:*\n\`${referralLink}\`\n\n`;
-      referralMessage += `_Нажмите на ссылку, чтобы скопировать_\n\n`;
+      referralMessage += `_Нажми на ссылку, чтобы скопировать_\n\n`;
 
       referralMessage += `📊 *Статистика:*\n`;
       referralMessage += `• Привлечено хомяков: ${userStats.referrals_count}\n`;
@@ -2610,9 +2610,9 @@ function setupBot(env) {
       donateMessage += `📊 *Ваша статистика:*\n`;
       donateMessage += `• Всего задонатили: ${userStats.total_donations || 0} ⭐\n\n`;
       donateMessage += `🎁 *Бонусы:*\n`;
-      donateMessage += `• За каждый донат вы получаете баллы\n`;
+      donateMessage += `• За каждый донат ты получаешь баллы\n`;
       donateMessage += `• Достижение "💳 Щедрый хомяк" за 1000+ ⭐\n\n`;
-      donateMessage += `Выберите сумму:`;
+      donateMessage += `Выбери сумму:`;
 
       const keyboard = new InlineKeyboard()
         .text('⭐ 50 Stars', 'donate_50').text('⭐ 100 Stars', 'donate_100').row()
@@ -3750,7 +3750,7 @@ function setupBot(env) {
       
       let referralMessage = `👥 *Реферальная программа*\n\n`;
       referralMessage += `🔗 *Ваша ссылка для копирования:*\n\`${referralLink}\`\n\n`;
-      referralMessage += `_Нажмите на ссылку, чтобы скопировать_\n\n`;
+      referralMessage += `_Нажми на ссылку, чтобы скопировать_\n\n`;
 
       referralMessage += `📊 *Статистика:*\n`;
       referralMessage += `• Привлечено хомяков: ${userStats.referrals_count}\n`;
@@ -3834,9 +3834,9 @@ function setupBot(env) {
       donateMessage += `📊 *Ваша статистика:*\n`;
       donateMessage += `• Всего задонатили: ${userStats.total_donations || 0} ⭐\n\n`;
       donateMessage += `🎁 *Бонусы:*\n`;
-      donateMessage += `• За каждый донат вы получаете баллы\n`;
+      donateMessage += `• За каждый донат ты получаешь баллы\n`;
       donateMessage += `• Достижение "💳 Щедрый хомяк" за 1000+ ⭐\n\n`;
-      donateMessage += `Выберите сумму:`;
+      donateMessage += `Выбери сумму:`;
 
       const keyboard = new InlineKeyboard()
         .text('⭐ 50 Stars', 'donate_50').text('⭐ 100 Stars', 'donate_100').row()
