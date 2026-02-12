@@ -4,24 +4,42 @@
 
 // Конфигурация
 const EDUCATION_CONFIG = {
-  API_URL: 'https://app.okolotattooing.ru',  // VPS ПРОДАКШЕН
+  API_URL: window.location.origin,  // Используем текущий домен
 };
 
-const tg = Telegram.WebApp;
+// Глобальные переменные
+let tg;
+let user = null;
 
-// Получаем данные пользователя из Telegram
-let user = tg.initDataUnsafe.user || {
-  id: 0,
-  username: 'guest',
-  first_name: 'Guest',
-  language_code: 'ru'
-};
+// Инициализация Telegram WebApp
+function initTelegramWebApp() {
+  // Ждем полной загрузки Telegram WebApp
+  if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+    tg = Telegram.WebApp;
+    
+    // Получаем данные пользователя из Telegram
+    user = tg.initDataUnsafe?.user || {
+      id: 0,
+      username: 'guest',
+      first_name: 'Guest',
+      language_code: 'ru'
+    };
 
-console.log('👤 Пользователь:', user);
+    console.log('👤 Пользователь:', user);
 
-// Расширение Telegram WebApp
-if (tg.expand) tg.expand();
-if (tg.ready) tg.ready();
+    // Расширение Telegram WebApp
+    if (tg.expand) tg.expand();
+    if (tg.ready) tg.ready();
+  } else {
+    console.warn('⚠️ Telegram WebApp SDK не загружен');
+    user = {
+      id: 0,
+      username: 'guest',
+      first_name: 'Guest',
+      language_code: 'ru'
+    };
+  }
+}
 
 // Утилита для безопасных fetch запросов с обработкой ошибок и retry logic
 async function safeFetchEducation(url, options = {}, retries = 3) {
@@ -81,6 +99,16 @@ async function safeFetchEducation(url, options = {}, retries = 3) {
 // Показ ошибок пользователю
 function showError(message) {
   console.error('❌ Ошибка:', message);
+  if (tg.showAlert) {
+    tg.showAlert(message);
+  } else {
+    alert(message);
+  }
+}
+
+// Показ успешных уведомлений
+function showSuccess(message) {
+  console.log('✅ Успех:', message);
   if (tg.showAlert) {
     tg.showAlert(message);
   } else {
@@ -347,5 +375,34 @@ function hidePreloader() {
   }
 }
 
+// Функция для ожидания загрузки Telegram WebApp SDK
+function waitForTelegramWebApp(timeout = 10000) {
+  return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+    
+    function checkTg() {
+      if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+        resolve(Telegram.WebApp);
+      } else if (Date.now() - startTime >= timeout) {
+        console.warn('⚠️ Telegram WebApp SDK не загрузился за отведенное время');
+        resolve(null); // Продолжаем выполнение даже если SDK не загрузился
+      } else {
+        setTimeout(checkTg, 100);
+      }
+    }
+    
+    checkTg();
+  });
+}
+
 // Запуск приложения при загрузке
-window.addEventListener('DOMContentLoaded', initEducationApp);
+document.addEventListener('DOMContentLoaded', async () => {
+  // Ждем загрузки Telegram WebApp SDK
+  await waitForTelegramWebApp();
+  
+  // Инициализируем Telegram WebApp
+  initTelegramWebApp();
+  
+  // Запускаем приложение
+  initEducationApp();
+});
