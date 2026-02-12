@@ -444,6 +444,41 @@ async function checkRepresentative(env, user) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// USER AVATAR FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+// Get user profile photo URL via Telegram Bot API
+async function getUserAvatarUrl(userId) {
+  try {
+    const bot = new Bot(env.BOT_TOKEN);
+
+    // Get user profile photos
+    const photos = await bot.api.getUserProfilePhotos(userId, { limit: 1 });
+
+    if (!photos || !photos.photos || photos.photos.length === 0) {
+      console.log(`[AVATAR] No profile photo for user ${userId}`);
+      return null;
+    }
+
+    // Get the largest photo (last in array)
+    const photo = photos.photos[0];
+    const largestPhoto = photo[photo.length - 1];
+
+    // Get file info to get the file_path
+    const file = await bot.api.getFile(largestPhoto.file_id);
+
+    // Construct the file URL
+    const fileUrl = `https://api.telegram.org/file/bot${env.BOT_TOKEN}/${file.file_path}`;
+
+    console.log(`[AVATAR] ✅ Got avatar URL for user ${userId}: ${fileUrl}`);
+    return fileUrl;
+  } catch (error) {
+    console.error(`[AVATAR] ❌ Error getting avatar for user ${userId}:`, error.message);
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // INITIALIZATION AND SETUP FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 
@@ -2321,8 +2356,11 @@ function setupBot(env) {
       // Determine registration number (based on current user count)
       const registrationNumber = users.length + 1;
 
+      // Get user avatar
+      const avatarUrl = await getUserAvatarUrl(chatId);
+
       // Добавляем в таблицу users
-      // Формат: telegram_id, username, first_name, date_registered, bot_started, last_active, total_points, current_streak, longest_streak, last_active_date, referrals_count, education_views_count, events_registered, partners_subscribed, total_donations, registration_number
+      // Формат: telegram_id, username, first_name, date_registered, bot_started, last_active, total_points, current_streak, longest_streak, last_active_date, referrals_count, education_views_count, events_registered, partners_subscribed, total_donations, registration_number, avatar_url
       await appendSheetRow(
         env.SHEET_ID,
         'users',
@@ -2342,10 +2380,14 @@ function setupBot(env) {
           '0',                          // events_registered
           '0',                          // partners_subscribed
           '0',                          // total_donations
-          String(registrationNumber)    // registration_number
+          String(registrationNumber),   // registration_number
+          avatarUrl || ''               // avatar_url
         ],
         accessToken
       );
+
+      console.log(`[REGISTER] Avatar URL: ${avatarUrl || 'none'}`);
+
 
       console.log(`✅ User registered: ${chatId} ${username} at ${currentDate}, registration #${registrationNumber}`);
       
@@ -4914,6 +4956,9 @@ app.post('/api/user', async (req, res) => {
     const existing = users.find(u => String(u.telegram_id) === String(id));
     const currentDate = new Date().toISOString().split('T')[0];
 
+    // Get user avatar URL
+    const avatarUrl = await getUserAvatarUrl(id);
+
     if (!existing) {
       // Add new user with all required fields
       const registrationNumber = users.length + 1;
@@ -4937,11 +4982,12 @@ app.post('/api/user', async (req, res) => {
           '0',                       // events_registered
           '0',                       // partners_subscribed
           '0',                       // total_donations
-          String(registrationNumber) // registration_number
+          String(registrationNumber), // registration_number
+          avatarUrl || ''            // avatar_url
         ],
         accessToken
       );
-      console.log(`[API] 🆕 New user registered via API: ${id}, registration #${registrationNumber}`);
+      console.log(`[API] 🆕 New user registered via API: ${id}, registration #${registrationNumber}, avatar: ${avatarUrl ? 'yes' : 'no'}`);
     } else {
       // Update existing user with all fields
       const userIndex = users.findIndex(u => String(u.telegram_id) === String(id));
@@ -4967,11 +5013,12 @@ app.post('/api/user', async (req, res) => {
             String(existing.events_registered || '0'),   // events_registered
             String(existing.partners_subscribed || '0'), // partners_subscribed
             String(existing.total_donations || '0'),     // total_donations
-            String(existing.registration_number || '')   // registration_number
+            String(existing.registration_number || ''),  // registration_number
+            avatarUrl || existing.avatar_url || ''       // avatar_url (update if available)
           ],
           accessToken
         );
-        console.log(`[API] 🔄 User updated via API: ${id}`);
+        console.log(`[API] 🔄 User updated via API: ${id}, avatar: ${avatarUrl ? 'updated' : 'kept'}`);
       }
     }
 
