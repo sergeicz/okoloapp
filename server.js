@@ -5184,17 +5184,6 @@ Disallow: /
 `);
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found', success: false });
-});
-
-// Error handler
-app.use((error, req, res, next) => {
-  console.error('[Express] Error:', error);
-  res.status(500).json({ error: error.message || 'Internal server error', success: false });
-});
-
 // ═══════════════════════════════════════════════════════════════
 // ACHIEVEMENT SYSTEM API ENDPOINTS
 // ═══════════════════════════════════════════════════════════════
@@ -5497,6 +5486,21 @@ app.get('/api/spreadsheet/structure', async (req, res) => {
     console.error('[API] Error getting spreadsheet structure:', error);
     res.status(500).json({ error: error.message, success: false });
   }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 404 AND ERROR HANDLERS (must be last)
+// ═══════════════════════════════════════════════════════════════
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found', success: false });
+});
+
+// Error handler
+app.use((error, req, res, next) => {
+  console.error('[Express] Error:', error);
+  res.status(500).json({ error: error.message || 'Internal server error', success: false });
 });
 
 // ═══════════════════════════════════════════════════════════════
