@@ -57,17 +57,17 @@ jobs:
           cd /opt/telegram-miniapp
 
           # Stop containers
-          docker-compose down || true
+          docker compose down || true
 
           # Remove old images
-          docker-compose build --no-cache
+          docker compose build --no-cache
 
           # Start containers
-          docker-compose up -d
+          docker compose up -d
 
           # Show logs
           echo "Deployment completed. Showing logs..."
-          docker-compose logs --tail=50
+          docker compose logs --tail=50
         ENDSSH
 
     - name: Wait for services to start
@@ -110,14 +110,14 @@ jobs:
         echo "=== Deployment Verification ==="
 
         # Check container status
-        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker-compose ps"
+        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker compose ps"
 
         echo ""
         echo "=== Recent Logs ==="
-        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker-compose logs --tail=20 app"
+        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker compose logs --tail=20 app"
 
     - name: Notify on Failure
       if: failure()
       run: |
         echo "🚨 Deployment failed! Check the logs above for details."
-        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker-compose logs --tail=100" || true
+        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker compose logs --tail=100" || true
