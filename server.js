@@ -2972,15 +2972,15 @@ app.post('/api/click', async (req, res) => {
 
         // Save message info for auto-deletion
         const deleteAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
-        await env.BROADCAST_STATE.put(
+        await redis.setex(
           `promo_msg_${user_id}_${Date.now()}`,
+          86400, // 24 hours in seconds
           JSON.stringify({
             chat_id: user_id,
             message_id: sentMessage.message_id,
             partner: partner.title,
             delete_at: deleteAt
-          }),
-          { expirationTtl: 86400 } // 24 hours
+          })
         );
 
         console.log(`[PROMOCODE] ✅ Sent promocode from ${partner.title} to user ${user_id}`);

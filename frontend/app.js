@@ -439,10 +439,10 @@ async function handleLinkClick(event, link) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        telegram_id: user.id,
-        url: link.url,
-        title: link.title,
-        category: link.category,
+        partner_id: link.id || link.title,
+        user_id: user.id,
+        username: user.username || '',
+        partner_url: link.url,
       }),
     });
     
