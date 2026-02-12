@@ -8,17 +8,17 @@ const EDUCATION_CONFIG = {
 };
 
 // Глобальные переменные
-let tg;
+let educationTg;
 let user = null;
 
 // Инициализация Telegram WebApp
 function initTelegramWebApp() {
   // Ждем полной загрузки Telegram WebApp
   if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-    tg = Telegram.WebApp;
+    educationTg = Telegram.WebApp;
     
     // Получаем данные пользователя из Telegram
-    user = tg.initDataUnsafe?.user || {
+    user = educationTg.initDataUnsafe?.user || {
       id: 0,
       username: 'guest',
       first_name: 'Guest',
@@ -28,8 +28,8 @@ function initTelegramWebApp() {
     console.log('👤 Пользователь:', user);
 
     // Расширение Telegram WebApp
-    if (tg.expand) tg.expand();
-    if (tg.ready) tg.ready();
+    if (educationTg.expand) educationTg.expand();
+    if (educationTg.ready) educationTg.ready();
   } else {
     console.warn('⚠️ Telegram WebApp SDK не загружен');
     user = {
@@ -107,8 +107,8 @@ async function safeFetchEducation(url, options = {}, retries = 3) {
 // Показ ошибок пользователю
 function showError(message) {
   console.error('❌ Ошибка:', message);
-  if (tg.showAlert) {
-    tg.showAlert(message);
+  if (educationTg.showAlert) {
+    educationTg.showAlert(message);
   } else {
     alert(message);
   }
@@ -117,8 +117,8 @@ function showError(message) {
 // Показ успешных уведомлений
 function showSuccess(message) {
   console.log('✅ Успех:', message);
-  if (tg.showAlert) {
-    tg.showAlert(message);
+  if (educationTg.showAlert) {
+    educationTg.showAlert(message);
   } else {
     alert(message);
   }
@@ -297,8 +297,8 @@ async function handleVideoButtonClick(event, material) {
   console.log('[VIDEO CLICK] Video URL:', material.url_video);
 
   // Вибрация для обратной связи
-  if (tg.HapticFeedback) {
-    tg.HapticFeedback.impactOccurred('light');
+  if (educationTg.HapticFeedback) {
+    educationTg.HapticFeedback.impactOccurred('light');
   }
 
   // Отправляем информацию о видео в бот
@@ -401,7 +401,7 @@ function hidePreloader() {
 function waitForTelegramWebApp(timeout = 10000) {
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
-    
+
     function checkTg() {
       if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
         resolve(Telegram.WebApp);
@@ -412,7 +412,7 @@ function waitForTelegramWebApp(timeout = 10000) {
         setTimeout(checkTg, 100);
       }
     }
-    
+
     checkTg();
   });
 }
