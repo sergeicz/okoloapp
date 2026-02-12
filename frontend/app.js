@@ -332,7 +332,8 @@ async function loadPartners() {
   showLoading('categories');
 
   try {
-    const partners = await safeFetch(`${CONFIG.API_URL}/api/partners`);
+    const response = await safeFetch(`${CONFIG.API_URL}/api/partners`);
+    const partners = response.partners || [];
     console.log('[PARTNERS] Data loaded:', partners);
     console.log('[PARTNERS] Total partners:', partners.length);
     
