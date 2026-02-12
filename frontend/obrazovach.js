@@ -327,23 +327,25 @@ async function initEducationApp() {
   } catch (error) {
     console.error('❌ Education app init error:', error);
     showError('Ошибка инициализации образовательного приложения');
+  } finally {
+    // ВСЕГДА скрываем preloader после завершения инициализации
+    hidePreloader();
+  }
+}
+
+// Функция скрытия preloader
+function hidePreloader() {
+  const preloader = document.getElementById('preloader');
+  if (preloader) {
+    console.log('🔄 Hiding preloader...');
+    preloader.style.opacity = '0';
+    preloader.style.transition = 'opacity 0.5s ease-out';
+    setTimeout(() => {
+      preloader.style.display = 'none';
+      console.log('✅ Preloader hidden');
+    }, 500);
   }
 }
 
 // Запуск приложения при загрузке
 window.addEventListener('DOMContentLoaded', initEducationApp);
-
-// Hide preloader after page is loaded
-window.addEventListener('load', () => {
-  const preloader = document.getElementById('preloader');
-  if (preloader) {
-    // Add fade-out effect before hiding
-    preloader.style.opacity = '0';
-    preloader.style.transition = 'opacity 0.5s ease-out';
-
-    // Actually hide after transition completes
-    setTimeout(() => {
-      preloader.style.display = 'none';
-    }, 500);
-  }
-});

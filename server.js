@@ -4978,6 +4978,120 @@ app.get('/api/subscribers', async (req, res) => {
   }
 });
 
+// Get educational materials from obrazovach sheet
+app.get('/api/obrazovach', async (req, res) => {
+  try {
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+
+    console.log('[API] Attempting to fetch data from obrazovach sheet...');
+
+    let materials = [];
+    try {
+      materials = await getSheetData(env.SHEET_ID, 'obrazovach', accessToken);
+      console.log('[API] Raw materials from sheet:', materials);
+    } catch (sheetError) {
+      console.error('[API] Error reading obrazovach sheet:', sheetError);
+      // Return empty array if sheet doesn't exist
+      return res.json({
+        ok: true,
+        materials: []
+      });
+    }
+
+    // Filter and format educational materials
+    const formattedMaterials = materials
+      .filter(m => m.url_cover && m.title && m.url_video) // Only valid entries
+      .map(m => ({
+        id: m.id || m.title,
+        url_cover: m.url_cover,
+        title: m.title,
+        subtitle: m.subtitle || '',
+        url_video: m.url_video,
+        text_button: m.text_button || 'Смотреть видео'
+      }));
+
+    console.log('[API] Formatted materials:', formattedMaterials);
+
+    res.json({
+      ok: true,
+      materials: formattedMaterials
+    });
+  } catch (error) {
+    console.error('[API] Error getting educational materials:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
+// Send video message to user via bot
+app.post('/api/send-video', async (req, res) => {
+  try {
+    const { user_id, username, video_url, title, subtitle, url_cover } = req.body;
+
+    if (!user_id || !video_url) {
+      return res.status(400).json({ error: 'Missing required fields', success: false });
+    }
+
+    // Rate limiting
+    await checkRateLimit(env, `send_video:${user_id}`, 5, 60);
+
+    // Send video message to user via bot
+    const bot = new Bot(env.BOT_TOKEN);
+
+    // Create caption with title and subtitle
+    let caption = `🎥 <b>${title || 'Образовательное видео'}</b>`;
+    if (subtitle) {
+      caption += `\n\n${subtitle}`;
+    }
+
+    const keyboard = new InlineKeyboard().url('▶️ Открыть видео', video_url);
+
+    // Send photo with caption and button if url_cover is provided
+    if (url_cover && url_cover.trim() !== '') {
+      try {
+        await bot.api.sendPhoto(user_id, url_cover, {
+          caption: caption,
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
+        console.log(`[API] ✅ Photo message sent to user ${user_id}: ${title}`);
+      } catch (photoError) {
+        console.error(`[API] ⚠️ Failed to send photo, falling back to text message:`, photoError.message);
+        // Fallback to text message if photo fails
+        await bot.api.sendMessage(user_id, caption, {
+          parse_mode: 'HTML',
+          reply_markup: keyboard
+        });
+      }
+    } else {
+      // Send text message if no cover image
+      await bot.api.sendMessage(user_id, caption, {
+        parse_mode: 'HTML',
+        reply_markup: keyboard
+      });
+      console.log(`[API] ✅ Text message sent to user ${user_id}: ${title}`);
+    }
+
+    // Update user's education views count
+    const userStats = await getUserStats(env, user_id);
+    const updatedStats = await updateUserStats(env, user_id, {
+      education_views_count: (userStats.education_views_count || 0) + 1
+    });
+
+    // Check for education view achievement
+    await checkAndUnlockAchievements(env, user_id, 'education_view', updatedStats.education_views_count);
+
+    res.json({
+      ok: true,
+      success: true,
+      message_sent: true
+    });
+  } catch (error) {
+    console.error('[API] Error sending video message:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found', success: false });
@@ -5289,120 +5403,6 @@ app.get('/api/spreadsheet/structure', async (req, res) => {
     });
   } catch (error) {
     console.error('[API] Error getting spreadsheet structure:', error);
-    res.status(500).json({ error: error.message, success: false });
-  }
-});
-
-// Get educational materials from obrazovach sheet
-app.get('/api/obrazovach', async (req, res) => {
-  try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(env, creds);
-
-    console.log('[API] Attempting to fetch data from obrazovach sheet...');
-
-    let materials = [];
-    try {
-      materials = await getSheetData(env.SHEET_ID, 'obrazovach', accessToken);
-      console.log('[API] Raw materials from sheet:', materials);
-    } catch (sheetError) {
-      console.error('[API] Error reading obrazovach sheet:', sheetError);
-      // Return empty array if sheet doesn't exist
-      return res.json({
-        ok: true,
-        materials: []
-      });
-    }
-
-    // Filter and format educational materials
-    const formattedMaterials = materials
-      .filter(m => m.url_cover && m.title && m.url_video) // Only valid entries
-      .map(m => ({
-        id: m.id || m.title,
-        url_cover: m.url_cover,
-        title: m.title,
-        subtitle: m.subtitle || '',
-        url_video: m.url_video,
-        text_button: m.text_button || 'Смотреть видео'
-      }));
-
-    console.log('[API] Formatted materials:', formattedMaterials);
-
-    res.json({
-      ok: true,
-      materials: formattedMaterials
-    });
-  } catch (error) {
-    console.error('[API] Error getting educational materials:', error);
-    res.status(500).json({ error: error.message, success: false });
-  }
-});
-
-// Send video message to user via bot
-app.post('/api/send-video', async (req, res) => {
-  try {
-    const { user_id, username, video_url, title, subtitle, url_cover } = req.body;
-
-    if (!user_id || !video_url) {
-      return res.status(400).json({ error: 'Missing required fields', success: false });
-    }
-
-    // Rate limiting
-    await checkRateLimit(env, `send_video:${user_id}`, 5, 60);
-
-    // Send video message to user via bot
-    const bot = new Bot(env.BOT_TOKEN);
-
-    // Create caption with title and subtitle
-    let caption = `🎥 <b>${title || 'Образовательное видео'}</b>`;
-    if (subtitle) {
-      caption += `\n\n${subtitle}`;
-    }
-
-    const keyboard = new InlineKeyboard().url('▶️ Открыть видео', video_url);
-
-    // Send photo with caption and button if url_cover is provided
-    if (url_cover && url_cover.trim() !== '') {
-      try {
-        await bot.api.sendPhoto(user_id, url_cover, {
-          caption: caption,
-          parse_mode: 'HTML',
-          reply_markup: keyboard
-        });
-        console.log(`[API] ✅ Photo message sent to user ${user_id}: ${title}`);
-      } catch (photoError) {
-        console.error(`[API] ⚠️ Failed to send photo, falling back to text message:`, photoError.message);
-        // Fallback to text message if photo fails
-        await bot.api.sendMessage(user_id, caption, {
-          parse_mode: 'HTML',
-          reply_markup: keyboard
-        });
-      }
-    } else {
-      // Send text message if no cover image
-      await bot.api.sendMessage(user_id, caption, {
-        parse_mode: 'HTML',
-        reply_markup: keyboard
-      });
-      console.log(`[API] ✅ Text message sent to user ${user_id}: ${title}`);
-    }
-
-    // Update user's education views count
-    const userStats = await getUserStats(env, user_id);
-    const updatedStats = await updateUserStats(env, user_id, {
-      education_views_count: (userStats.education_views_count || 0) + 1
-    });
-
-    // Check for education view achievement
-    await checkAndUnlockAchievements(env, user_id, 'education_view', updatedStats.education_views_count);
-
-    res.json({
-      ok: true,
-      success: true,
-      message_sent: true
-    });
-  } catch (error) {
-    console.error('[API] Error sending video message:', error);
     res.status(500).json({ error: error.message, success: false });
   }
 });
