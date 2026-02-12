@@ -147,6 +147,15 @@ if (!user || user.id === 0 || !user.id) {
 
     overlay.appendChild(warningBox);
     document.body.appendChild(overlay);
+
+  // Hide preloader immediately
+  const preloader = document.getElementById('preloader');
+  if (preloader && preloader.parentNode) {
+    preloader.parentNode.removeChild(preloader);
+  }
+
+  // STOP EXECUTION - do not run anything else
+  throw new Error('App opened incorrectly - stopping execution');
 }
 
 // Расширение Telegram WebApp
