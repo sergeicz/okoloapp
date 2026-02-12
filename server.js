@@ -4386,7 +4386,7 @@ app.post('/api/click', async (req, res) => {
 
     // Check if user already clicked this partner
     const existingClickIndex = clicks.findIndex(c =>
-      String(c.user_id) === String(user_id) &&
+      String(c.telegram_id) === String(user_id) &&
       c.title === partner.title
     );
 
