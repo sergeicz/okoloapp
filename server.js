@@ -2458,6 +2458,109 @@ function setupBot(env) {
     );
   });
 
+  // /profile command - Show user profile
+  bot.command('profile', async (ctx) => {
+    const user = ctx.from;
+    const userId = user.id;
+
+    try {
+      const userStats = await getUserStats(env, userId);
+      const achievements = await initializeAchievements(env);
+
+      // Get unlocked achievements
+      const unlockedAchievements = [];
+      for (const achievement of achievements) {
+        const progress = await getUserAchievementProgress(env, userId, achievement.id);
+        if (progress.is_unlocked) {
+          unlockedAchievements.push(achievement);
+        }
+      }
+
+      // Format profile message
+      let profileMessage = `📊 *Ваш профиль*\n\n`;
+      profileMessage += `👤 @${user.username || 'не указан'}\n`;
+      profileMessage += `🆔 Регистрация: #${userStats.registration_number || 'N/A'}\n\n`;
+
+      profileMessage += `⭐ *Баллы:* ${userStats.total_points}\n`;
+      profileMessage += `🔥 *Серия:* ${userStats.current_streak} дней (рекорд: ${userStats.longest_streak})\n`;
+      profileMessage += `👥 *Рефералы:* ${userStats.referrals_count}\n\n`;
+
+      profileMessage += `🏆 *Достижения:* ${unlockedAchievements.length}/${achievements.length}\n`;
+      profileMessage += `━━━━━━━━━━━━━━━━\n`;
+
+      if (unlockedAchievements.length > 0) {
+        for (const achievement of unlockedAchievements) {
+          profileMessage += `✅ ${achievement.icon_emoji} ${achievement.title} (${achievement.points} баллов)\n`;
+        }
+      } else {
+        profileMessage += `❌ Пока нет разблокированных достижений\n`;
+      }
+
+      // Add locked achievements
+      const lockedAchievements = achievements.filter(a => !unlockedAchievements.some(ua => ua.id === a.id));
+      if (lockedAchievements.length > 0) {
+        profileMessage += `\n🔒 *Предстоящие достижения:*\n`;
+        for (const achievement of lockedAchievements.slice(0, 3)) {
+          let progressText = '';
+
+          if (achievement.condition_type === 'referral_count') {
+            progressText = `(${userStats.referrals_count}/${achievement.condition_value} рефералов)`;
+          } else if (achievement.condition_type === 'daily_streak') {
+            progressText = `(${userStats.current_streak}/${achievement.condition_value} дней)`;
+          } else if (achievement.condition_type === 'partner_click') {
+            progressText = `(0/${achievement.condition_value} переходов)`;
+          }
+
+          profileMessage += `🔒 ${achievement.icon_emoji} ${achievement.title} ${progressText}\n`;
+        }
+      }
+
+      const keyboard = new InlineKeyboard()
+        .text('🔄 Обновить', 'show_profile').row()
+        .text('🏆 Все достижения', 'show_all_achievements').row()
+        .text('🏆 Лидерборд', 'show_leaderboard');
+
+      await ctx.reply(profileMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      console.error('Error showing profile:', error);
+      await ctx.reply('❌ Ошибка при загрузке профиля');
+    }
+  });
+
+  // /referrals command - Show referral program
+  bot.command('referrals', async (ctx) => {
+    const user = ctx.from;
+    const userId = user.id;
+
+    try {
+      const userStats = await getUserStats(env, userId);
+      const referralLink = `https://t.me/${env.BOT_USERNAME || 'okolotattoo_bot'}?start=ref_${userId}`;
+
+      let referralMessage = `👥 *Реферальная программа*\n\n`;
+      referralMessage += `Приглашайте друзей и получайте бонусы!\n\n`;
+      referralMessage += `📊 *Ваша статистика:*\n`;
+      referralMessage += `👥 Приглашено: ${userStats.referrals_count || 0}\n`;
+      referralMessage += `⭐ Бонусные баллы: ${(userStats.referrals_count || 0) * 10}\n\n`;
+      referralMessage += `🔗 *Ваша реферальная ссылка:*\n`;
+      referralMessage += `\`${referralLink}\`\n\n`;
+      referralMessage += `Скопируйте ссылку и отправьте друзьям. За каждого приглашенного друга вы получите 10 баллов!`;
+
+      const keyboard = new InlineKeyboard()
+        .text('🔄 Обновить', 'show_referral');
+
+      await ctx.reply(referralMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      console.error('Error showing referral:', error);
+      await ctx.reply('❌ Ошибка при загрузке реферальной программы');
+    }
+  });
+
   // ═══════════════════════════════════════════════════════════════
   // ОБРАБОТКА CALLBACK QUERIES
   // ═══════════════════════════════════════════════════════════════
