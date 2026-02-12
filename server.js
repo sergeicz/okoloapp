@@ -4373,6 +4373,13 @@ app.post('/api/click', async (req, res) => {
       return res.status(404).json({ error: 'Partner not found', success: false });
     }
 
+    console.log(`[API] 📋 Partner data for ${partner.title}:`, {
+      title: partner.title,
+      has_promocode: !!partner.promocode,
+      promocode: partner.promocode,
+      all_keys: Object.keys(partner)
+    });
+
     // Get clicks sheet
     const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
 
@@ -4467,7 +4474,15 @@ app.post('/api/click', async (req, res) => {
     }
 
     // Send promocode if available
+    console.log(`[PROMOCODE-DEBUG] Checking promocode for partner ${partner.title}:`, {
+      has_promocode: !!partner.promocode,
+      promocode_value: partner.promocode,
+      promocode_length: partner.promocode ? partner.promocode.length : 0,
+      is_empty_after_trim: partner.promocode ? partner.promocode.trim() === '' : true
+    });
+
     if (partner.promocode && partner.promocode.trim() !== '') {
+      console.log(`[PROMOCODE] 🎯 Sending promocode "${partner.promocode}" from ${partner.title} to user ${user_id}`);
       try {
         const bot = new Bot(env.BOT_TOKEN);
         const message = `🎁 <b>Промокод от ${partner.title}</b>\n\n` +
@@ -4498,6 +4513,8 @@ app.post('/api/click', async (req, res) => {
           message: error.message
         });
       }
+    } else {
+      console.log(`[PROMOCODE] ⏭️ No promocode to send for ${partner.title} (promocode is empty or missing)`);
     }
 
     // Return click count
