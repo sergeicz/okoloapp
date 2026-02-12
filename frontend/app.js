@@ -26,12 +26,23 @@ function checkCookieConsent() {
 }
 
 function acceptCookies() {
-  localStorage.setItem('cookieConsent', 'accepted');
-  const modal = document.getElementById('cookieConsent');
-  modal.style.animation = 'fadeOut 0.5s ease';
-  setTimeout(() => {
-    modal.classList.add('hidden');
-  }, 500);
+  try {
+    localStorage.setItem('cookieConsent', 'accepted');
+    const modal = document.getElementById('cookieConsent');
+    if (modal) {
+      modal.style.animation = 'fadeOut 0.5s ease';
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 500);
+    }
+  } catch (error) {
+    console.error('Error in acceptCookies function:', error);
+    // Fallback: try to hide the element directly
+    const modal = document.getElementById('cookieConsent');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
 
   // Track cookie acceptance
   if (window.metrikaTrack) {
