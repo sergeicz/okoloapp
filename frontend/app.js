@@ -661,3 +661,18 @@ window.addEventListener('error', (event) => {
 window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled promise rejection:', event.reason);
 });
+
+// Hide preloader after page is loaded
+window.addEventListener('load', () => {
+  const preloader = document.getElementById('preloader');
+  if (preloader) {
+    // Add fade-out effect before hiding
+    preloader.style.opacity = '0';
+    preloader.style.transition = 'opacity 0.5s ease-out';
+    
+    // Actually hide after transition completes
+    setTimeout(() => {
+      preloader.style.display = 'none';
+    }, 500);
+  }
+});
