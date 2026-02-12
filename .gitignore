@@ -76,3 +76,6 @@ Desktop.ini
 htmlcov/
 .pytest_cache/
 .tox/
+
+# === Documentation ===
+*.md
