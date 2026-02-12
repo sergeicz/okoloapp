@@ -84,7 +84,7 @@ if (!user || user.id === 0 || !user.id) {
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
 
-    // Create overlay with blur
+    // Create overlay with blur - completely opaque
     const overlay = document.createElement('div');
     overlay.style.cssText = `
       position: fixed;
@@ -92,12 +92,15 @@ if (!user || user.id === 0 || !user.id) {
       left: 0;
       right: 0;
       bottom: 0;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
+      min-width: 100vw;
       min-height: 100vh;
-      background: rgba(0, 0, 0, 0.95);
-      backdrop-filter: blur(40px) saturate(150%);
-      -webkit-backdrop-filter: blur(40px) saturate(150%);
+      max-width: 100vw;
+      max-height: 100vh;
+      background: #000000;
+      backdrop-filter: blur(100px);
+      -webkit-backdrop-filter: blur(100px);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -105,7 +108,7 @@ if (!user || user.id === 0 || !user.id) {
       padding: 20px;
       margin: 0;
       overflow: hidden;
-      animation: fadeIn 0.3s ease;
+      box-sizing: border-box;
     `;
 
     // Create warning box
