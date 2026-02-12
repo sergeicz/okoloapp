@@ -507,9 +507,9 @@ async function loadPartners() {
 
       container.querySelector('.categories-swipe').appendChild(div);
     }
-    
-    // Закрываем теги
-    container.innerHTML += '</div></div>';
+
+    // DON'T use innerHTML += as it destroys event listeners!
+    // Tags are already properly closed by the DOM structure
   } catch (error) {
     container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки партнеров</p>';
   }
