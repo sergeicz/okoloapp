@@ -312,13 +312,19 @@ h2 {
   padding: 20px;
   margin: 25px 0;
   display: flex;
-  align-items: center;
-  gap: 18px;
+  flex-direction: column;
+  gap: 16px;
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-base), inset 0 0 20px rgba(255, 0, 0, 0.05);
   animation: fadeIn 0.6s ease;
   transition: all 0.3s ease;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
 .user-profile-card::before {
@@ -430,12 +436,12 @@ h2 {
 }
 
 .profile-action-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 10px 18px;
-  margin-top: 12px;
+  padding: 12px 18px;
+  width: 100%;
   background: linear-gradient(135deg, var(--primary) 0%, #8B0000 100%);
   color: var(--text-primary);
   text-decoration: none;
@@ -472,6 +478,15 @@ h2 {
 .profile-action-btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(255, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.profile-subtext {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  font-style: italic;
+  text-align: center;
+  margin-top: -8px;
 }
 
 /* Адаптивность для мобильных */

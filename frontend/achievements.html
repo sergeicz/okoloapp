@@ -633,9 +633,30 @@ hr {
   </div>
 
   <div style="text-align: center;">
-    <a href="https://t.me/nononotattoo" class="back-link">Открыть Mini App</a>
+    <a href="https://t.me/okolotattoo_bot" id="referralLink" class="back-link">Пригласить друзей</a>
   </div>
 </div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+// Get Telegram user ID and set referral link
+(function() {
+  const tg = window.Telegram?.WebApp;
+  const user = tg?.initDataUnsafe?.user;
+  const userId = user?.id || 0;
+
+  // Update referral link with user ID
+  const referralLink = document.getElementById('referralLink');
+  if (referralLink && userId) {
+    referralLink.href = `https://t.me/okolotattoo_bot?start=ref_${userId}`;
+    console.log('Referral link set:', referralLink.href);
+  }
+
+  // Expand Telegram WebApp
+  if (tg?.expand) tg.expand();
+  if (tg?.ready) tg.ready();
+})();
+</script>
 
 </body>
 </html>
