@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 <title>Гайд по достижениям - Околотату</title>
 
@@ -43,6 +43,7 @@ body {
   line-height: 1.8;
   min-height: 100vh;
   padding: 20px;
+  overflow-x: hidden;
 }
 
 .container {
@@ -59,6 +60,8 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
               0 0 100px rgba(124, 58, 237, 0.2),
               inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 @keyframes fadeIn {
@@ -78,11 +81,14 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 3px;
   word-wrap: break-word;
+  overflow-wrap: break-word;
   filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.4));
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 15px;
+  width: 100%;
+  flex-wrap: wrap;
 }
 
 .title-icon {
@@ -132,6 +138,18 @@ p {
   margin-bottom: 15px;
   color: var(--text-secondary);
   font-size: 1.1rem;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+a {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 hr {
@@ -317,11 +335,13 @@ hr {
 
   .container {
     padding: 30px 20px;
+    border-radius: 24px;
   }
 
   h1 {
     font-size: 2rem;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
+    gap: 10px;
   }
 
   h2 {
@@ -331,6 +351,7 @@ hr {
 
   .achievement-card {
     padding: 20px;
+    border-radius: 20px;
   }
 
   .achievement-icon {
@@ -345,12 +366,26 @@ hr {
     font-size: 2rem;
   }
 
-  h1 {
-    gap: 10px;
-  }
-
   .subtitle {
     font-size: 1.1rem;
+    word-break: break-word;
+  }
+
+  p, .achievement-description {
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 600px) {
+  h1 {
+    flex-direction: column;
+    font-size: 1.8rem;
+    letter-spacing: 0.5px;
+    gap: 8px;
+  }
+
+  .title-icon {
+    font-size: 2.2rem;
   }
 }
 
@@ -374,13 +409,19 @@ hr {
     margin: 35px 0 20px;
   }
 
+  h3 {
+    font-size: 1.3rem;
+  }
+
   .achievement-card {
     padding: 15px;
+    border-radius: 16px;
   }
 
   .achievement-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
   }
 
   .achievement-icon {
@@ -392,6 +433,14 @@ hr {
     gap: 5px;
   }
 
+  .achievement-title {
+    font-size: 1.15rem;
+  }
+
+  .achievement-description, p {
+    font-size: 1rem;
+  }
+
   .subtitle {
     font-size: 1rem;
     margin-bottom: 35px;
@@ -400,6 +449,13 @@ hr {
   .back-link {
     padding: 12px 28px;
     font-size: 0.9rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .highlight-box {
+    padding: 15px 18px;
+    border-radius: 16px;
   }
 }
 </style>
@@ -633,7 +689,7 @@ hr {
   </div>
 
   <div style="text-align: center;">
-    <a href="https://t.me/okolotattoo_bot" id="referralLink" class="back-link">Пригласить друзей</a>
+    <button id="referralBtn" class="back-link" style="border: none; cursor: pointer;">Пригласить друзей</button>
   </div>
 </div>
 
@@ -642,19 +698,36 @@ hr {
 // Get Telegram user ID and set referral link
 (function() {
   const tg = window.Telegram?.WebApp;
+
+  // Wait for Telegram WebApp to be ready
+  if (tg?.ready) tg.ready();
+  if (tg?.expand) tg.expand();
+
   const user = tg?.initDataUnsafe?.user;
   const userId = user?.id || 0;
 
-  // Update referral link with user ID
-  const referralLink = document.getElementById('referralLink');
-  if (referralLink && userId) {
-    referralLink.href = `https://t.me/okolotattoo_bot?start=ref_${userId}`;
-    console.log('Referral link set:', referralLink.href);
-  }
+  // Handle referral button click
+  const referralBtn = document.getElementById('referralBtn');
+  if (referralBtn && userId) {
+    referralBtn.addEventListener('click', function(e) {
+      e.preventDefault();
 
-  // Expand Telegram WebApp
-  if (tg?.expand) tg.expand();
-  if (tg?.ready) tg.ready();
+      const botUrl = `https://t.me/okolotattoo_bot?start=ref_${userId}`;
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(botUrl)}&text=${encodeURIComponent('🐹 Присоединяйся к Околотату! Получи бонусы за регистрацию!')}`;
+
+      console.log('Sharing referral link:', shareUrl);
+
+      // Use openTelegramLink for share URL
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(shareUrl);
+      } else if (tg?.openLink) {
+        tg.openLink(shareUrl);
+      } else {
+        // Fallback
+        window.open(shareUrl, '_blank');
+      }
+    });
+  }
 })();
 </script>
 
