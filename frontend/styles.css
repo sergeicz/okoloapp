@@ -754,9 +754,44 @@ h2 {
    КАТЕГОРИИ И ЗАГРУЗКА
    ===================================================== */
 
-#categories {
-  display: grid;
-  gap: 20px;
+.categories-container {
+  width: 100%;
+  overflow: hidden;
+  margin: 20px 0;
+  padding: 0 10px;
+}
+
+.categories-swipe {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 15px;
+  padding: 10px 5px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.categories-swipe::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.categories-swipe .category-item {
+  scroll-snap-align: start;
+  min-width: calc(100% - 20px);
+  flex-shrink: 0;
+}
+
+/* For mobile devices, adjust width */
+@media (min-width: 768px) {
+  .categories-swipe .category-item {
+    min-width: calc(50% - 15px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .categories-swipe .category-item {
+    min-width: calc(33.333% - 15px);
+  }
 }
 
 .loading {

@@ -414,6 +414,21 @@ async function checkRepresentative(env, user) {
       return null; // No username - can't be representative
     }
 
+    // Check if user is an admin - if so, they can't be a partner representative
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+    
+    const isAdmin = admins.some(a => {
+      const idMatch = a.telegram_id && String(a.telegram_id) === String(user.id);
+      return idMatch;
+    });
+    
+    if (isAdmin) {
+      console.log(`[REPRESENTATIVE] Admin ${user.username} is not eligible to be a partner representative`);
+      return null;
+    }
+
     const partners = await getCachedPartners(env);
 
     // Normalize user username (remove @ and lowercase)
@@ -438,6 +453,1059 @@ async function checkRepresentative(env, user) {
     console.error('Error checking representative:', error);
     return null;
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INITIALIZATION AND SETUP FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+// Initialize required sheets in Google Spreadsheet
+async function initializeRequiredSheets(env) {
+  try {
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    
+    // Get all existing sheet names
+    const allSheetNames = await getAllSheetNames(env.SHEET_ID, accessToken);
+    
+    // Define required sheets and their headers
+    const requiredSheets = [
+      {
+        name: 'achievements',
+        headers: ['id', 'slug', 'title', 'description', 'points', 'rarity', 'icon_emoji', 'condition_type', 'condition_value', 'is_active']
+      },
+      {
+        name: 'user_achievements',
+        headers: ['user_id', 'achievement_id', 'progress', 'is_unlocked', 'unlocked_at', 'created_at', 'updated_at']
+      },
+      {
+        name: 'referrals',
+        headers: ['referrer_id', 'referred_id', 'points_awarded', 'is_active', 'created_at']
+      },
+      {
+        name: 'daily_activity',
+        headers: ['user_id', 'activity_date', 'actions_count', 'created_at']
+      }
+    ];
+    
+    // Check and create missing sheets
+    for (const sheetInfo of requiredSheets) {
+      if (!allSheetNames.includes(sheetInfo.name)) {
+        console.log(`[INIT] Creating missing sheet: ${sheetInfo.name}`);
+        
+        // Add header row
+        const range = `${sheetInfo.name}!A1:${String.fromCharCode(64 + sheetInfo.headers.length)}`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${env.SHEET_ID}/values/${range}?valueInputOption=RAW`;
+        
+        await fetch(url, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            values: [sheetInfo.headers]
+          }),
+        });
+        
+        console.log(`[INIT] ✅ Created sheet: ${sheetInfo.name} with headers: ${sheetInfo.headers.join(', ')}`);
+      } else {
+        console.log(`[INIT] Sheet already exists: ${sheetInfo.name}`);
+      }
+    }
+    
+    // Initialize default achievements if the achievements sheet is empty
+    const achievements = await getSheetData(env.SHEET_ID, 'achievements', accessToken);
+    if (!achievements || achievements.length === 0) {
+      console.log('[INIT] Adding default achievements to sheet...');
+      
+      const defaultAchievements = [
+        [
+          'молодой_хомяк', 'молодой_хомяк', '🎯 Молодой хомяк', 
+          'Открыл первую партнёрскую ссылку', '10', 'Обычное', '🎯', 
+          'partner_click', '1', 'TRUE'
+        ],
+        [
+          'прошаренный_хомяк', 'прошаренный_хомяк', '⭐ Прошаренный хомяк', 
+          'Подписался на всех партнёров', '50', 'Редкое', '⭐', 
+          'partner_subscribe_all', '', 'TRUE'
+        ],
+        [
+          'активный_хомяк', 'активный_хомяк', '🔥 Активный хомяк', 
+          '7 дней активности подряд', '30', 'Необычное', '🔥', 
+          'daily_streak', '7', 'TRUE'
+        ],
+        [
+          'проактивный_хомяк', 'проактивный_хомяк', '👑 Проактивный хомяк', 
+          'Пригласили 10+ друзей', '100', 'Эпическое', '👑', 
+          'referral_count', '10', 'TRUE'
+        ],
+        [
+          'любознательный_хомяк', 'любознательный_хомяк', '📚 Любознательный хомяк', 
+          'Просмотрел 5+ образовачей', '50', 'Редкое', '📚', 
+          'education_view', '5', 'TRUE'
+        ],
+        [
+          'щедрый_хомяк', 'щедрый_хомяк', '💳 Щедрый хомяк', 
+          'Задонатил пацанам', '20', 'Необычное', '💳', 
+          'donation', '1000', 'TRUE'
+        ],
+        [
+          'хомяк_тусовщик', 'хомяк_тусовщик', '🎪 Хомяк-тусовщик', 
+          'Посетил тату-событие', '15', 'Обычное', '🎪', 
+          'event_register', '1', 'TRUE'
+        ],
+        [
+          'легендарный_хомяк', 'легендарный_хомяк', '🚀 Легендарный хомяк', 
+          'Один из первых 100 пользователей', '100', 'Легендарное', '🚀', 
+          'early_user', '100', 'TRUE'
+        ]
+      ];
+      
+      // Add default achievements to the sheet
+      for (const achievement of defaultAchievements) {
+        await appendSheetRow(env.SHEET_ID, 'achievements', achievement, accessToken);
+      }
+      
+      console.log('[INIT] ✅ Added default achievements to sheet');
+    }
+  } catch (error) {
+    console.error('[INIT] Error initializing required sheets:', error);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACHIEVEMENT SYSTEM FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+
+// Initialize achievements from Google Sheets
+async function initializeAchievements(env) {
+  const cacheKey = 'achievements:list';
+  
+  // Check if achievements are already cached
+  const cached = await env.BROADCAST_STATE.get(cacheKey);
+  if (cached) {
+    return JSON.parse(cached);
+  }
+
+  try {
+    // Try to fetch from Google Sheets
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    const sheetAchievements = await getSheetData(env.SHEET_ID, 'achievements', accessToken);
+    
+    if (sheetAchievements && sheetAchievements.length > 0) {
+      // Convert sheet data to our format
+      const achievements = sheetAchievements.map(item => ({
+        id: item.id || item.slug,
+        slug: item.slug,
+        title: item.title,
+        description: item.description,
+        points: parseInt(item.points) || 0,
+        rarity: item.rarity || 'Обычное',
+        icon_emoji: item.icon_emoji || '',
+        condition_type: item.condition_type,
+        condition_value: item.condition_value ? parseInt(item.condition_value) : null
+      }));
+      
+      // Cache for 1 hour
+      await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(achievements), { expirationTtl: 3600 });
+      
+      return achievements;
+    }
+  } catch (error) {
+    console.error('Error fetching achievements from Google Sheets:', error);
+  }
+
+  // Fallback to default achievements if sheet is empty or unavailable
+  const defaultAchievements = [
+    {
+      id: 'молодой_хомяк',
+      slug: 'молодой_хомяк',
+      title: '🎯 Молодой хомяк',
+      description: 'Открыл первую партнёрскую ссылку',
+      points: 10,
+      rarity: 'Обычное',
+      icon_emoji: '🎯',
+      condition_type: 'partner_click',
+      condition_value: 1
+    },
+    {
+      id: 'прошаренный_хомяк',
+      slug: 'прошаренный_хомяк',
+      title: '⭐ Прошаренный хомяк',
+      description: 'Подписался на всех партнёров',
+      points: 50,
+      rarity: 'Редкое',
+      icon_emoji: '⭐',
+      condition_type: 'partner_subscribe_all',
+      condition_value: null
+    },
+    {
+      id: 'активный_хомяк',
+      slug: 'активный_хомяк',
+      title: '🔥 Активный хомяк',
+      description: '7 дней активности подряд',
+      points: 30,
+      rarity: 'Необычное',
+      icon_emoji: '🔥',
+      condition_type: 'daily_streak',
+      condition_value: 7
+    },
+    {
+      id: 'проактивный_хомяк',
+      slug: 'проактивный_хомяк',
+      title: '👑 Проактивный хомяк',
+      description: 'Пригласили 10+ друзей',
+      points: 100,
+      rarity: 'Эпическое',
+      icon_emoji: '👑',
+      condition_type: 'referral_count',
+      condition_value: 10
+    },
+    {
+      id: 'любознательный_хомяк',
+      slug: 'любознательный_хомяк',
+      title: '📚 Любознательный хомяк',
+      description: 'Просмотрел 5+ образовачей',
+      points: 50,
+      rarity: 'Редкое',
+      icon_emoji: '📚',
+      condition_type: 'education_view',
+      condition_value: 5
+    },
+    {
+      id: 'щедрый_хомяк',
+      slug: 'щедрый_хомяк',
+      title: '💳 Щедрый хомяк',
+      description: 'Задонатил пацанам',
+      points: 20,
+      rarity: 'Необычное',
+      icon_emoji: '💳',
+      condition_type: 'donation',
+      condition_value: 1000
+    },
+    {
+      id: 'хомяк_тусовщик',
+      slug: 'хомяк_тусовщик',
+      title: '🎪 Хомяк-тусовщик',
+      description: 'Посетил тату-событие',
+      points: 15,
+      rarity: 'Обычное',
+      icon_emoji: '🎪',
+      condition_type: 'event_register',
+      condition_value: 1
+    },
+    {
+      id: 'легендарный_хомяк',
+      slug: 'легендарный_хомяк',
+      title: '🚀 Легендарный хомяк',
+      description: 'Один из первых 100 пользователей',
+      points: 100,
+      rarity: 'Легендарное',
+      icon_emoji: '🚀',
+      condition_type: 'early_user',
+      condition_value: 100
+    }
+  ];
+
+  // Cache for 1 hour
+  await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(defaultAchievements), { expirationTtl: 3600 });
+  
+  return defaultAchievements;
+}
+
+// Get user's achievement progress
+async function getUserAchievementProgress(env, userId, achievementId) {
+  const cacheKey = `user_achievement:${userId}:${achievementId}`;
+  const cached = await env.BROADCAST_STATE.get(cacheKey);
+  
+  if (cached) {
+    return JSON.parse(cached);
+  }
+  
+  try {
+    // Try to fetch from Google Sheets
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    const userAchievements = await getSheetData(env.SHEET_ID, 'user_achievements', accessToken);
+    
+    const userAchievement = userAchievements.find(ua => 
+      String(ua.user_id) === String(userId) && 
+      String(ua.achievement_id) === String(achievementId)
+    );
+    
+    if (userAchievement) {
+      const progress = {
+        user_id: userId,
+        achievement_id: achievementId,
+        progress: parseInt(userAchievement.progress) || 0,
+        is_unlocked: userAchievement.is_unlocked === 'TRUE' || userAchievement.is_unlocked === true,
+        unlocked_at: userAchievement.unlocked_at || null,
+        created_at: userAchievement.created_at || new Date().toISOString()
+      };
+      
+      // Cache for 1 hour
+      await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(progress), { expirationTtl: 3600 });
+      
+      return progress;
+    }
+  } catch (error) {
+    console.error(`Error fetching achievement progress for user ${userId}, achievement ${achievementId}:`, error);
+  }
+  
+  // Return default if not found in sheets
+  const defaultProgress = {
+    user_id: userId,
+    achievement_id: achievementId,
+    progress: 0,
+    is_unlocked: false,
+    unlocked_at: null,
+    created_at: new Date().toISOString()
+  };
+  
+  return defaultProgress;
+}
+
+// Update user's achievement progress
+async function updateUserAchievementProgress(env, userId, achievementId, progress, isUnlocked = false) {
+  const cacheKey = `user_achievement:${userId}:${achievementId}`;
+  
+  const achievementData = {
+    user_id: userId,
+    achievement_id: achievementId,
+    progress: progress,
+    is_unlocked: isUnlocked,
+    unlocked_at: isUnlocked ? new Date().toISOString() : null,
+    updated_at: new Date().toISOString()
+  };
+  
+  try {
+    // Try to update Google Sheets
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    const userAchievements = await getSheetData(env.SHEET_ID, 'user_achievements', accessToken);
+    
+    const existingIndex = userAchievements.findIndex(ua => 
+      String(ua.user_id) === String(userId) && 
+      String(ua.achievement_id) === String(achievementId)
+    );
+    
+    if (existingIndex !== -1) {
+      // Update existing record
+      const rowIndex = existingIndex + 2; // +2 because: +1 for header, +1 for 1-based index
+      await updateSheetRow(
+        env.SHEET_ID,
+        'user_achievements',
+        rowIndex,
+        [
+          userId,
+          achievementId,
+          String(progress),
+          isUnlocked ? 'TRUE' : 'FALSE',
+          achievementData.unlocked_at || '',
+          achievementData.updated_at
+        ],
+        accessToken
+      );
+    } else {
+      // Add new record
+      await appendSheetRow(
+        env.SHEET_ID,
+        'user_achievements',
+        [
+          userId,
+          achievementId,
+          String(progress),
+          isUnlocked ? 'TRUE' : 'FALSE',
+          achievementData.unlocked_at || '',
+          achievementData.created_at || achievementData.updated_at
+        ],
+        accessToken
+      );
+    }
+  } catch (error) {
+    console.error(`Error updating achievement progress for user ${userId}, achievement ${achievementId}:`, error);
+  }
+  
+  // Cache for 1 hour
+  await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(achievementData), { expirationTtl: 3600 });
+  
+  // If unlocked, award points
+  if (isUnlocked) {
+    await awardPointsToUser(env, userId, achievementId);
+  }
+  
+  return achievementData;
+}
+
+// Award points to user when achievement is unlocked
+async function awardPointsToUser(env, userId, achievementId) {
+  const achievements = await initializeAchievements(env);
+  const achievement = achievements.find(a => a.id === achievementId);
+  
+  if (!achievement || !achievement.points) {
+    return 0;
+  }
+  
+  // Check if user is an admin - if so, don't award points
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(env, creds);
+  const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+  
+  const isAdmin = admins.some(a => {
+    const idMatch = a.telegram_id && String(a.telegram_id) === String(userId);
+    return idMatch;
+  });
+  
+  // Don't award points to admins, but still send notification about achievement
+  if (isAdmin) {
+    console.log(`[ACHIEVEMENT] Admin user ${userId} achieved ${achievementId} but not receiving points`);
+    
+    // Still send notification about achievement without points
+    try {
+      const bot = new Bot(env.BOT_TOKEN);
+      const achievementTitle = achievement.title;
+      const achievementDescription = achievement.description;
+      
+      const message = `🎉 Поздравляем! Новое достижение!\n\n${achievementTitle}\n━━━━━━━━━━━\n${achievementDescription}\n\n🏆 Редкость: ${achievement.rarity}\n⭐ (как админ, вы не получаете баллы за достижения)`;
+      
+      await bot.api.sendMessage(userId, message);
+    } catch (error) {
+      console.error(`Failed to send achievement notification to admin user ${userId}:`, error);
+    }
+    
+    return 0;
+  }
+  
+  // Update user's total points (for non-admins)
+  const currentStats = await getUserStats(env, userId);
+  const newTotalPoints = (currentStats.total_points || 0) + achievement.points;
+  
+  await updateUserStats(env, userId, { total_points: newTotalPoints });
+  
+  // Send notification to user
+  try {
+    const bot = new Bot(env.BOT_TOKEN);
+    const achievementTitle = achievement.title;
+    const achievementDescription = achievement.description;
+    const pointsAwarded = achievement.points;
+    const totalPoints = newTotalPoints;
+    
+    const message = `🎉 Поздравляем! Новое достижение!\n\n${achievementTitle}\n━━━━━━━━━━━\n${achievementDescription}\n\n🏆 Редкость: ${achievement.rarity}\n⭐ Награда: +${pointsAwarded} баллов\n\nВаш новый рейтинг: ${totalPoints} баллов`;
+    
+    await bot.api.sendMessage(userId, message);
+  } catch (error) {
+    console.error(`Failed to send achievement notification to user ${userId}:`, error);
+  }
+  
+  return achievement.points;
+}
+
+// Get user statistics
+async function getUserStats(env, userId) {
+  const cacheKey = `user_stats:${userId}`;
+  const cached = await env.BROADCAST_STATE.get(cacheKey);
+  
+  if (cached) {
+    return JSON.parse(cached);
+  }
+  
+  // Fetch from users sheet as fallback
+  try {
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+    
+    const user = users.find(u => String(u.telegram_id) === String(userId));
+    
+    if (user) {
+      const stats = {
+        user_id: userId,
+        total_points: parseInt(user.total_points) || 0,
+        current_streak: parseInt(user.current_streak) || 0,
+        longest_streak: parseInt(user.longest_streak) || 0,
+        last_active_date: user.last_active_date || user.last_active || new Date().toISOString().split('T')[0],
+        referrals_count: parseInt(user.referrals_count) || 0,
+        education_views_count: parseInt(user.education_views_count) || 0,
+        events_registered: parseInt(user.events_registered) || 0,
+        partners_subscribed: parseInt(user.partners_subscribed) || 0,
+        total_donations: parseInt(user.total_donations) || 0,
+        registration_number: parseInt(user.registration_number) || null,
+        updated_at: new Date().toISOString()
+      };
+      
+      // Cache for 10 minutes
+      await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(stats), { expirationTtl: 600 });
+      
+      return stats;
+    }
+  } catch (error) {
+    console.error(`Error getting user stats for ${userId}:`, error);
+  }
+  
+  // Return default stats if not found
+  return {
+    user_id: userId,
+    total_points: 0,
+    current_streak: 0,
+    longest_streak: 0,
+    last_active_date: new Date().toISOString().split('T')[0],
+    referrals_count: 0,
+    education_views_count: 0,
+    events_registered: 0,
+    partners_subscribed: 0,
+    total_donations: 0,
+    registration_number: null,
+    updated_at: new Date().toISOString()
+  };
+}
+
+// Update user statistics
+async function updateUserStats(env, userId, updates) {
+  // Check if user is an admin - if so, only update non-points stats
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(env, creds);
+  const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+  
+  const isAdmin = admins.some(a => {
+    const idMatch = a.telegram_id && String(a.telegram_id) === String(userId);
+    return idMatch;
+  });
+  
+  // If user is admin, remove points-related updates
+  let filteredUpdates = { ...updates };
+  if (isAdmin) {
+    // Remove points-related fields from updates
+    if ('total_points' in filteredUpdates) {
+      delete filteredUpdates.total_points;
+    }
+    if ('referrals_count' in filteredUpdates) {
+      delete filteredUpdates.referrals_count;
+    }
+    
+    console.log(`[USER STATS] Partial update for admin user ${userId} (excluding points)`);
+  }
+  
+  const currentStats = await getUserStats(env, userId);
+  const newStats = { ...currentStats, ...filteredUpdates, updated_at: new Date().toISOString() };
+  
+  // Update cache
+  const cacheKey = `user_stats:${userId}`;
+  await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(newStats), { expirationTtl: 600 });
+  
+  // Update Google Sheet as well
+  try {
+    const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+    
+    const userIndex = users.findIndex(u => String(u.telegram_id) === String(userId));
+    
+    if (userIndex !== -1) {
+      // Update the user row in the sheet
+      const user = users[userIndex];
+      const rowIndex = userIndex + 2; // +2 because: +1 for header, +1 for 1-based index
+      
+      await updateSheetRow(
+        env.SHEET_ID,
+        'users',
+        rowIndex,
+        [
+          user.telegram_id,
+          user.username || '',
+          user.first_name || '',
+          user.date_registered || new Date().toISOString().split('T')[0],
+          user.bot_started || 'бот запущен',
+          user.last_active || new Date().toISOString().split('T')[0],
+          isAdmin ? user.total_points || '0' : String(newStats.total_points || 0), // Keep admin's points unchanged
+          String(newStats.current_streak || 0),
+          String(newStats.longest_streak || 0),
+          user.last_active_date || new Date().toISOString().split('T')[0],
+          isAdmin ? user.referrals_count || '0' : String(newStats.referrals_count || 0), // Keep admin's referrals unchanged
+          String(newStats.education_views_count || 0),
+          String(newStats.events_registered || 0),
+          String(newStats.partners_subscribed || 0),
+          String(newStats.total_donations || 0),
+          String(newStats.registration_number || ''),
+        ],
+        accessToken
+      );
+    } else {
+      // If user doesn't exist in sheet, add them
+      await appendSheetRow(
+        env.SHEET_ID,
+        'users',
+        [
+          userId,
+          '', // username
+          '', // first_name
+          new Date().toISOString().split('T')[0], // date_registered
+          'бот запущен', // bot_started
+          new Date().toISOString().split('T')[0], // last_active
+          isAdmin ? '0' : String(newStats.total_points || 0), // Admin starts with 0 points
+          String(newStats.current_streak || 0),
+          String(newStats.longest_streak || 0),
+          new Date().toISOString().split('T')[0], // last_active_date
+          isAdmin ? '0' : String(newStats.referrals_count || 0), // Admin starts with 0 referrals
+          String(newStats.education_views_count || 0),
+          String(newStats.events_registered || 0),
+          String(newStats.partners_subscribed || 0),
+          String(newStats.total_donations || 0),
+          String(newStats.registration_number || ''),
+        ],
+        accessToken
+      );
+    }
+  } catch (error) {
+    console.error(`Error updating user stats in sheet for ${userId}:`, error);
+  }
+  
+  return newStats;
+}
+
+// Check and unlock achievements for user
+async function checkAndUnlockAchievements(env, userId, conditionType, conditionValue = 1) {
+  // Check if user is an admin - if so, process achievements but don't award points
+  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const accessToken = await getAccessToken(env, creds);
+  const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+  
+  const isAdmin = admins.some(a => {
+    const idMatch = a.telegram_id && String(a.telegram_id) === String(userId);
+    return idMatch;
+  });
+  
+  const achievements = await initializeAchievements(env);
+  const userStats = await getUserStats(env, userId);
+  
+  for (const achievement of achievements) {
+    if (achievement.condition_type !== conditionType) {
+      continue;
+    }
+    
+    // Get current progress for this achievement
+    const currentProgress = await getUserAchievementProgress(env, userId, achievement.id);
+    
+    // Calculate new progress
+    let newProgress = currentProgress.progress + conditionValue;
+    
+    // Special cases for certain conditions
+    if (conditionType === 'daily_streak') {
+      newProgress = userStats.current_streak;
+    } else if (conditionType === 'referral_count') {
+      newProgress = userStats.referrals_count;
+    } else if (conditionType === 'partner_subscribe_all') {
+      // Need to check how many partners user has subscribed to
+      // For now, we'll use the partners_subscribed stat
+      newProgress = userStats.partners_subscribed;
+    } else if (conditionType === 'early_user') {
+      // Check if user is among first 100
+      newProgress = userStats.registration_number <= 100 ? 1 : 0;
+    }
+    
+    // Check if achievement should be unlocked
+    const shouldUnlock = achievement.condition_value 
+      ? newProgress >= achievement.condition_value 
+      : newProgress > 0; // For achievements without specific threshold
+    
+    // Update progress
+    await updateUserAchievementProgress(
+      env, 
+      userId, 
+      achievement.id, 
+      newProgress, 
+      shouldUnlock || currentProgress.is_unlocked // Keep unlocked if already unlocked
+    );
+    
+    // If achievement is unlocked and user is not admin, award points
+    if (shouldUnlock && !isAdmin) {
+      await awardPointsToUser(env, userId, achievement.id);
+    } else if (shouldUnlock && isAdmin) {
+      // For admins, just update the achievement status without awarding points
+      console.log(`[ACHIEVEMENT] Admin ${userId} unlocked achievement ${achievement.id} but not receiving points`);
+    }
+  }
+}
+
+// Handle referral link processing
+async function handleReferralLink(env, referrerId, newUserId) {
+  try {
+    // Check if referral already exists
+    const existingReferral = await getReferralData(env, referrerId, newUserId);
+    if (existingReferral) {
+      // Referral already exists
+      return false;
+    }
+    
+    // Check if referrer is an admin - if so, process referral but don't award points
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+    
+    const isAdmin = admins.some(a => {
+      const idMatch = a.telegram_id && String(a.telegram_id) === String(referrerId);
+      return idMatch;
+    });
+    
+    // Create referral relationship
+    const referralData = {
+      referrer_id: referrerId,
+      referred_id: newUserId,
+      points_awarded: isAdmin ? 0 : 10, // No points for admin referrals
+      is_active: true,
+      created_at: new Date().toISOString()
+    };
+    
+    // Store referral in Google Sheets
+    try {
+      await appendSheetRow(
+        env.SHEET_ID,
+        'referrals',
+        [
+          referrerId,
+          newUserId,
+          String(referralData.points_awarded),
+          referralData.is_active ? 'TRUE' : 'FALSE',
+          referralData.created_at
+        ],
+        accessToken
+      );
+    } catch (error) {
+      console.error(`Error storing referral in sheets from ${referrerId} to ${newUserId}:`, error);
+    }
+    
+    // Store referral in cache
+    const cacheKey = `referral:${referrerId}:${newUserId}`;
+    await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(referralData), { expirationTtl: 86400 }); // 24 hours
+    
+    // Update referrer's stats (count only, no points for admin)
+    const referrerStats = await getUserStats(env, referrerId);
+    const updatedReferrerStats = await updateUserStats(env, referrerId, {
+      referrals_count: (referrerStats.referrals_count || 0) + 1
+    });
+    
+    // Check if referrer achieved referral milestone (only for non-admins)
+    if (!isAdmin) {
+      await checkAndUnlockAchievements(env, referrerId, 'referral_count', updatedReferrerStats.referrals_count);
+    }
+    
+    // Update referred user's stats to mark referral source
+    await updateUserStats(env, newUserId, {
+      referrer_id: referrerId
+    });
+    
+    // Send notification to referrer
+    try {
+      const bot = new Bot(env.BOT_TOKEN);
+      const message = isAdmin 
+        ? `🎉 Ваш друг присоединился! (как админ, вы не получаете баллы за рефералов)`
+        : `🎉 Ваш друг присоединился! +10 баллов за реферала`;
+      
+      await bot.api.sendMessage(referrerId, message);
+    } catch (error) {
+      console.error(`Failed to send referral notification to user ${referrerId}:`, error);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error handling referral from ${referrerId} to ${newUserId}:`, error);
+    return false;
+  }
+}
+
+// Get referral data
+async function getReferralData(env, referrerId, referredId) {
+  try {
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    const referrals = await getSheetData(env.SHEET_ID, 'referrals', accessToken);
+    
+    const referral = referrals.find(r => 
+      String(r.referrer_id) === String(referrerId) && 
+      String(r.referred_id) === String(referredId)
+    );
+    
+    if (referral) {
+      return {
+        referrer_id: referral.referrer_id,
+        referred_id: referral.referred_id,
+        points_awarded: parseInt(referral.points_awarded) || 0,
+        is_active: referral.is_active === 'TRUE',
+        created_at: referral.created_at
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error(`Error fetching referral data from ${referrerId} to ${referredId}:`, error);
+    return null;
+  }
+}
+
+// Calculate conversion rate for a partner
+async function calculatePartnerConversion(env, partnerTitle) {
+  try {
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    
+    // Get all clicks for this partner
+    const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
+    const partnerClicks = clicks.filter(c => c.title === partnerTitle);
+    
+    if (partnerClicks.length === 0) {
+      return {
+        partner_title: partnerTitle,
+        total_clicks: 0,
+        unique_users: 0,
+        conversion_rate: '0.00%'
+      };
+    }
+    
+    // Calculate total clicks
+    const totalClicks = partnerClicks.reduce((sum, c) => sum + parseInt(c.click || 1), 0);
+    
+    // Calculate unique users
+    const uniqueUsers = new Set(partnerClicks.map(c => c.telegram_id)).size;
+    
+    // Calculate conversion rate
+    const conversionRate = totalClicks > 0 ? ((uniqueUsers / totalClicks) * 100).toFixed(2) : 0.00;
+    
+    return {
+      partner_title: partnerTitle,
+      total_clicks: totalClicks,
+      unique_users: uniqueUsers,
+      conversion_rate: `${conversionRate}%`
+    };
+  } catch (error) {
+    console.error(`Error calculating conversion for partner ${partnerTitle}:`, error);
+    return {
+      partner_title: partnerTitle,
+      total_clicks: 0,
+      unique_users: 0,
+      conversion_rate: '0.00%',
+      error: error.message
+    };
+  }
+}
+
+// Calculate conversion rate for a specific user and partner
+async function calculateUserPartnerConversion(env, userId, partnerTitle) {
+  try {
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    
+    // Get clicks for this user and partner
+    const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
+    const userPartnerClicks = clicks.filter(c => 
+      String(c.user_id) === String(userId) && 
+      c.title === partnerTitle
+    );
+    
+    if (userPartnerClicks.length === 0) {
+      return {
+        user_id: userId,
+        partner_title: partnerTitle,
+        user_clicks: 0,
+        conversion_status: 'no clicks'
+      };
+    }
+    
+    // For individual user conversion, we might track if user took action after clicking
+    // This could be based on additional data like purchases, promocode usage, etc.
+    const userClicks = userPartnerClicks.reduce((sum, c) => sum + parseInt(c.click || 1), 0);
+    
+    // Placeholder for actual conversion tracking (would need additional data)
+    // In a real implementation, this might check if user used a promocode, made purchase, etc.
+    const converted = false; // This would be determined by additional criteria
+    
+    return {
+      user_id: userId,
+      partner_title: partnerTitle,
+      user_clicks: userClicks,
+      converted: converted,
+      conversion_status: converted ? 'converted' : 'not converted'
+    };
+  } catch (error) {
+    console.error(`Error calculating user-partner conversion for user ${userId}, partner ${partnerTitle}:`, error);
+    return {
+      user_id: userId,
+      partner_title: partnerTitle,
+      user_clicks: 0,
+      conversion_status: 'error',
+      error: error.message
+    };
+  }
+}
+
+// Update conversion rate in clicks table
+async function updateConversionRate(env, partnerTitle) {
+  try {
+    const conversionData = await calculatePartnerConversion(env, partnerTitle);
+    
+    if (conversionData.error) {
+      console.error(`Error getting conversion data for ${partnerTitle}:`, conversionData.error);
+      return null;
+    }
+    
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    
+    // Get all clicks for this partner
+    const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
+    const partnerClicks = clicks.filter(c => c.title === partnerTitle);
+    
+    // Update conversion rate for each row of this partner
+    for (const click of partnerClicks) {
+      const rowIndex = clicks.findIndex(c => 
+        String(c.user_id) === String(click.user_id) && 
+        c.title === click.title
+      ) + 2; // +2 because: +1 for header, +1 for 1-based index
+      
+      // Update the conversion rate in the row
+      await updateSheetRow(
+        env.SHEET_ID,
+        'clicks',
+        rowIndex,
+        [
+          click.telegram_id,
+          click.username || '',
+          click.first_name || '',
+          click.title,
+          click.category || '',
+          click.url || '',
+          click.click || '1',
+          click.date_release || '',
+          click.first_click_date || '',
+          click.last_click_date || '',
+          click.last_click_time || '',
+          click.timestamp || '',
+          conversionData.conversion_rate
+        ],
+        accessToken
+      );
+    }
+    
+    console.log(`[CONVERSION] Updated conversion rates for partner ${partnerTitle}: ${conversionData.conversion_rate}`);
+    return conversionData;
+  } catch (error) {
+    console.error(`Error updating conversion rate for partner ${partnerTitle}:`, error);
+    return null;
+  }
+}
+
+// Track daily activity for streaks
+async function trackDailyActivity(env, userId) {
+  const today = new Date().toISOString().split('T')[0];
+  const cacheKey = `daily_activity:${userId}:${today}`;
+  
+  // Check if already tracked today in cache
+  const todayActivity = await env.BROADCAST_STATE.get(cacheKey);
+  if (todayActivity) {
+    // Already tracked today, just increment counter
+    const activity = JSON.parse(todayActivity);
+    activity.actions_count = (activity.actions_count || 0) + 1;
+    await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(activity), { expirationTtl: 86400 });
+    
+    // Also update in Google Sheets
+    try {
+      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const accessToken = await getAccessToken(env, creds);
+      const dailyActivities = await getSheetData(env.SHEET_ID, 'daily_activity', accessToken);
+      
+      const existingIndex = dailyActivities.findIndex(da => 
+        String(da.user_id) === String(userId) && 
+        da.activity_date === today
+      );
+      
+      if (existingIndex !== -1) {
+        // Update existing record
+        const rowIndex = existingIndex + 2; // +2 because: +1 for header, +1 for 1-based index
+        await updateSheetRow(
+          env.SHEET_ID,
+          'daily_activity',
+          rowIndex,
+          [
+            userId,
+            today,
+            String(activity.actions_count),
+            activity.created_at
+          ],
+          accessToken
+        );
+      }
+    } catch (error) {
+      console.error(`Error updating daily activity in sheets for user ${userId} on ${today}:`, error);
+    }
+    
+    return activity;
+  }
+  
+  // New day, create activity record
+  const newActivity = {
+    user_id: userId,
+    activity_date: today,
+    actions_count: 1,
+    created_at: new Date().toISOString()
+  };
+  
+  await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(newActivity), { expirationTtl: 86400 });
+  
+  // Add to Google Sheets
+  try {
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    
+    await appendSheetRow(
+      env.SHEET_ID,
+      'daily_activity',
+      [
+        userId,
+        today,
+        String(newActivity.actions_count),
+        newActivity.created_at
+      ],
+      accessToken
+    );
+  } catch (error) {
+    console.error(`Error adding daily activity to sheets for user ${userId} on ${today}:`, error);
+  }
+  
+  // Update user stats for streak
+  const currentStats = await getUserStats(env, userId);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  
+  let newStreak = 1;
+  if (currentStats.last_active_date === yesterday) {
+    // Continuing streak
+    newStreak = (currentStats.current_streak || 0) + 1;
+  } else if (currentStats.last_active_date === today) {
+    // Already active today
+    newStreak = currentStats.current_streak || 1;
+  }
+  
+  // Update longest streak if needed
+  const longestStreak = Math.max(newStreak, currentStats.longest_streak || 0);
+  
+  const updatedStats = await updateUserStats(env, userId, {
+    current_streak: newStreak,
+    longest_streak: longestStreak,
+    last_active_date: today
+  });
+  
+  // Check if user is admin - if not, check for streak achievement
+  const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+  const isAdmin = admins.some(a => {
+    const idMatch = a.telegram_id && String(a.telegram_id) === String(userId);
+    return idMatch;
+  });
+  
+  if (!isAdmin) {
+    // Only check for streak achievement if user is not admin
+    await checkAndUnlockAchievements(env, userId, 'daily_streak', updatedStats.current_streak);
+  } else {
+    console.log(`[STREAK] Admin ${userId} continued streak (${newStreak} days) but not checking for achievements`);
+  }
+  
+  return newActivity;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1098,16 +2166,16 @@ async function executeBroadcast(ctx, env, state) {
       state.broadcast_name || 'Без названия',      // name
       currentDate,                                  // date
       currentTime,                                  // time
-      successCount,                                 // sent_count
-      readCount,                                    // read_count (= sent_count)
-      0,                                            // click_count (будет обновляться)
+      String(successCount),                         // sent_count
+      String(readCount),                            // read_count (= sent_count)
+      '0',                                          // click_count (будет обновляться)
       state.title || '',                            // title
       state.subtitle || '',                         // subtitle
       state.button_text || '',                      // button_text
       state.button_url || '',                       // button_url
-      validUsers.length,                            // total_users
-      failCount,                                    // fail_count
-      inactiveCount,                                // archived_count
+      String(validUsers.length),                    // total_users
+      String(failCount),                            // fail_count
+      String(inactiveCount),                        // archived_count
       state.partner || ''                           // partner
     ];
 
@@ -1192,6 +2260,11 @@ async function executeBroadcast(ctx, env, state) {
 function setupBot(env) {
   const bot = new Bot(env.BOT_TOKEN);
 
+  // Initialize required sheets on startup
+  initializeRequiredSheets(env).catch(error => {
+    console.error('Error initializing required sheets:', error);
+  });
+
   // Global error handler
   bot.catch((err) => {
     const ctx = err.ctx;
@@ -1223,6 +2296,13 @@ function setupBot(env) {
   bot.command('start', async (ctx) => {
     const user = ctx.from;
     const chatId = ctx.chat.id;
+    const startPayload = ctx.message.text.split(' ')[1]; // Get the payload after /start
+
+    // Check if this is a referral link
+    let referrerId = null;
+    if (startPayload && startPayload.startsWith('ref_')) {
+      referrerId = startPayload.replace('ref_', '');
+    }
 
     // Регистрируем пользователя
     const creds = JSON.parse(env.CREDENTIALS_JSON);
@@ -1236,8 +2316,11 @@ function setupBot(env) {
     if (!existing) {
       console.log(`[REGISTER] 🆕 New user: ${chatId} (@${user.username || 'no-username'})`);
 
+      // Determine registration number (based on current user count)
+      const registrationNumber = users.length + 1;
+
       // Добавляем в таблицу users
-      // Формат: telegram_id, username, first_name, date_registered, bot_started, last_active
+      // Формат: telegram_id, username, first_name, date_registered, bot_started, last_active, total_points, current_streak, longest_streak, last_active_date, referrals_count, education_views_count, events_registered, partners_subscribed, total_donations, registration_number
       await appendSheetRow(
         env.SHEET_ID,
         'users',
@@ -1247,12 +2330,46 @@ function setupBot(env) {
           user.first_name || 'Unknown',  // first_name
           currentDate,                   // date_registered (YYYY-MM-DD)
           'бот запущен',                 // bot_started
-          currentDate                    // last_active (YYYY-MM-DD)
+          currentDate,                   // last_active (YYYY-MM-DD)
+          '0',                          // total_points
+          '0',                          // current_streak
+          '0',                          // longest_streak
+          currentDate,                   // last_active_date
+          '0',                          // referrals_count
+          '0',                          // education_views_count
+          '0',                          // events_registered
+          '0',                          // partners_subscribed
+          '0',                          // total_donations
+          String(registrationNumber)    // registration_number
         ],
         accessToken
       );
 
-      console.log(`✅ User registered: ${chatId} ${username} at ${currentDate}`);
+      console.log(`✅ User registered: ${chatId} ${username} at ${currentDate}, registration #${registrationNumber}`);
+      
+      // Process referral if applicable
+      if (referrerId && referrerId !== String(chatId)) {
+        await handleReferralLink(env, referrerId, chatId);
+      }
+      
+      // Check for early user achievement (only for non-admin users)
+      if (registrationNumber <= 100) {
+        // Check if user is admin
+        const creds = JSON.parse(env.CREDENTIALS_JSON);
+        const accessToken = await getAccessToken(env, creds);
+        const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+        
+        const isAdmin = admins.some(a => {
+          const idMatch = a.telegram_id && String(a.telegram_id) === String(chatId);
+          return idMatch;
+        });
+        
+        if (!isAdmin) {
+          await checkAndUnlockAchievements(env, chatId, 'early_user', 1);
+        } else {
+          console.log(`[REGISTRATION] Skipping early user achievement for admin ${chatId}`);
+        }
+      }
     } else {
       console.log(`[REGISTER] ✓ Existing user: ${chatId} (@${user.username || 'no-username'})`);
 
@@ -1282,7 +2399,17 @@ function setupBot(env) {
               user.first_name || 'Unknown',        // first_name (обновленный)
               existing.date_registered || currentDate,  // date_registered (сохраняем старую)
               'бот запущен',                       // bot_started (обновляем)
-              currentDate                          // last_active (обновляем)
+              currentDate,                         // last_active (обновляем)
+              existing.total_points || '0',        // total_points
+              existing.current_streak || '0',      // current_streak
+              existing.longest_streak || '0',      // longest_streak
+              existing.last_active_date || currentDate, // last_active_date
+              existing.referrals_count || '0',     // referrals_count
+              existing.education_views_count || '0', // education_views_count
+              existing.events_registered || '0',   // events_registered
+              existing.partners_subscribed || '0', // partners_subscribed
+              existing.total_donations || '0',     // total_donations
+              existing.registration_number || '',  // registration_number
             ],
             accessToken
           );
@@ -1294,8 +2421,15 @@ function setupBot(env) {
       }
     }
 
-    // Проверяем админа и представителя
+    // Check if user is admin
     const isAdmin = await checkAdmin(env, user);
+    
+    // Track daily activity only for non-admin users
+    if (!isAdmin) {
+      await trackDailyActivity(env, chatId);
+    }
+
+    // Проверяем админа и представителя
     const partnerData = await checkRepresentative(env, user);
 
     // Клавиатура
@@ -1308,6 +2442,12 @@ function setupBot(env) {
 
     if (partnerData) {
       keyboard.row().text('📊 Кабинет партнёра', 'representative_cabinet');
+    }
+
+    // Add profile and referral buttons for all users except admins
+    if (!isAdmin) {
+      keyboard.row().text('👤 Мой профиль', 'show_profile');
+      keyboard.row().text('👥 Рефералка', 'show_referral');
     }
 
     await ctx.reply(
@@ -2243,6 +3383,10 @@ function setupBot(env) {
       keyboard.row().text('📊 Кабинет партнёра', 'representative_cabinet');
     }
 
+    // Add profile and referral buttons for all users
+    keyboard.row().text('👤 Мой профиль', 'show_profile');
+    keyboard.row().text('👥 Рефералка', 'show_referral');
+
     await ctx.editMessageText(
       `👋 Привет, *${user.first_name}*!\n\n` +
       `🔗 Жми кнопку и открывай приложение.\n\n` +
@@ -2252,6 +3396,253 @@ function setupBot(env) {
       { parse_mode: 'Markdown', reply_markup: keyboard }
     );
     await ctx.answerCallbackQuery();
+  });
+
+  // Show user profile
+  bot.callbackQuery('show_profile', async (ctx) => {
+    const user = ctx.from;
+    const userId = user.id;
+    
+    try {
+      const userStats = await getUserStats(env, userId);
+      const achievements = await initializeAchievements(env);
+      
+      // Get unlocked achievements
+      const unlockedAchievements = [];
+      for (const achievement of achievements) {
+        const progress = await getUserAchievementProgress(env, userId, achievement.id);
+        if (progress.is_unlocked) {
+          unlockedAchievements.push(achievement);
+        }
+      }
+      
+      // Format profile message
+      let profileMessage = `📊 *Ваш профиль*\n\n`;
+      profileMessage += `👤 @${user.username || 'не указан'}\n`;
+      profileMessage += `🆔 Регистрация: #${userStats.registration_number || 'N/A'}\n\n`;
+      
+      profileMessage += `⭐ *Баллы:* ${userStats.total_points}\n`;
+      profileMessage += `🔥 *Серия:* ${userStats.current_streak} дней (рекорд: ${userStats.longest_streak})\n`;
+      profileMessage += `👥 *Рефералы:* ${userStats.referrals_count}\n\n`;
+      
+      profileMessage += `🏆 *Достижения:* ${unlockedAchievements.length}/${achievements.length}\n`;
+      profileMessage += `━━━━━━━━━━━━━━━━\n`;
+      
+      if (unlockedAchievements.length > 0) {
+        for (const achievement of unlockedAchievements) {
+          profileMessage += `✅ ${achievement.icon_emoji} ${achievement.title} (${achievement.points} баллов)\n`;
+        }
+      } else {
+        profileMessage += `❌ Пока нет разблокированных достижений\n`;
+      }
+      
+      // Add locked achievements
+      const lockedAchievements = achievements.filter(a => !unlockedAchievements.some(ua => ua.id === a.id));
+      if (lockedAchievements.length > 0) {
+        profileMessage += `\n🔒 *Предстоящие достижения:*\n`;
+        for (const achievement of lockedAchievements.slice(0, 3)) { // Show only first 3 locked
+          let progressText = '';
+          
+          if (achievement.condition_type === 'referral_count') {
+            progressText = `(${userStats.referrals_count}/${achievement.condition_value} рефералов)`;
+          } else if (achievement.condition_type === 'daily_streak') {
+            progressText = `(${userStats.current_streak}/${achievement.condition_value} дней)`;
+          } else if (achievement.condition_type === 'partner_click') {
+            // We would need to track partner clicks separately
+            progressText = `(0/${achievement.condition_value} переходов)`;
+          }
+          
+          profileMessage += `🔒 ${achievement.icon_emoji} ${achievement.title} ${progressText}\n`;
+        }
+      }
+      
+      const keyboard = new InlineKeyboard()
+        .text('🔄 Обновить', 'show_profile').row()
+        .text('🏆 Все достижения', 'show_all_achievements').row()
+        .text('🏆 Лидерборд', 'show_leaderboard').row()
+        .text('« Назад', 'back_to_start');
+      
+      await ctx.editMessageText(profileMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+      await ctx.answerCallbackQuery();
+    } catch (error) {
+      console.error('Error showing profile:', error);
+      await ctx.answerCallbackQuery('❌ Ошибка при загрузке профиля');
+    }
+  });
+
+  // Show all achievements
+  bot.callbackQuery('show_all_achievements', async (ctx) => {
+    const userId = ctx.from.id;
+    
+    try {
+      const achievements = await initializeAchievements(env);
+      const userStats = await getUserStats(env, userId);
+      
+      let achievementsMessage = `🏆 *Все достижения*\n\n`;
+      
+      // Group by rarity
+      const groupedAchievements = {
+        'Обычное': [],
+        'Необычное': [],
+        'Редкое': [],
+        'Эпическое': [],
+        'Легендарное': []
+      };
+      
+      for (const achievement of achievements) {
+        const progress = await getUserAchievementProgress(env, userId, achievement.id);
+        achievement.unlocked = progress.is_unlocked;
+        achievement.userProgress = progress.progress;
+        
+        groupedAchievements[achievement.rarity].push(achievement);
+      }
+      
+      for (const [rarity, achs] of Object.entries(groupedAchievements)) {
+        if (achs.length > 0) {
+          achievementsMessage += `\n*${rarity}:*\n`;
+          for (const achievement of achs) {
+            const status = achievement.unlocked ? '✅' : '🔒';
+            let progressText = '';
+            
+            if (!achievement.unlocked) {
+              if (achievement.condition_type === 'referral_count') {
+                progressText = ` (${achievement.userProgress || 0}/${achievement.condition_value} рефералов)`;
+              } else if (achievement.condition_type === 'daily_streak') {
+                progressText = ` (${achievement.userProgress || 0}/${achievement.condition_value} дней)`;
+              } else if (achievement.condition_type === 'partner_click') {
+                progressText = ` (${achievement.userProgress || 0}/${achievement.condition_value} переходов)`;
+              } else if (achievement.condition_type === 'education_view') {
+                progressText = ` (${achievement.userProgress || 0}/${achievement.condition_value} образовачей)`;
+              } else if (achievement.condition_type === 'event_register') {
+                progressText = ` (${achievement.userProgress || 0}/${achievement.condition_value} событий)`;
+              }
+            }
+            
+            achievementsMessage += `${status} ${achievement.icon_emoji} ${achievement.title}${progressText}\n`;
+          }
+        }
+      }
+      
+      const keyboard = new InlineKeyboard()
+        .text('« Назад к профилю', 'show_profile');
+      
+      await ctx.editMessageText(achievementsMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+      await ctx.answerCallbackQuery();
+    } catch (error) {
+      console.error('Error showing all achievements:', error);
+      await ctx.answerCallbackQuery('❌ Ошибка при загрузке достижений');
+    }
+  });
+
+  // Show leaderboard
+  bot.callbackQuery('show_leaderboard', async (ctx) => {
+    try {
+      // This would normally fetch from a sorted list of users by points
+      // For now, we'll show a placeholder message
+      const leaderboardMessage = `🏆 *Топ пользователей*\n\n`;
+      
+      // In a real implementation, this would fetch from a sorted cache or database
+      // For now, we'll just show a message indicating how it would work
+      let message = leaderboardMessage;
+      message += `Здесь будет отображаться таблица лидеров.\n\n`;
+      message += `На основе количества набранных баллов пользователи будут ранжированы от лучшего к худшему.\n\n`;
+      message += `Ваше текущее место: #? из ?\n`;
+      message += `Ваши баллы: ?`;
+      
+      const keyboard = new InlineKeyboard()
+        .text('« Назад к профилю', 'show_profile');
+      
+      await ctx.editMessageText(message, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+      await ctx.answerCallbackQuery();
+    } catch (error) {
+      console.error('Error showing leaderboard:', error);
+      await ctx.answerCallbackQuery('❌ Ошибка при загрузке лидерборда');
+    }
+  });
+
+  // Show referral program
+  bot.callbackQuery('show_referral', async (ctx) => {
+    const user = ctx.from;
+    const userId = user.id;
+    
+    try {
+      const userStats = await getUserStats(env, userId);
+      const referralLink = `https://t.me/${env.BOT_USERNAME || 'okolotattoo_bot'}?start=ref_${userId}`;
+      
+      let referralMessage = `👥 *Реферальная программа*\n\n`;
+      referralMessage += `🔗 *Ваша ссылка:*\n${referralLink}\n\n`;
+      
+      referralMessage += `📊 *Статистика:*\n`;
+      referralMessage += `• Приглашено друзей: ${userStats.referrals_count}\n`;
+      referralMessage += `• Заработано баллов: ${userStats.referrals_count * 10}\n`; // 10 per referral
+      referralMessage += `• Активных рефералов: ${Math.min(userStats.referrals_count, 10)}\n\n`; // Placeholder for active count
+      
+      referralMessage += `🎁 *Награды:*\n`;
+      referralMessage += `• За каждого друга: +10 баллов\n`;
+      referralMessage += `• Пригласи 10 друзей → 👑 Проактивный хомяк (+100 баллов)\n\n`;
+      
+      const keyboard = new InlineKeyboard()
+        .url('📋 Скопировать ссылку', referralLink).row()
+        .text('👥 Мои рефералы', 'show_referral_list').row()
+        .text('« Назад', 'back_to_start');
+      
+      await ctx.editMessageText(referralMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+      await ctx.answerCallbackQuery();
+    } catch (error) {
+      console.error('Error showing referral:', error);
+      await ctx.answerCallbackQuery('❌ Ошибка при загрузке реферальной программы');
+    }
+  });
+
+  // Show referral list
+  bot.callbackQuery('show_referral_list', async (ctx) => {
+    const userId = ctx.from.id;
+    
+    try {
+      // In a real implementation, this would fetch from the referrals sheet
+      // For now, we'll show a placeholder
+      const userStats = await getUserStats(env, userId);
+      
+      let referralListMessage = `👥 *Мои рефералы* (${userStats.referrals_count} человек)\n\n`;
+      
+      if (userStats.referrals_count > 0) {
+        // Placeholder list - in reality this would come from referrals sheet
+        for (let i = 1; i <= Math.min(userStats.referrals_count, 5); i++) {
+          referralListMessage += `${i}. @referral_user${i} - 2 дня назад\n`;
+        }
+        
+        if (userStats.referrals_count > 5) {
+          referralListMessage += `... и ещё ${userStats.referrals_count - 5}`;
+        }
+      } else {
+        referralListMessage += `Пока никто не присоединился по вашей ссылке.\n\n`;
+        referralListMessage += `Поделитесь своей ссылкой, чтобы приглашать друзей!`;
+      }
+      
+      const keyboard = new InlineKeyboard()
+        .text('« Назад к рефералке', 'show_referral');
+      
+      await ctx.editMessageText(referralListMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+      await ctx.answerCallbackQuery();
+    } catch (error) {
+      console.error('Error showing referral list:', error);
+      await ctx.answerCallbackQuery('❌ Ошибка при загрузке списка рефералов');
+    }
   });
 
   // ═══════════════════════════════════════════════════════════════
@@ -2988,7 +4379,7 @@ app.post('/api/click', async (req, res) => {
     // Check if user already clicked this partner
     const existingClickIndex = clicks.findIndex(c =>
       String(c.user_id) === String(user_id) &&
-      c.partner === partner.title
+      c.title === partner.title
     );
 
     const currentTimestamp = new Date().toISOString();
@@ -2996,20 +4387,37 @@ app.post('/api/click', async (req, res) => {
     if (existingClickIndex !== -1) {
       // Update existing click
       const existingClick = clicks[existingClickIndex];
-      const newCount = parseInt(existingClick.click_count || 1) + 1;
+      const newCount = parseInt(existingClick.click || 1) + 1;
       const rowIndex = existingClickIndex + 2;
+
+      // Get user's first name from users table
+      const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+      const userRecord = users.find(u => String(u.telegram_id) === String(user_id));
+      const firstName = userRecord ? userRecord.first_name || userRecord.first_name || 'Unknown' : 'Unknown';
+
+      // Get partner's category from partners table
+      const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+      const partnerRecord = partners.find(p => p.title === partner.title);
+      const category = partnerRecord ? partnerRecord.category || '' : '';
 
       await updateSheetRow(
         env.SHEET_ID,
         'clicks',
         rowIndex,
         [
-          user_id,
-          username || '',
-          partner.title,
-          String(newCount),
-          currentTimestamp,
-          partner_url || partner.url
+          user_id,                    // telegram_id
+          username || '',             // username
+          firstName,                  // first_name
+          partner.title,              // title
+          category,                   // category
+          partner_url || partner.url, // url
+          String(newCount),           // click
+          partner.date_release || '', // date_release (from partners table)
+          existingClick.first_click_date || existingClick.first_click || currentTimestamp, // first_click_date
+          currentTimestamp,           // last_click_date
+          new Date().toLocaleTimeString('ru-RU'), // last_click_time
+          currentTimestamp,           // timestamp
+          '0'                         // conversion (calculated separately)
         ],
         accessToken
       );
@@ -3017,21 +4425,45 @@ app.post('/api/click', async (req, res) => {
       console.log(`[API] 🔄 Updated click for user ${user_id} on partner ${partner.title}: count=${newCount}`);
     } else {
       // Add new click record
+      // Get user's first name from users table
+      const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+      const userRecord = users.find(u => String(u.telegram_id) === String(user_id));
+      const firstName = userRecord ? userRecord.first_name || userRecord.first_name || 'Unknown' : 'Unknown';
+
+      // Get partner's category from partners table
+      const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
+      const partnerRecord = partners.find(p => p.title === partner.title);
+      const category = partnerRecord ? partnerRecord.category || '' : '';
+
       await appendSheetRow(
         env.SHEET_ID,
         'clicks',
         [
-          user_id,
-          username || '',
-          partner.title,
-          '1', // click_count
-          currentTimestamp,
-          partner_url || partner.url
+          user_id,                    // telegram_id
+          username || '',             // username
+          firstName,                  // first_name
+          partner.title,              // title
+          category,                   // category
+          partner_url || partner.url, // url
+          '1',                        // click
+          partner.date_release || '', // date_release (from partners table)
+          currentTimestamp,           // first_click_date
+          currentTimestamp,           // last_click_date
+          new Date().toLocaleTimeString('ru-RU'), // last_click_time
+          currentTimestamp,           // timestamp
+          '0'                         // conversion (calculated separately)
         ],
         accessToken
       );
 
       console.log(`[API] 🆕 New click registered: user ${user_id} on partner ${partner.title}`);
+    }
+
+    // Update conversion rate for this partner
+    try {
+      await updateConversionRate(env, partner.title);
+    } catch (error) {
+      console.error(`[CONVERSION] Error updating conversion rate for partner ${partner.title}:`, error);
     }
 
     // Send promocode if available
@@ -3193,6 +4625,310 @@ app.use((req, res) => {
 app.use((error, req, res, next) => {
   console.error('[Express] Error:', error);
   res.status(500).json({ error: error.message || 'Internal server error', success: false });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ACHIEVEMENT SYSTEM API ENDPOINTS
+// ═══════════════════════════════════════════════════════════════
+
+// Get user profile
+app.get('/api/profile/:tg_id', async (req, res) => {
+  try {
+    const { tg_id } = req.params;
+    
+    if (!tg_id) {
+      return res.status(400).json({ error: 'Missing tg_id parameter', success: false });
+    }
+
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+    
+    const user = users.find(u => String(u.telegram_id) === String(tg_id));
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found', success: false });
+    }
+
+    // Get user stats
+    const userStats = await getUserStats(env, tg_id);
+    
+    // Get achievements
+    const achievements = await initializeAchievements(env);
+    const userAchievements = [];
+    
+    for (const achievement of achievements) {
+      const progress = await getUserAchievementProgress(env, tg_id, achievement.id);
+      userAchievements.push({
+        slug: achievement.slug,
+        title: achievement.title,
+        description: achievement.description,
+        points: achievement.points,
+        rarity: achievement.rarity,
+        icon_emoji: achievement.icon_emoji,
+        is_unlocked: progress.is_unlocked,
+        progress: progress.progress,
+        required: achievement.condition_value,
+        unlocked_at: progress.unlocked_at
+      });
+    }
+
+    // Get recent activity (placeholder)
+    const recentActivity = [
+      {
+        type: 'achievement_unlocked',
+        title: 'Новое достижение: 🔥 Активный хомяк',
+        timestamp: new Date().toISOString()
+      },
+      {
+        type: 'referral_joined',
+        title: `Ваш друг @new_user присоединился!`,
+        timestamp: new Date(Date.now() - 86400000).toISOString() // Yesterday
+      }
+    ];
+
+    const profileData = {
+      user: {
+        tg_id: user.telegram_id,
+        username: user.username,
+        first_name: user.first_name,
+        avatar_url: user.avatar_url || null,
+        registration_number: user.registration_number || null,
+        created_at: user.date_registered
+      },
+      stats: {
+        total_points: userStats.total_points || 0,
+        current_streak: userStats.current_streak || 0,
+        longest_streak: userStats.longest_streak || 0,
+        referrals_count: userStats.referrals_count || 0,
+        achievements_unlocked: userAchievements.filter(a => a.is_unlocked).length,
+        achievements_total: achievements.length
+      },
+      achievements: userAchievements,
+      recent_activity: recentActivity
+    };
+
+    res.json({
+      success: true,
+      ...profileData
+    });
+  } catch (error) {
+    console.error('[API] Error getting profile:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
+// Get referral link
+app.get('/api/referral/link', async (req, res) => {
+  try {
+    const { tg_id } = req.query;
+    
+    if (!tg_id) {
+      return res.status(400).json({ error: 'Missing tg_id parameter', success: false });
+    }
+
+    const userStats = await getUserStats(env, tg_id);
+    const link = `https://t.me/${env.BOT_USERNAME || 'okolotattoo_bot'}?start=ref_${tg_id}`;
+
+    res.json({
+      success: true,
+      link: link,
+      referrals_count: userStats.referrals_count || 0,
+      total_earned_points: (userStats.referrals_count || 0) * 10 // 10 points per referral
+    });
+  } catch (error) {
+    console.error('[API] Error getting referral link:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
+// Get referral list
+app.get('/api/referral/list', async (req, res) => {
+  try {
+    const { tg_id } = req.query;
+    
+    if (!tg_id) {
+      return res.status(400).json({ error: 'Missing tg_id parameter', success: false });
+    }
+
+    // In a real implementation, this would fetch from the referrals sheet
+    // For now, we'll return placeholder data based on user stats
+    const userStats = await getUserStats(env, tg_id);
+    
+    // Placeholder referrals list
+    const referrals = [];
+    for (let i = 1; i <= Math.min(userStats.referrals_count || 0, 10); i++) {
+      referrals.push({
+        username: `referral_user${i}`,
+        first_name: `Referral ${i}`,
+        joined_at: new Date(Date.now() - (i * 86400000)).toISOString(), // Different days ago
+        is_active: true
+      });
+    }
+
+    res.json({
+      success: true,
+      referrals: referrals
+    });
+  } catch (error) {
+    console.error('[API] Error getting referral list:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
+// Get leaderboard
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const { limit = 100 } = req.query;
+
+    // In a real implementation, this would fetch from a sorted list of users by points
+    // For now, we'll return placeholder data
+    const leaderboard = [];
+    for (let i = 1; i <= Math.min(parseInt(limit), 10); i++) {
+      leaderboard.push({
+        rank: i,
+        username: `top_user${i}`,
+        first_name: `Top User ${i}`,
+        total_points: 1500 - (i * 100),
+        achievements_count: 8 - Math.floor(i / 2)
+      });
+    }
+
+    // Placeholder user rank (for demo purposes)
+    const userRank = 42;
+    const userPoints = 280;
+
+    res.json({
+      success: true,
+      leaderboard: leaderboard,
+      user_rank: userRank,
+      user_points: userPoints
+    });
+  } catch (error) {
+    console.error('[API] Error getting leaderboard:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
+// Widget profile API (minimal data for profile card)
+app.get('/api/widget/profile/:tg_id', async (req, res) => {
+  try {
+    const { tg_id } = req.params;
+    
+    if (!tg_id) {
+      return res.status(400).json({ error: 'Missing tg_id parameter', success: false });
+    }
+
+    const userStats = await getUserStats(env, tg_id);
+    const achievements = await initializeAchievements(env);
+    
+    // Get unlocked achievements for widget
+    const unlockedAchievements = [];
+    for (const achievement of achievements) {
+      const progress = await getUserAchievementProgress(env, tg_id, achievement.id);
+      if (progress.is_unlocked) {
+        unlockedAchievements.push(achievement.icon_emoji);
+      }
+    }
+
+    // Get next achievement for progress
+    let nextAchievement = null;
+    for (const achievement of achievements) {
+      const progress = await getUserAchievementProgress(env, tg_id, achievement.id);
+      if (!progress.is_unlocked && achievement.condition_value) {
+        nextAchievement = {
+          title: achievement.title,
+          progress: Math.min(100, Math.round((progress.progress / achievement.condition_value) * 100)),
+          progress_text: `${progress.progress}/${achievement.condition_value} ${achievement.condition_type}`
+        };
+        break;
+      }
+    }
+
+    // Placeholder data for username and first name
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+    const user = users.find(u => String(u.telegram_id) === String(tg_id));
+
+    res.json({
+      success: true,
+      avatar_url: user?.avatar_url || null,
+      username: user?.username?.replace('@', '') || 'unknown_user',
+      first_name: user?.first_name || 'Unknown',
+      total_points: userStats.total_points || 0,
+      rank: userStats.registration_number || '?',
+      achievements_unlocked: unlockedAchievements,
+      next_achievement: nextAchievement
+    });
+  } catch (error) {
+    console.error('[API] Error getting widget profile:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
+// Get spreadsheet structure
+app.get('/api/spreadsheet/structure', async (req, res) => {
+  try {
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    
+    // Get all sheet names
+    const sheetNames = await getAllSheetNames(env.SHEET_ID, accessToken);
+    
+    const structure = {};
+    
+    // Get headers for each sheet
+    for (const sheetName of sheetNames) {
+      try {
+        const sampleData = await getSheetData(env.SHEET_ID, sheetName, accessToken);
+        if (sampleData.length > 0) {
+          // Headers are the keys of the first row object
+          const headers = Object.keys(sampleData[0]);
+          structure[sheetName] = {
+            columns: headers,
+            sample_row_count: sampleData.length
+          };
+        } else {
+          // If no data, try to get just the headers by reading first row
+          const range = `${sheetName}!A1:Z1`;
+          const url = `https://sheets.googleapis.com/v4/spreadsheets/${env.SHEET_ID}/values/${range}`;
+          const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          const data = await response.json();
+          
+          if (data.values && data.values[0]) {
+            structure[sheetName] = {
+              columns: data.values[0],
+              sample_row_count: 0
+            };
+          } else {
+            structure[sheetName] = {
+              columns: [],
+              sample_row_count: 0
+            };
+          }
+        }
+      } catch (error) {
+        console.error(`Error getting structure for sheet ${sheetName}:`, error);
+        structure[sheetName] = {
+          columns: [],
+          error: error.message
+        };
+      }
+    }
+    
+    res.json({
+      success: true,
+      spreadsheet_id: env.SHEET_ID,
+      sheets: structure,
+      total_sheets: Object.keys(structure).length
+    });
+  } catch (error) {
+    console.error('[API] Error getting spreadsheet structure:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════

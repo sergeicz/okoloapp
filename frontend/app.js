@@ -203,6 +203,64 @@ function showLoading(elementId) {
   }
 }
 
+// Initialize swipe functionality for categories
+function initSwipeForCategories() {
+  const container = document.querySelector('.categories-swipe');
+  if (!container) return;
+
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  container.addEventListener('mousedown', (e) => {
+    isDown = true;
+    startX = e.pageX - container.offsetLeft;
+    scrollLeft = container.scrollLeft;
+  });
+
+  container.addEventListener('mouseleave', () => {
+    isDown = false;
+  });
+
+  container.addEventListener('mouseup', () => {
+    isDown = false;
+  });
+
+  container.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - container.offsetLeft;
+    const walk = (x - startX) * 2; // Multiplier for faster scrolling
+    container.scrollLeft = scrollLeft - walk;
+  });
+
+  // Touch events for mobile devices
+  container.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    isDown = true;
+    startX = touch.pageX - container.offsetLeft;
+    scrollLeft = container.scrollLeft;
+  });
+
+  container.addEventListener('touchend', () => {
+    isDown = false;
+  });
+
+  container.addEventListener('touchmove', (e) => {
+    if (!isDown) return;
+    const touch = e.touches[0];
+    const x = touch.pageX - container.offsetLeft;
+    const walk = (x - startX) * 2; // Multiplier for faster scrolling
+    container.scrollLeft = scrollLeft - walk;
+  });
+}
+
+// Initialize swipe when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize swipe functionality after a short delay to ensure elements are rendered
+  setTimeout(initSwipeForCategories, 500);
+});
+
 // =====================================================
 // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
 // =====================================================
@@ -360,7 +418,7 @@ async function loadPartners() {
     container.innerHTML = '';
     for (const [catName, links] of Object.entries(categories)) {
       const div = document.createElement('div');
-      div.className = 'glass-card';
+      div.className = 'glass-card category-item';
 
       const h = document.createElement('h3');
       h.textContent = catName;
