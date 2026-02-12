@@ -3533,12 +3533,15 @@ function setupBot(env) {
       const allTimeUniqueUsers = new Set(partnerClicks.map(c => c.telegram_id)).size;
       const allTimeConversion = allTimeTotalClicks > 0 ? ((allTimeUniqueUsers / allTimeTotalClicks) * 100).toFixed(2) : '0.00';
 
+      // Escape underscores in the URL to prevent Markdown formatting issues
+      const escapedPartnerUrl = partnerUrl.replace(/_/g, '\\_');
+      
       let report = `📊 *Отчет по партнеру*\n` +
         `📅 *Период:* ${periodName}\n\n` +
         `🏷️ *Партнер:* ${partner.title}\n` +
         `📁 *Категория:* ${partner.category || 'Не указана'}\n` +
         `📅 *Дата размещения:* ${partner.date_release || 'Не указана'}\n` +
-        `🔗 *Ссылка:* ${partnerUrl}\n`;
+        `🔗 *Ссылка:* ${escapedPartnerUrl}\n`;
 
       if (partner.predstavitel) {
         report += `👤 *Представитель:* ${partner.predstavitel}\n`;
