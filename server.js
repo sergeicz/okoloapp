@@ -4587,21 +4587,21 @@ app.get('/api/partners', async (req, res) => {
     }
 
     // Filter and format partners
-    // Check for different possible field names for promocodes
+    // Support both 'url'/'link' and 'logo_url'/'logo' field names
     const formattedPartners = partners
       .filter(p => {
         const hasTitle = !!p.title;
-        const hasUrl = !!p.url;
+        const hasUrl = !!(p.url || p.link); // Support both field names
         if (!hasTitle || !hasUrl) {
-          console.warn(`[API /partners] ⚠️ Skipping partner - title: ${hasTitle}, url: ${hasUrl}`, p);
+          console.warn(`[API /partners] ⚠️ Skipping partner - title: ${hasTitle}, url/link: ${hasUrl}`, p);
         }
         return hasTitle && hasUrl;
       })
       .map(p => ({
         id: p.id || p.title,
         title: p.title,
-        url: p.url,
-        logo_url: p.logo_url || p.logo || '',
+        url: p.url || p.link, // Use either 'url' or 'link' from Google Sheets
+        logo_url: p.logo_url || p.logo || '', // Use either 'logo_url' or 'logo' from Google Sheets
         description: p.description || '',
         category: p.category || 'Другое',
         promocode: p.promocode || p.promo_code || p['Промокод'] || p['промокод'] || p.PromoCode || p.Promocode || '',
