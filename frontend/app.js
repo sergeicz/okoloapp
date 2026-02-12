@@ -57,6 +57,39 @@ let user = tg.initDataUnsafe.user || {
 
 console.log('👤 Пользователь:', user);
 
+// IMPORTANT: Check if user ID is valid
+if (!user || user.id === 0 || !user.id) {
+  console.error('❌ Приложение открыто не через бота! User ID отсутствует.');
+  console.log('⚠️ Пожалуйста, откройте приложение через кнопку в боте.');
+
+  // Show warning to user
+  setTimeout(() => {
+    const warningDiv = document.createElement('div');
+    warningDiv.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #ff4444;
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      z-index: 10000;
+      max-width: 80%;
+      font-size: 16px;
+      line-height: 1.5;
+    `;
+    warningDiv.innerHTML = `
+      <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
+      <div style="font-weight: bold; margin-bottom: 10px;">Приложение открыто некорректно!</div>
+      <div>Пожалуйста, откройте приложение через кнопку "🚀 Открыть Mini App" в боте.</div>
+      <div style="margin-top: 15px; font-size: 14px; opacity: 0.9;">Без этого промокоды не будут работать.</div>
+    `;
+    document.body.appendChild(warningDiv);
+  }, 1000);
+}
+
 // Расширение Telegram WebApp
 if (tg.expand) tg.expand();
 if (tg.ready) tg.ready();
@@ -263,15 +296,6 @@ function initSwipeForCategories() {
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize swipe functionality after a short delay to ensure elements are rendered
   setTimeout(initSwipeForCategories, 500);
-  
-  // Add event listener for education button
-  const educationBtn = document.getElementById('educationBtn');
-  if (educationBtn) {
-    educationBtn.addEventListener('click', () => {
-      // Open the education page in the same window or as a Web App
-      window.location.href = './obrazovach.html';
-    });
-  }
 });
 
 // =====================================================
