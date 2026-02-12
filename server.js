@@ -3789,7 +3789,7 @@ function setupBot(env) {
       }
       
       const keyboard = new InlineKeyboard()
-        .text('« Назад к фабрике', 'show_referral');
+        .text('« Назад', 'show_referral');
       
       await ctx.editMessageText(referralListMessage, {
         parse_mode: 'Markdown',
