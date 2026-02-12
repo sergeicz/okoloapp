@@ -1,0 +1,328 @@
+// =====================================================
+// ОБРАЗОВАТЕЛЬНЫЕ МАТЕРИАЛЫ - ЛОГИКА
+// =====================================================
+
+// Конфигурация
+const EDUCATION_CONFIG = {
+  API_URL: 'https://app.okolotattooing.ru',  // VPS ПРОДАКШЕН
+};
+
+const tg = Telegram.WebApp;
+
+// Получаем данные пользователя из Telegram
+let user = tg.initDataUnsafe.user || {
+  id: 0,
+  username: 'guest',
+  first_name: 'Guest',
+  language_code: 'ru'
+};
+
+console.log('👤 Пользователь:', user);
+
+// Расширение Telegram WebApp
+if (tg.expand) tg.expand();
+if (tg.ready) tg.ready();
+
+// Утилита для безопасных fetch запросов с обработкой ошибок и retry logic
+async function safeFetchEducation(url, options = {}, retries = 3) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000); // 10 секунд таймаут
+
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(error.error || `HTTP ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+      console.error(`Fetch error (attempt ${attempt}/${retries}):`, error);
+
+      // Не повторяем если это abort
+      if (error.name === 'AbortError') {
+        console.error('Request timeout');
+        break;
+      }
+
+      // Не повторяем если это client error (4xx)
+      if (error.message.includes('HTTP 4')) {
+        break;
+      }
+
+      // Ждем перед следующей попыткой (exponential backoff)
+      if (attempt < retries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        console.log(`Повторная попытка через ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  // Все попытки исчерпаны
+  showError(lastError?.message || 'Ошибка сети. Проверьте подключение.');
+  throw lastError;
+}
+
+// Показ ошибок пользователю
+function showError(message) {
+  console.error('❌ Ошибка:', message);
+  if (tg.showAlert) {
+    tg.showAlert(message);
+  } else {
+    alert(message);
+  }
+}
+
+// Показ загрузки
+function showEducationLoading(elementId) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.innerHTML = `
+      <div class="loading">
+        <div class="hamster-container">
+          <span class="hamster hamster-1">🐹</span>
+          <span class="hamster hamster-2">🐹</span>
+          <span class="hamster hamster-3">🐹</span>
+          <span class="hamster hamster-4">🐹</span>
+          <span class="hamster hamster-5">🐹</span>
+        </div>
+        <div class="loading-text">Загрузка образовательных материалов...</div>
+      </div>
+    `;
+  }
+}
+
+// Инициализация свайпа для карточек
+function initSwipeForEducationCards() {
+  const container = document.querySelector('.education-swipe');
+  if (!container) return;
+
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+
+  container.addEventListener('mousedown', (e) => {
+    isDown = true;
+    startX = e.pageX - container.offsetLeft;
+    scrollLeft = container.scrollLeft;
+  });
+
+  container.addEventListener('mouseleave', () => {
+    isDown = false;
+  });
+
+  container.addEventListener('mouseup', () => {
+    isDown = false;
+  });
+
+  container.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - container.offsetLeft;
+    const walk = (x - startX) * 2; // Multiplier for faster scrolling
+    container.scrollLeft = scrollLeft - walk;
+  });
+
+  // Touch events for mobile devices
+  container.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    isDown = true;
+    startX = touch.pageX - container.offsetLeft;
+    scrollLeft = container.scrollLeft;
+  });
+
+  container.addEventListener('touchend', () => {
+    isDown = false;
+  });
+
+  container.addEventListener('touchmove', (e) => {
+    if (!isDown) return;
+    const touch = e.touches[0];
+    const x = touch.pageX - container.offsetLeft;
+    const walk = (x - startX) * 2; // Multiplier for faster scrolling
+    container.scrollLeft = scrollLeft - walk;
+  });
+}
+
+// Инициализация свайпа когда DOM загружен
+document.addEventListener('DOMContentLoaded', () => {
+  // Инициализация свайп-функциональности после короткой задержки для обеспечения отрисовки элементов
+  setTimeout(initSwipeForEducationCards, 500);
+});
+
+// Загрузка образовательных материалов
+async function loadEducationMaterials() {
+  const container = document.getElementById('education-cards');
+  showEducationLoading('education-cards');
+
+  try {
+    // Загрузка данных из API
+    const response = await safeFetchEducation(`${EDUCATION_CONFIG.API_URL}/api/obrazovach`);
+    const materials = response.materials || [];
+    console.log('[EDUCATION] Data loaded:', materials);
+    console.log('[EDUCATION] Total materials:', materials.length);
+
+    if (!materials || materials.length === 0) {
+      container.innerHTML = '<p style="text-align:center;">Образовательные материалы пока не добавлены</p>';
+      return;
+    }
+
+    // Создание контейнера для карточек
+    container.innerHTML = '<div class="categories-container"><div class="education-swipe">';
+    
+    // Отрисовка карточек
+    materials.forEach(material => {
+      const card = document.createElement('div');
+      card.className = 'glass-card category-item';
+
+      // Обложка
+      if (material.url_cover) {
+        const coverImg = document.createElement('img');
+        coverImg.src = material.url_cover;
+        coverImg.alt = material.title;
+        coverImg.style.width = '100%';
+        coverImg.style.borderRadius = '12px';
+        coverImg.style.marginBottom = '15px';
+        coverImg.style.objectFit = 'cover';
+        coverImg.style.height = '200px';
+        card.appendChild(coverImg);
+      }
+
+      // Заголовок
+      const title = document.createElement('h3');
+      title.textContent = material.title;
+      card.appendChild(title);
+
+      // Подзаголовок
+      if (material.subtitle) {
+        const subtitle = document.createElement('p');
+        subtitle.textContent = material.subtitle;
+        subtitle.style.marginTop = '10px';
+        subtitle.style.color = 'var(--text-secondary)';
+        subtitle.style.fontSize = '0.9rem';
+        card.appendChild(subtitle);
+      }
+
+      // Кнопка
+      const button = document.createElement('a');
+      button.className = 'modern-btn';
+      button.href = '#';
+      button.textContent = 'Смотреть видео';
+      button.onclick = (e) => handleVideoButtonClick(e, material);
+      
+      card.appendChild(button);
+
+      container.querySelector('.education-swipe').appendChild(card);
+    });
+    
+    // Закрываем теги
+    container.innerHTML += '</div></div>';
+  } catch (error) {
+    container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки образовательных материалов</p>';
+  }
+}
+
+// Обработка клика по кнопке видео
+async function handleVideoButtonClick(event, material) {
+  // ВАЖНО: Предотвращаем стандартное поведение
+  event.preventDefault();
+
+  console.log('[VIDEO CLICK] Sending video info to bot:', material.title || material.url_video);
+  console.log('[VIDEO CLICK] User ID:', user.id);
+  console.log('[VIDEO CLICK] Video URL:', material.url_video);
+
+  // Вибрация для обратной связи
+  if (tg.HapticFeedback) {
+    tg.HapticFeedback.impactOccurred('light');
+  }
+
+  // Отправляем информацию о видео в бот
+  try {
+    console.log('[VIDEO CLICK] Sending video info request...');
+    const response = await fetch(`${EDUCATION_CONFIG.API_URL}/api/send-video`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: user.id,
+        username: user.username || '',
+        video_url: material.url_video,
+        title: material.title,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('[VIDEO CLICK] Response:', data);
+
+      if (data.message_sent) {
+        console.log('[VIDEO MESSAGE] ✅ Сообщение с видео отправлено в бот!');
+        
+        // Показываем уведомление
+        showSuccess('Видео отправлено в бот. Проверьте сообщения.');
+      }
+    } else {
+      console.error('[VIDEO CLICK] Request failed:', response.status);
+    }
+  } catch (error) {
+    console.error('[VIDEO CLICK] Error sending video info:', error);
+  }
+}
+
+// Инициализация приложения
+async function initEducationApp() {
+  try {
+    console.log('🚀 Инициализация образовательного приложения...');
+    console.log('👤 Пользователь:', user);
+
+    // Регистрация пользователя
+    await safeFetchEducation(`${EDUCATION_CONFIG.API_URL}/api/user`, {
+      method: 'POST',
+      body: JSON.stringify(user),
+    }).catch(err => console.warn('User registration failed:', err));
+
+    // Загрузка образовательных материалов
+    console.log('📚 Загрузка образовательных материалов...');
+    await loadEducationMaterials();
+
+    console.log('✅ Инициализация образовательного приложения завершена!');
+
+  } catch (error) {
+    console.error('❌ Education app init error:', error);
+    showError('Ошибка инициализации образовательного приложения');
+  }
+}
+
+// Запуск приложения при загрузке
+window.addEventListener('DOMContentLoaded', initEducationApp);
+
+// Hide preloader after page is loaded
+window.addEventListener('load', () => {
+  const preloader = document.getElementById('preloader');
+  if (preloader) {
+    // Add fade-out effect before hiding
+    preloader.style.opacity = '0';
+    preloader.style.transition = 'opacity 0.5s ease-out';
+
+    // Actually hide after transition completes
+    setTimeout(() => {
+      preloader.style.display = 'none';
+    }, 500);
+  }
+});

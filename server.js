@@ -4931,6 +4931,80 @@ app.get('/api/spreadsheet/structure', async (req, res) => {
   }
 });
 
+// Get educational materials from obrazovach sheet
+app.get('/api/obrazovach', async (req, res) => {
+  try {
+    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const accessToken = await getAccessToken(env, creds);
+    const materials = await getSheetData(env.SHEET_ID, 'obrazovach', accessToken);
+
+    // Filter and format educational materials
+    const formattedMaterials = materials
+      .filter(m => m.url_cover && m.title && m.url_video) // Only valid entries
+      .map(m => ({
+        id: m.id || m.title,
+        url_cover: m.url_cover,
+        title: m.title,
+        subtitle: m.subtitle || '',
+        url_video: m.url_video
+      }));
+
+    res.json({
+      ok: true,
+      materials: formattedMaterials
+    });
+  } catch (error) {
+    console.error('[API] Error getting educational materials:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
+// Send video message to user via bot
+app.post('/api/send-video', async (req, res) => {
+  try {
+    const { user_id, username, video_url, title } = req.body;
+
+    if (!user_id || !video_url) {
+      return res.status(400).json({ error: 'Missing required fields', success: false });
+    }
+
+    // Rate limiting
+    await checkRateLimit(env, `send_video:${user_id}`, 5, 60);
+
+    // Send video message to user via bot
+    const bot = new Bot(env.BOT_TOKEN);
+    
+    // Create message with video URL and button
+    const message = `🎥 <b>${title || 'Образовательное видео'}</b>\n\nСсылка на видео:`; 
+    const keyboard = new InlineKeyboard().url('▶️ Открыть видео', video_url);
+
+    await bot.api.sendMessage(user_id, message, { 
+      parse_mode: 'HTML',
+      reply_markup: keyboard
+    });
+
+    // Update user's education views count
+    const userStats = await getUserStats(env, user_id);
+    const updatedStats = await updateUserStats(env, user_id, {
+      education_views_count: (userStats.education_views_count || 0) + 1
+    });
+
+    // Check for education view achievement
+    await checkAndUnlockAchievements(env, user_id, 'education_view', updatedStats.education_views_count);
+
+    console.log(`[API] ✅ Video message sent to user ${user_id}: ${title}`);
+
+    res.json({
+      ok: true,
+      success: true,
+      message_sent: true
+    });
+  } catch (error) {
+    console.error('[API] Error sending video message:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
 // ═══════════════════════════════════════════════════════════════
 // CRON JOBS
 // ═══════════════════════════════════════════════════════════════
