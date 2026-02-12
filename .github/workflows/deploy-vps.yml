@@ -141,9 +141,15 @@ jobs:
         done
 
         echo "❌ Health check failed after 5 attempts"
+        echo ""
+        echo "=== Showing container logs for debugging ==="
+        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker compose ps"
+        echo ""
+        ssh root@46.17.44.239 "cd /opt/telegram-miniapp && docker compose logs --tail=100 app"
         exit 1
 
     - name: Verify Deployment
+      if: always()
       run: |
         echo "=== Deployment Verification ==="
 
