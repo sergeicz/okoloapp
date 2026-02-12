@@ -37,6 +37,44 @@ jobs:
         SERVER_URL=https://app.okolotattooing.ru
         EOF
 
+    - name: Install Docker on VPS
+      run: |
+        ssh root@46.17.44.239 << 'ENDSSH'
+          # Check if Docker is installed
+          if ! command -v docker &> /dev/null; then
+            echo "Docker not found. Installing Docker..."
+
+            # Update package list
+            apt-get update
+
+            # Install prerequisites
+            apt-get install -y ca-certificates curl gnupg lsb-release
+
+            # Add Docker's official GPG key
+            install -m 0755 -d /etc/apt/keyrings
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            chmod a+r /etc/apt/keyrings/docker.gpg
+
+            # Set up the repository
+            echo \
+              "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+              $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+            # Install Docker Engine
+            apt-get update
+            apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+            # Start Docker service
+            systemctl start docker
+            systemctl enable docker
+
+            echo "✅ Docker installed successfully"
+          else
+            echo "✅ Docker is already installed"
+            docker --version
+          fi
+        ENDSSH
+
     - name: Deploy to VPS
       run: |
         # Create directory if it doesn't exist
