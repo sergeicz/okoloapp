@@ -94,18 +94,39 @@ jobs:
         ssh root@46.17.44.239 << 'ENDSSH'
           cd /opt/telegram-miniapp
 
-          # Stop containers
+          echo "=== Stopping containers ==="
           docker compose down || true
 
-          # Remove old images
-          docker compose build --no-cache
+          echo ""
+          echo "=== Building images ==="
+          docker compose build --no-cache --progress=plain
 
-          # Start containers
+          if [ $? -ne 0 ]; then
+            echo "❌ Build failed!"
+            exit 1
+          fi
+
+          echo ""
+          echo "=== Starting containers ==="
           docker compose up -d
 
-          # Show logs
-          echo "Deployment completed. Showing logs..."
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to start containers!"
+            docker compose ps -a
+            docker compose logs
+            exit 1
+          fi
+
+          echo ""
+          echo "=== Container status ==="
+          docker compose ps
+
+          echo ""
+          echo "=== Initial logs ==="
           docker compose logs --tail=50
+
+          echo ""
+          echo "✅ Deployment completed"
         ENDSSH
 
     - name: Wait for services to start
