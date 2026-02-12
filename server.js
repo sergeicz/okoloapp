@@ -1556,58 +1556,61 @@ async function deleteBroadcastState(env, chatId) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// AUTOMATIC DELETION OF OLD PROMOCODES
+// AUTOMATIC DELETION OF OLD MESSAGES (PROMOCODES & VIDEOS)
 // ═══════════════════════════════════════════════════════════════
 
-async function deleteOldPromocodes(env) {
-  console.log('[PROMO-DELETE] 🗑️ Starting old promocodes cleanup...');
+async function deleteOldMessages(env) {
+  console.log('[AUTO-DELETE] 🗑️ Starting old messages cleanup...');
 
   try {
     const bot = new Bot(env.BOT_TOKEN);
     let deletedCount = 0;
     let errorCount = 0;
 
-    // Get all promocode keys from Redis
-    const list = await env.BROADCAST_STATE.list({ prefix: 'promo_msg_' });
-    console.log(`[PROMO-DELETE] 📊 Found ${list.keys.length} promocode messages to check`);
+    // Get all message keys from Redis (both promo_msg_* and video_msg_*)
+    const promoKeys = await redis.keys('promo_msg_*');
+    const videoKeys = await redis.keys('video_msg_*');
+    const keys = [...promoKeys, ...videoKeys];
+    console.log(`[AUTO-DELETE] 📊 Found ${keys.length} messages to check (${promoKeys.length} promocodes, ${videoKeys.length} videos)`);
 
     const now = Date.now();
 
-    for (const key of list.keys) {
+    for (const key of keys) {
       try {
-        const dataJson = await env.BROADCAST_STATE.get(key.name);
+        const dataJson = await redis.get(key);
         if (!dataJson) continue;
 
         const data = JSON.parse(dataJson);
 
         // Check if we need to delete
         if (now >= data.delete_at) {
-          console.log(`[PROMO-DELETE] 🎯 Deleting message ${data.message_id} from chat ${data.chat_id} (partner: ${data.partner})`);
+          const messageType = data.partner ? `promocode from ${data.partner}` : `video: ${data.video_title || 'unknown'}`;
+          console.log(`[AUTO-DELETE] 🎯 Deleting message ${data.message_id} from chat ${data.chat_id} (${messageType})`);
 
           try {
             await bot.api.deleteMessage(data.chat_id, data.message_id);
             deletedCount++;
-            console.log(`[PROMO-DELETE] ✅ Deleted message ${data.message_id}`);
+            console.log(`[AUTO-DELETE] ✅ Deleted message ${data.message_id}`);
           } catch (error) {
             // Message may have been already deleted by user
             if (error.error_code === 400 && error.description?.includes('message to delete not found')) {
-              console.log(`[PROMO-DELETE] ℹ️ Message ${data.message_id} already deleted`);
+              console.log(`[AUTO-DELETE] ℹ️ Message ${data.message_id} already deleted`);
             } else {
-              console.error(`[PROMO-DELETE] ❌ Failed to delete message ${data.message_id}:`, error.description);
+              console.error(`[AUTO-DELETE] ❌ Failed to delete message ${data.message_id}:`, error.description);
               errorCount++;
             }
           }
 
           // Delete record from Redis
-          await env.BROADCAST_STATE.delete(key.name);
+          await redis.del(key);
         }
       } catch (error) {
-        console.error(`[PROMO-DELETE] ❌ Error processing key ${key.name}:`, error);
+        console.error(`[AUTO-DELETE] ❌ Error processing key ${key}:`, error);
         errorCount++;
       }
     }
 
-    console.log(`[PROMO-DELETE] ✅ Cleanup completed! Deleted: ${deletedCount}, Errors: ${errorCount}`);
+    console.log(`[AUTO-DELETE] ✅ Cleanup completed! Deleted: ${deletedCount}, Errors: ${errorCount}`);
 
     return {
       success: true,
@@ -5168,10 +5171,11 @@ app.post('/api/send-video', async (req, res) => {
     const keyboard = new InlineKeyboard().url('▶️ Открыть видео', video_url);
 
     // Send photo with caption and button if url_cover is provided
+    let sentMessage;
     if (url_cover && url_cover.trim() !== '') {
       try {
-        await bot.api.sendPhoto(user_id, url_cover, {
-          caption: caption,
+        sentMessage = await bot.api.sendPhoto(user_id, url_cover, {
+          caption: caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>',
           parse_mode: 'HTML',
           reply_markup: keyboard
         });
@@ -5179,19 +5183,33 @@ app.post('/api/send-video', async (req, res) => {
       } catch (photoError) {
         console.error(`[API] ⚠️ Failed to send photo, falling back to text message:`, photoError.message);
         // Fallback to text message if photo fails
-        await bot.api.sendMessage(user_id, caption, {
+        sentMessage = await bot.api.sendMessage(user_id, caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>', {
           parse_mode: 'HTML',
           reply_markup: keyboard
         });
       }
     } else {
       // Send text message if no cover image
-      await bot.api.sendMessage(user_id, caption, {
+      sentMessage = await bot.api.sendMessage(user_id, caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>', {
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
       console.log(`[API] ✅ Text message sent to user ${user_id}: ${title}`);
     }
+
+    // Save message info for auto-deletion
+    const deleteAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    await redis.setex(
+      `video_msg_${user_id}_${Date.now()}`,
+      86400, // 24 hours in seconds
+      JSON.stringify({
+        chat_id: user_id,
+        message_id: sentMessage.message_id,
+        video_title: title,
+        delete_at: deleteAt
+      })
+    );
+    console.log(`[API] 📅 Video message scheduled for deletion in 24 hours: ${title}`);
 
     // Check if this video was already viewed by this user
     const creds = JSON.parse(env.CREDENTIALS_JSON);
@@ -5595,9 +5613,9 @@ cron.schedule('*/5 * * * *', async () => {
     const usersResult = await checkAllUsers(env);
     console.log('[CRON] 📊 Users check result:', usersResult);
 
-    // Delete old promocodes
-    const promoResult = await deleteOldPromocodes(env);
-    console.log('[CRON] 🗑️ Promocodes cleanup result:', promoResult);
+    // Delete old messages (promocodes and videos)
+    const messagesResult = await deleteOldMessages(env);
+    console.log('[CRON] 🗑️ Messages cleanup result:', messagesResult);
   } catch (error) {
     console.error('[CRON] ❌ Error in 5-minute tasks:', error);
   }
