@@ -78,11 +78,10 @@ if (!user || user.id === 0 || !user.id) {
   console.error('❌ Приложение открыто не через бота! User ID отсутствует.');
   console.log('⚠️ Пожалуйста, открой приложение через кнопку в боте.');
 
-  // Show warning to user with blurred background
-  setTimeout(() => {
-    // Prevent body scroll
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+  // Show warning to user immediately - no delay
+  // Prevent body scroll
+  document.body.style.overflow = 'hidden';
+  document.documentElement.style.overflow = 'hidden';
 
     // Create overlay with blur - completely opaque
     const overlay = document.createElement('div');
@@ -148,7 +147,6 @@ if (!user || user.id === 0 || !user.id) {
 
     overlay.appendChild(warningBox);
     document.body.appendChild(overlay);
-  }, 1000);
 }
 
 // Расширение Telegram WebApp
