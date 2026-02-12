@@ -284,7 +284,12 @@ async function handleVideoButtonClick(event, material) {
 
       if (data.message_sent) {
         console.log('[VIDEO MESSAGE] ✅ Сообщение с видео отправлено в бот!');
-        
+
+        // Track education video click in Yandex.Metrika
+        if (window.metrikaTrack) {
+          window.metrikaTrack.educationVideoClick(material.title);
+        }
+
         // Показываем уведомление
         showSuccess('Видео отправлено в бот. Проверьте сообщения.');
       }
@@ -311,6 +316,11 @@ async function initEducationApp() {
     // Загрузка образовательных материалов
     console.log('📚 Загрузка образовательных материалов...');
     await loadEducationMaterials();
+
+    // Track page view in Yandex.Metrika
+    if (window.metrikaTrack) {
+      window.metrikaTrack.obrazovachPageView();
+    }
 
     console.log('✅ Инициализация образовательного приложения завершена!');
 

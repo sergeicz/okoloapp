@@ -32,6 +32,11 @@ function acceptCookies() {
   setTimeout(() => {
     modal.classList.add('hidden');
   }, 500);
+
+  // Track cookie acceptance
+  if (window.metrikaTrack) {
+    window.metrikaTrack.cookiesAccepted();
+  }
 }
 
 // Check consent on page load
@@ -377,6 +382,11 @@ function toggleAdminPanel() {
     panel.style.display = 'block';
     console.log('✅ Админ-панель показана');
     loadAdminData();
+
+    // Track admin panel access
+    if (window.metrikaTrack) {
+      window.metrikaTrack.adminPanelOpen();
+    }
   }
 }
 
@@ -563,6 +573,11 @@ async function handleLinkClick(event, link) {
         // Показываем красивое уведомление
         showPromoNotification();
       }
+
+      // Track partner click in Yandex.Metrika
+      if (window.metrikaTrack) {
+        window.metrikaTrack.partnerClick(link.title, link.category || 'Другое', link.url);
+      }
     } else {
       console.error('[CLICK] Request failed:', response.status);
     }
@@ -636,6 +651,11 @@ document.getElementById('pushForm').onsubmit = async (e) => {
     });
 
     showSuccess(`✅ Пуш отправлен! (${result.sent || 0}/${result.total || 0} успешно)`);
+
+    // Track broadcast sent
+    if (window.metrikaTrack) {
+      window.metrikaTrack.broadcastSent(result.sent || 0);
+    }
 
     // Очистка формы
     document.getElementById('pushTitle').value = '';
@@ -737,6 +757,11 @@ function openDonate() {
   // Haptic feedback
   if (tg.HapticFeedback) {
     tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Track donate button click
+  if (window.metrikaTrack) {
+    window.metrikaTrack.donateClick();
   }
 
   // Open bot with /donate command
