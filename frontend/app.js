@@ -468,11 +468,9 @@ async function loadPartners() {
         console.log(`[BTN] - URL: ${link.url}`);
         console.log(`[BTN] - Promocode: ${link.promocode || 'none'}`);
 
-        const a = document.createElement('a');
+        // Use div instead of <a> to prevent Telegram from intercepting clicks
+        const a = document.createElement('div');
         a.className = 'modern-btn';
-        // Don't set href to prevent Telegram from intercepting the click
-        // a.href = link.url;
-        a.href = 'javascript:void(0)';
         a.style.cursor = 'pointer';
         a.onclick = (e) => handleLinkClick(e, link);
 
