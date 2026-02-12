@@ -98,8 +98,13 @@ jobs:
           docker compose down || true
 
           echo ""
+          echo "=== Cleaning Docker build cache ==="
+          docker builder prune -af
+          docker system prune -f
+
+          echo ""
           echo "=== Building images ==="
-          docker compose build --no-cache --progress=plain
+          docker compose build --no-cache --pull --progress=plain
 
           if [ $? -ne 0 ]; then
             echo "❌ Build failed!"
