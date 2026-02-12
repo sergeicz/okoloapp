@@ -719,10 +719,30 @@ window.addEventListener('load', () => {
     // Add fade-out effect before hiding
     preloader.style.opacity = '0';
     preloader.style.transition = 'opacity 0.5s ease-out';
-    
+
     // Actually hide after transition completes
     setTimeout(() => {
       preloader.style.display = 'none';
     }, 500);
   }
 });
+
+// =====================================================
+// DONATE BUTTON - OPEN BOT WITH /donate COMMAND
+// =====================================================
+
+function openDonate() {
+  console.log('[DONATE] Opening bot with /donate command');
+
+  // Haptic feedback
+  if (tg.HapticFeedback) {
+    tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  // Open bot with /donate command
+  // This will close the WebApp and open the bot chat with /donate command
+  const botUsername = 'okolotattoo_bot'; // Replace with your bot username if different
+  const donateUrl = `https://t.me/${botUsername}?start=donate`;
+
+  tg.openTelegramLink(donateUrl);
+}

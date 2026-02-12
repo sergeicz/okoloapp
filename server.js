@@ -2417,6 +2417,33 @@ function setupBot(env) {
       await trackDailyActivity(env, chatId);
     }
 
+    // Check if user wants to donate
+    if (startPayload === 'donate') {
+      // Show donate menu directly
+      const userStats = await getUserStats(env, chatId);
+
+      let donateMessage = `💳 *Поддержать проект*\n\n`;
+      donateMessage += `Спасибо, что пользуетесь нашим ботом! 🙏\n\n`;
+      donateMessage += `Ваши донаты помогают развивать проект и добавлять новые фичи.\n\n`;
+      donateMessage += `📊 *Ваша статистика:*\n`;
+      donateMessage += `• Всего задонатили: ${userStats.total_donations || 0} ⭐\n\n`;
+      donateMessage += `🎁 *Бонусы:*\n`;
+      donateMessage += `• За каждый донат вы получаете баллы\n`;
+      donateMessage += `• Достижение "💳 Щедрый хомяк" за 1000+ ⭐\n\n`;
+      donateMessage += `Выберите сумму:`;
+
+      const donateKeyboard = new InlineKeyboard()
+        .text('⭐ 50 Stars', 'donate_50').text('⭐ 100 Stars', 'donate_100').row()
+        .text('⭐ 250 Stars', 'donate_250').text('⭐ 500 Stars', 'donate_500').row()
+        .text('⭐ 1000 Stars', 'donate_1000');
+
+      await ctx.reply(donateMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: donateKeyboard
+      });
+      return; // Exit early, don't show start message
+    }
+
     // Проверяем админа и представителя
     const partnerData = await checkRepresentative(env, user);
 
@@ -2552,6 +2579,39 @@ function setupBot(env) {
     } catch (error) {
       console.error('Error showing referral:', error);
       await ctx.reply('❌ Ошибка при загрузке реферальной программы');
+    }
+  });
+
+  // /donate command - Show donation menu
+  bot.command('donate', async (ctx) => {
+    const user = ctx.from;
+    const userId = user.id;
+
+    try {
+      const userStats = await getUserStats(env, userId);
+
+      let donateMessage = `💳 *Поддержать проект*\n\n`;
+      donateMessage += `Спасибо, что пользуетесь нашим ботом! 🙏\n\n`;
+      donateMessage += `Ваши донаты помогают развивать проект и добавлять новые фичи.\n\n`;
+      donateMessage += `📊 *Ваша статистика:*\n`;
+      donateMessage += `• Всего задонатили: ${userStats.total_donations || 0} ⭐\n\n`;
+      donateMessage += `🎁 *Бонусы:*\n`;
+      donateMessage += `• За каждый донат вы получаете баллы\n`;
+      donateMessage += `• Достижение "💳 Щедрый хомяк" за 1000+ ⭐\n\n`;
+      donateMessage += `Выберите сумму:`;
+
+      const keyboard = new InlineKeyboard()
+        .text('⭐ 50 Stars', 'donate_50').text('⭐ 100 Stars', 'donate_100').row()
+        .text('⭐ 250 Stars', 'donate_250').text('⭐ 500 Stars', 'donate_500').row()
+        .text('⭐ 1000 Stars', 'donate_1000');
+
+      await ctx.reply(donateMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      console.error('Error showing donate menu:', error);
+      await ctx.reply('❌ Ошибка при загрузке меню донатов');
     }
   });
 
@@ -3742,6 +3802,162 @@ function setupBot(env) {
   });
 
   // ═══════════════════════════════════════════════════════════════
+  // СИСТЕМА ДОНАТОВ ЧЕРЕЗ TELEGRAM STARS
+  // ═══════════════════════════════════════════════════════════════
+
+  // Show donation menu
+  bot.callbackQuery('show_donate', async (ctx) => {
+    const user = ctx.from;
+    const userId = user.id;
+
+    try {
+      const userStats = await getUserStats(env, userId);
+
+      let donateMessage = `💳 *Поддержать проект*\n\n`;
+      donateMessage += `Спасибо, что пользуетесь нашим ботом! 🙏\n\n`;
+      donateMessage += `Ваши донаты помогают развивать проект и добавлять новые фичи.\n\n`;
+      donateMessage += `📊 *Ваша статистика:*\n`;
+      donateMessage += `• Всего задонатили: ${userStats.total_donations || 0} ⭐\n\n`;
+      donateMessage += `🎁 *Бонусы:*\n`;
+      donateMessage += `• За каждый донат вы получаете баллы\n`;
+      donateMessage += `• Достижение "💳 Щедрый хомяк" за 1000+ ⭐\n\n`;
+      donateMessage += `Выберите сумму:`;
+
+      const keyboard = new InlineKeyboard()
+        .text('⭐ 50 Stars', 'donate_50').text('⭐ 100 Stars', 'donate_100').row()
+        .text('⭐ 250 Stars', 'donate_250').text('⭐ 500 Stars', 'donate_500').row()
+        .text('⭐ 1000 Stars', 'donate_1000').row()
+        .text('« Назад', 'back_to_start');
+
+      await ctx.editMessageText(donateMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+      await ctx.answerCallbackQuery();
+    } catch (error) {
+      console.error('Error showing donate menu:', error);
+      await ctx.answerCallbackQuery('❌ Ошибка при загрузке меню донатов');
+    }
+  });
+
+  // Handle donation amount selection
+  const createDonationHandler = (amount) => {
+    return async (ctx) => {
+      const user = ctx.from;
+      const userId = user.id;
+
+      try {
+        console.log(`[DONATION] User ${userId} (@${user.username}) initiated ${amount} Stars donation`);
+
+        // Create invoice for Telegram Stars
+        const title = `Поддержка проекта`;
+        const description = `Донат на ${amount} Telegram Stars`;
+        const payload = JSON.stringify({
+          user_id: userId,
+          amount: amount,
+          timestamp: Date.now()
+        });
+        const currency = 'XTR'; // Telegram Stars currency code
+
+        // Price in smallest units (Stars don't have subdivisions, so amount = price)
+        const prices = [{ label: 'Донат', amount: amount }];
+
+        await ctx.replyWithInvoice(
+          title,
+          description,
+          payload,
+          '', // provider_token is empty for Stars
+          currency,
+          prices,
+          {
+            reply_markup: new InlineKeyboard()
+              .text('« Отменить', 'show_donate')
+          }
+        );
+
+        await ctx.answerCallbackQuery();
+      } catch (error) {
+        console.error(`[DONATION] Error creating invoice for ${amount} Stars:`, error);
+        await ctx.answerCallbackQuery('❌ Ошибка при создании счёта. Попробуйте позже.');
+      }
+    };
+  };
+
+  // Register handlers for different amounts
+  bot.callbackQuery('donate_50', createDonationHandler(50));
+  bot.callbackQuery('donate_100', createDonationHandler(100));
+  bot.callbackQuery('donate_250', createDonationHandler(250));
+  bot.callbackQuery('donate_500', createDonationHandler(500));
+  bot.callbackQuery('donate_1000', createDonationHandler(1000));
+
+  // Handle pre-checkout query (required by Telegram)
+  bot.on('pre_checkout_query', async (ctx) => {
+    try {
+      const payload = JSON.parse(ctx.preCheckoutQuery.invoice_payload);
+      console.log('[DONATION] Pre-checkout query:', payload);
+
+      // Answer OK to allow payment to proceed
+      await ctx.answerPreCheckoutQuery(true);
+    } catch (error) {
+      console.error('[DONATION] Pre-checkout error:', error);
+      await ctx.answerPreCheckoutQuery(false, 'Ошибка при обработке платежа');
+    }
+  });
+
+  // Handle successful payment
+  bot.on('message:successful_payment', async (ctx) => {
+    try {
+      const payment = ctx.message.successful_payment;
+      const payload = JSON.parse(payment.invoice_payload);
+      const userId = payload.user_id;
+      const amount = payload.amount;
+
+      console.log(`[DONATION] ✅ Successful payment from user ${userId}: ${amount} Stars`);
+
+      // Update total_donations
+      const userStats = await getUserStats(env, userId);
+      const newTotalDonations = (userStats.total_donations || 0) + amount;
+
+      await updateUserStats(env, userId, {
+        total_donations: newTotalDonations
+      });
+
+      // Award points (1 point per Star)
+      const newTotalPoints = (userStats.total_points || 0) + amount;
+      await updateUserStats(env, userId, {
+        total_points: newTotalPoints
+      });
+
+      console.log(`[DONATION] Updated user ${userId}: total_donations=${newTotalDonations}, total_points=${newTotalPoints}`);
+
+      // Check for achievement "Щедрый хомяк" (1000+ donations)
+      await checkAndUnlockAchievements(env, userId, 'donation', newTotalDonations);
+
+      // Send thank you message
+      const thankYouMessage =
+        `✨ *Спасибо за поддержку!* ✨\n\n` +
+        `Вы задонатили ${amount} ⭐ Telegram Stars\n\n` +
+        `🎁 *Получено:*\n` +
+        `• +${amount} баллов к вашему счёту\n` +
+        `• Всего задонатили: ${newTotalDonations} ⭐\n\n` +
+        `Вы помогаете проекту становиться лучше! 🙏`;
+
+      const keyboard = new InlineKeyboard()
+        .text('👤 Мой профиль', 'show_profile').row()
+        .text('💳 Ещё донат', 'show_donate');
+
+      await ctx.reply(thankYouMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+
+    } catch (error) {
+      console.error('[DONATION] Error processing successful payment:', error);
+      await ctx.reply('❌ Произошла ошибка при обработке платежа. Обратитесь в поддержку.');
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════
   // ЛИЧНЫЙ КАБИНЕТ ПРЕДСТАВИТЕЛЯ
   // ═══════════════════════════════════════════════════════════════
 
@@ -4360,15 +4576,27 @@ app.get('/api/partners', async (req, res) => {
     const accessToken = await getAccessToken(env, creds);
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
 
+    console.log('[API /partners] ========================================');
     console.log('[API /partners] Raw partners from sheet:', partners.length);
+
     if (partners.length > 0) {
-      console.log('[API /partners] First partner:', partners[0]);
+      console.log('[API /partners] First partner object:', JSON.stringify(partners[0], null, 2));
+      console.log('[API /partners] Partner keys:', Object.keys(partners[0]));
+    } else {
+      console.warn('[API /partners] ⚠️ No partners found in Google Sheets!');
     }
 
     // Filter and format partners
     // Check for different possible field names for promocodes
     const formattedPartners = partners
-      .filter(p => p.title && p.url)
+      .filter(p => {
+        const hasTitle = !!p.title;
+        const hasUrl = !!p.url;
+        if (!hasTitle || !hasUrl) {
+          console.warn(`[API /partners] ⚠️ Skipping partner - title: ${hasTitle}, url: ${hasUrl}`, p);
+        }
+        return hasTitle && hasUrl;
+      })
       .map(p => ({
         id: p.id || p.title,
         title: p.title,
@@ -4380,15 +4608,22 @@ app.get('/api/partners', async (req, res) => {
         predstavitel: p.predstavitel || ''
       }));
 
-    console.log('[API /partners] Formatted partners:', formattedPartners.length);
+    console.log('[API /partners] After filtering:', formattedPartners.length, 'partners');
+
+    if (formattedPartners.length > 0) {
+      console.log('[API /partners] First formatted partner:', JSON.stringify(formattedPartners[0], null, 2));
+    }
+
     console.log('[API /partners] Sending response with', formattedPartners.length, 'partners');
+    console.log('[API /partners] ========================================');
 
     res.json({
       ok: true,
       partners: formattedPartners
     });
   } catch (error) {
-    console.error('[API] Error getting partners:', error);
+    console.error('[API /partners] ❌ Error:', error);
+    console.error('[API /partners] Error stack:', error.stack);
     res.status(500).json({ error: error.message, success: false });
   }
 });
