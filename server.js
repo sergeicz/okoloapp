@@ -2568,7 +2568,7 @@ function setupBot(env) {
       referralMessage += `• Пригласи 10 друзей → 👑 Проактивный хомяк (+100 баллов)\n\n`;
 
       const keyboard = new InlineKeyboard()
-        .switchInline('📤 Поделиться ссылкой', `Присоединяйся к околохомячкам! ${referralLink}`).row()
+        .switchInline('📤 Поделиться ссылкой', referralLink).row()
         .text('👥 Мои рефералы', 'show_referral_list').row()
         .text('🔄 Обновить', 'show_referral');
 
@@ -3748,7 +3748,7 @@ function setupBot(env) {
       referralMessage += `• Пригласи 10 друзей → 👑 Проактивный хомяк (+100 баллов)\n\n`;
 
       const keyboard = new InlineKeyboard()
-        .switchInline('📤 Поделиться ссылкой', `Присоединяйся к околохомячкам! ${referralLink}`).row()
+        .switchInline('📤 Поделиться ссылкой', referralLink).row()
         .text('👥 Мои рефералы', 'show_referral_list').row()
         .text('« Назад', 'back_to_start');
       
