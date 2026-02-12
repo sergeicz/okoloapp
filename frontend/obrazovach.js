@@ -4,7 +4,7 @@
 
 // Конфигурация
 const EDUCATION_CONFIG = {
-  API_URL: window.location.origin,  // Используем текущий домен
+  API_URL: 'https://app.okolotattooing.ru',  // Используем серверный домен
 };
 
 // Глобальные переменные
