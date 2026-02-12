@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<title>Гайд по достижениям - Околотату</title>
+
+<!-- Favicons -->
+<link rel="shortcut icon" type="image/x-icon" href="/tg_miniapps_links/frontend/img/favicon/favicon.ico">
+<link rel="icon" type="image/x-icon" href="/tg_miniapps_links/frontend/img/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="/tg_miniapps_links/frontend/img/favicon/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/tg_miniapps_links/frontend/img/favicon/favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/tg_miniapps_links/frontend/img/favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/tg_miniapps_links/frontend/img/favicon/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/tg_miniapps_links/frontend/img/favicon/android-chrome-512x512.png">
+<link rel="manifest" href="/tg_miniapps_links/frontend/img/favicon/site.webmanifest">
+<meta name="theme-color" content="#000000">
+<meta name="msapplication-TileColor" content="#7c3aed">
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary: #7c3aed;
+  --secondary: #5b21b6;
+  --accent: #a78bfa;
+  --gold: #c084fc;
+  --dark: #0f172a;
+  --dark-gray: #1e293b;
+  --darker-gray: #0a0f1e;
+  --text-primary: #ffffff;
+  --text-secondary: #cbd5e1;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
+  color: var(--text-primary);
+  line-height: 1.8;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(50px) saturate(180%);
+  -webkit-backdrop-filter: blur(50px) saturate(180%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 32px;
+  padding: 50px;
+  animation: fadeIn 0.8s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+              0 0 100px rgba(124, 58, 237, 0.2),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+  font-size: 3rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 15px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  word-wrap: break-word;
+  filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.title-icon {
+  font-size: 3rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.4));
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 1.3rem;
+  margin-bottom: 50px;
+  font-weight: 600;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 50px 0 25px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  padding-bottom: 15px;
+}
+
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary) 0%, transparent 100%);
+  border-radius: 2px;
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 30px 0 15px;
+}
+
+p {
+  margin-bottom: 15px;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid rgba(124, 58, 237, 0.3);
+  margin: 40px 0;
+}
+
+.highlight-box {
+  background: rgba(124, 58, 237, 0.1);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-left: 4px solid var(--primary);
+  padding: 20px 25px;
+  margin: 30px 0;
+  border-radius: 20px;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.achievement-card {
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 24px;
+  padding: 25px;
+  margin: 20px 0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.achievement-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.15), transparent);
+  transition: left 0.5s;
+}
+
+.achievement-card:hover::before {
+  left: 100%;
+}
+
+.achievement-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(124, 58, 237, 0.5);
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3),
+              0 4px 16px rgba(0, 0, 0, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+.achievement-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.achievement-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.achievement-info {
+  flex: 1;
+}
+
+.achievement-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+}
+
+.achievement-meta {
+  display: flex;
+  gap: 15px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.achievement-points {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.achievement-rarity {
+  font-weight: 600;
+}
+
+.rarity-common {
+  color: #94a3b8;
+}
+
+.rarity-uncommon {
+  color: #10b981;
+}
+
+.rarity-rare {
+  color: #3b82f6;
+}
+
+.rarity-epic {
+  color: #a855f7;
+}
+
+.rarity-legendary {
+  color: #f59e0b;
+}
+
+.achievement-description {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  margin-bottom: 15px;
+}
+
+.achievement-condition {
+  background: rgba(124, 58, 237, 0.15);
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: var(--accent);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+.achievement-condition strong {
+  color: var(--text-primary);
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 40px;
+  padding: 14px 36px;
+  background: rgba(124, 58, 237, 0.15);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  color: var(--text-primary);
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+              inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  background: rgba(124, 58, 237, 0.3);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.5),
+              0 4px 16px rgba(0, 0, 0, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  border-color: rgba(124, 58, 237, 0.6);
+}
+
+.rarity-section {
+  margin: 40px 0;
+}
+
+.rarity-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 25px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+
+  .container {
+    padding: 30px 20px;
+  }
+
+  h1 {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+  }
+
+  .achievement-card {
+    padding: 20px;
+  }
+
+  .achievement-icon {
+    font-size: 2rem;
+  }
+
+  .achievement-title {
+    font-size: 1.2rem;
+  }
+
+  .title-icon {
+    font-size: 2rem;
+  }
+
+  h1 {
+    gap: 10px;
+  }
+
+  .subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+
+  .container {
+    padding: 25px 15px;
+    border-radius: 16px;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    letter-spacing: 0.5px;
+  }
+
+  h2 {
+    font-size: 1.3rem;
+    margin: 35px 0 20px;
+  }
+
+  .achievement-card {
+    padding: 15px;
+  }
+
+  .achievement-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .achievement-icon {
+    font-size: 2.5rem;
+  }
+
+  .achievement-meta {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    margin-bottom: 35px;
+  }
+
+  .back-link {
+    padding: 12px 28px;
+    font-size: 0.9rem;
+  }
+}
+</style>
+<script src="metrika.js"></script>
+<noscript><div><img src="https://mc.yandex.ru/watch/106803279" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+</head>
+<body>
+
+<div class="container">
+  <h1><span class="title-icon">🏆</span> Гайд по достижениям</h1>
+  <p class="subtitle">Telegram Mini App «<a href="https://t.me/nononotattoo" target="_blank">Околотату</a>»</p>
+
+  <div class="highlight-box">
+    <p style="margin: 0; font-size: 1.1rem;"><strong>🎯 Всего доступно 8 достижений</strong><br>Получай баллы за активность и открывай новые награды!</p>
+  </div>
+
+  <h2>Как работают достижения</h2>
+  <p>Достижения присваиваются автоматически при выполнении определённых условий. Каждое достижение приносит баллы и имеет свою редкость.</p>
+  <p><strong>Важно:</strong> Прогресс по достижениям отслеживается в реальном времени. Как только ты выполнишь условие — получишь уведомление в боте!</p>
+  <hr>
+
+  <!-- ОБЫЧНЫЕ ДОСТИЖЕНИЯ -->
+  <div class="rarity-section">
+    <h2 class="rarity-title rarity-common">⚪ Обычные достижения</h2>
+
+    <div class="achievement-card">
+      <div class="achievement-header">
+        <div class="achievement-icon">🎯</div>
+        <div class="achievement-info">
+          <div class="achievement-title">Молодой хомяк</div>
+          <div class="achievement-meta">
+            <span class="achievement-points">⭐ 10 баллов</span>
+            <span class="achievement-rarity rarity-common">Обычное</span>
+          </div>
+        </div>
+      </div>
+      <div class="achievement-description">
+        Открыл первую партнёрскую ссылку
+      </div>
+      <div class="achievement-condition">
+        <strong>Как получить:</strong> Кликни по любой партнёрской ссылке в разделе "Партнёры" или "Категории". Достижение присваивается автоматически при первом клике.
+      </div>
+    </div>
+
+    <div class="achievement-card">
+      <div class="achievement-header">
+        <div class="achievement-icon">🎪</div>
+        <div class="achievement-info">
+          <div class="achievement-title">Хомяк-тусовщик</div>
+          <div class="achievement-meta">
+            <span class="achievement-points">⭐ 15 баллов</span>
+            <span class="achievement-rarity rarity-common">Обычное</span>
+          </div>
+        </div>
+      </div>
+      <div class="achievement-description">
+        Посетил тату-событие
+      </div>
+      <div class="achievement-condition">
+        <strong>Как получить:</strong> Зарегистрируйся на тату-событие через раздел "События". Достижение присваивается при первой регистрации.
+      </div>
+    </div>
+  </div>
+
+  <!-- НЕОБЫЧНЫЕ ДОСТИЖЕНИЯ -->
+  <div class="rarity-section">
+    <h2 class="rarity-title rarity-uncommon">🟢 Необычные достижения</h2>
+
+    <div class="achievement-card">
+      <div class="achievement-header">
+        <div class="achievement-icon">🔥</div>
+        <div class="achievement-info">
+          <div class="achievement-title">Активный хомяк</div>
+          <div class="achievement-meta">
+            <span class="achievement-points">⭐ 30 баллов</span>
+            <span class="achievement-rarity rarity-uncommon">Необычное</span>
+          </div>
+        </div>
+      </div>
+      <div class="achievement-description">
+        7 дней активности подряд
+      </div>
+      <div class="achievement-condition">
+        <strong>Как получить:</strong> Заходи в Mini App каждый день в течение 7 дней подряд. Пропуск хотя бы одного дня обнулит серию. Следи за своей серией в профиле!
+      </div>
+    </div>
+
+    <div class="achievement-card">
+      <div class="achievement-header">
+        <div class="achievement-icon">💳</div>
+        <div class="achievement-info">
+          <div class="achievement-title">Щедрый хомяк</div>
+          <div class="achievement-meta">
+            <span class="achievement-points">⭐ 20 баллов</span>
+            <span class="achievement-rarity rarity-uncommon">Необычное</span>
+          </div>
+        </div>
+      </div>
+      <div class="achievement-description">
+        Задонатил пацанам
+      </div>
+      <div class="achievement-condition">
+        <strong>Как получить:</strong> Поддержи проект донатом на сумму 1000+ Telegram Stars через раздел "💰 Задонатить". Можно сделать несколько донатов — они суммируются.
+      </div>
+    </div>
+  </div>
+
+  <!-- РЕДКИЕ ДОСТИЖЕНИЯ -->
+  <div class="rarity-section">
+    <h2 class="rarity-title rarity-rare">🔵 Редкие достижения</h2>
+
+    <div class="achievement-card">
+      <div class="achievement-header">
+        <div class="achievement-icon">📚</div>
+        <div class="achievement-info">
+          <div class="achievement-title">Любознательный хомяк</div>
+          <div class="achievement-meta">
+            <span class="achievement-points">⭐ 50 баллов</span>
+            <span class="achievement-rarity rarity-rare">Редкое</span>
+          </div>
+        </div>
+      </div>
+      <div class="achievement-description">
+        Просмотрел 5+ образовачей
+      </div>
+      <div class="achievement-condition">
+        <strong>Как получить:</strong> Посмотри 5 РАЗНЫХ образовательных видео в разделе "Образовач". Повторный просмотр одного и того же видео не засчитывается. Видео отправляется в бот для просмотра.
+      </div>
+    </div>
+
+    <div class="achievement-card">
+      <div class="achievement-header">
+        <div class="achievement-icon">⭐</div>
+        <div class="achievement-info">
+          <div class="achievement-title">Прошаренный хомяк</div>
+          <div class="achievement-meta">
+            <span class="achievement-points">⭐ 50 баллов</span>
+            <span class="achievement-rarity rarity-rare">Редкое</span>
+          </div>
+        </div>
+      </div>
+      <div class="achievement-description">
+        Подписался на всех партнёров
+      </div>
+      <div class="achievement-condition">
+        <strong>Как получить:</strong> Подпишись на Telegram-каналы/боты всех партнёров проекта. Количество необходимых подписок зависит от числа активных партнёров.
+      </div>
+    </div>
+  </div>
+
+  <!-- ЭПИЧЕСКИЕ ДОСТИЖЕНИЯ -->
+  <div class="rarity-section">
+    <h2 class="rarity-title rarity-epic">🟣 Эпические достижения</h2>
+
+    <div class="achievement-card">
+      <div class="achievement-header">
+        <div class="achievement-icon">👑</div>
+        <div class="achievement-info">
+          <div class="achievement-title">Проактивный хомяк</div>
+          <div class="achievement-meta">
+            <span class="achievement-points">⭐ 100 баллов</span>
+            <span class="achievement-rarity rarity-epic">Эпическое</span>
+          </div>
+        </div>
+      </div>
+      <div class="achievement-description">
+        Пригласил 10+ друзей
+      </div>
+      <div class="achievement-condition">
+        <strong>Как получить:</strong> Используй свою реферальную ссылку из раздела "Фабрика хомяков". Пригласи 10 или больше друзей, которые запустят бот. Следи за количеством рефералов в профиле.
+      </div>
+    </div>
+  </div>
+
+  <!-- ЛЕГЕНДАРНЫЕ ДОСТИЖЕНИЯ -->
+  <div class="rarity-section">
+    <h2 class="rarity-title rarity-legendary">🟡 Легендарные достижения</h2>
+
+    <div class="achievement-card">
+      <div class="achievement-header">
+        <div class="achievement-icon">🚀</div>
+        <div class="achievement-info">
+          <div class="achievement-title">Легендарный хомяк</div>
+          <div class="achievement-meta">
+            <span class="achievement-points">⭐ 100 баллов</span>
+            <span class="achievement-rarity rarity-legendary">Легендарное</span>
+          </div>
+        </div>
+      </div>
+      <div class="achievement-description">
+        Один из первых 100 пользователей
+      </div>
+      <div class="achievement-condition">
+        <strong>Как получить:</strong> Это достижение присваивается автоматически первым 100 пользователям, которые зарегистрировались в боте. Если твой регистрационный номер ≤ 100 — ты легенда!
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h2>Полезная информация</h2>
+
+  <div class="highlight-box">
+    <h3 style="margin-top: 0; color: var(--text-primary);">💡 Советы по получению достижений</h3>
+    <ul style="list-style: none; padding: 0; margin: 15px 0 0 0;">
+      <li style="margin: 10px 0; padding-left: 25px; position: relative;">
+        <span style="position: absolute; left: 0;">✅</span>
+        <strong>Проверяй свой профиль:</strong> Команда /profile в боте показывает текущий прогресс по всем достижениям
+      </li>
+      <li style="margin: 10px 0; padding-left: 25px; position: relative;">
+        <span style="position: absolute; left: 0;">✅</span>
+        <strong>Серия активности:</strong> Не пропускай дни! Заходи в приложение каждый день, чтобы сохранить серию
+      </li>
+      <li style="margin: 10px 0; padding-left: 25px; position: relative;">
+        <span style="position: absolute; left: 0;">✅</span>
+        <strong>Рефералы:</strong> Делись своей реферальной ссылкой с друзьями в тату-индустрии
+      </li>
+      <li style="margin: 10px 0; padding-left: 25px; position: relative;">
+        <span style="position: absolute; left: 0;">✅</span>
+        <strong>Уникальность:</strong> Некоторые достижения (например, "Любознательный хомяк") требуют уникальных действий — повторы не считаются
+      </li>
+      <li style="margin: 10px 0; padding-left: 25px; position: relative;">
+        <span style="position: absolute; left: 0;">✅</span>
+        <strong>Автоматизация:</strong> Все достижения присваиваются автоматически, тебе не нужно ничего запрашивать вручную
+      </li>
+    </ul>
+  </div>
+
+  <div class="highlight-box" style="text-align: center; font-size: 1.2rem; margin-top: 40px;">
+    <p style="margin: 0;"><strong>🏆 Собери все достижения и стань легендой Околотату!</strong></p>
+  </div>
+
+  <div style="text-align: center;">
+    <a href="https://t.me/nononotattoo" class="back-link">Открыть Mini App</a>
+  </div>
+</div>
+
+</body>
+</html>
