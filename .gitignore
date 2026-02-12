@@ -1,4 +1,3 @@
-# === Секретные данные ===
 # Google Service Account credentials
 credentials.json
 
@@ -12,32 +11,6 @@ sheet_id.txt
 .env
 .env.local
 .env.*.local
-
-# === Python (Bot) ===
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-venv/
-ENV/
-env/
 
 # Bot logs
 bot.log
@@ -55,11 +28,6 @@ yarn.lock
 .node_repl_history
 .yarn-integrity
 
-# Cloudflare Workers
-.wrangler/
-.dev.vars
-worker/.dev.vars
-wrangler.toml.backup
 
 # === Docker ===
 # Docker volumes and data
