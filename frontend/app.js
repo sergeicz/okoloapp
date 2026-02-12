@@ -470,8 +470,10 @@ async function loadPartners() {
 
         const a = document.createElement('a');
         a.className = 'modern-btn';
-        a.href = link.url;
-        a.target = '_blank';
+        // Don't set href to prevent Telegram from intercepting the click
+        // a.href = link.url;
+        a.href = 'javascript:void(0)';
+        a.style.cursor = 'pointer';
         a.onclick = (e) => handleLinkClick(e, link);
 
         // Добавляем логотип если есть
