@@ -2461,7 +2461,7 @@ function setupBot(env) {
 
     // Add profile and referral buttons for ALL users (including admins)
     keyboard.row().text('👤 Мой профиль', 'show_profile');
-    keyboard.row().text('👥 Рефералка', 'show_referral');
+    keyboard.row().text('🐹 Фабрика хомяков', 'show_referral');
 
     await ctx.reply(
       `👋 Привет, *${user.first_name}*!\n\n` +
@@ -2498,7 +2498,7 @@ function setupBot(env) {
 
       profileMessage += `⭐ *Баллы:* ${userStats.total_points}\n`;
       profileMessage += `🔥 *Серия:* ${userStats.current_streak} дней (рекорд: ${userStats.longest_streak})\n`;
-      profileMessage += `👥 *Рефералы:* ${userStats.referrals_count}\n\n`;
+      profileMessage += `🐹 *Фабрика хомяков:* ${userStats.referrals_count}\n\n`;
 
       profileMessage += `🏆 *Достижения:* ${unlockedAchievements.length}/${achievements.length}\n`;
       profileMessage += `━━━━━━━━━━━━━━━━\n`;
@@ -2559,7 +2559,7 @@ function setupBot(env) {
       referralMessage += `_Нажмите на ссылку, чтобы скопировать_\n\n`;
 
       referralMessage += `📊 *Статистика:*\n`;
-      referralMessage += `• Приглашено друзей: ${userStats.referrals_count}\n`;
+      referralMessage += `• Привлечено хомяков: ${userStats.referrals_count}\n`;
       referralMessage += `• Заработано баллов: ${userStats.referrals_count * 10}\n`;
       referralMessage += `• Активных рефералов: ${Math.min(userStats.referrals_count, 10)}\n\n`;
 
@@ -2569,7 +2569,7 @@ function setupBot(env) {
 
       const keyboard = new InlineKeyboard()
         .switchInline('📤 Поделиться ссылкой', referralLink).row()
-        .text('👥 Мои рефералы', 'show_referral_list').row()
+        .text('🐹 Мои хомячки', 'show_referral_list').row()
         .text('🔄 Обновить', 'show_referral');
 
       await ctx.reply(referralMessage, {
@@ -3541,7 +3541,7 @@ function setupBot(env) {
 
     // Add profile and referral buttons for all users
     keyboard.row().text('👤 Мой профиль', 'show_profile');
-    keyboard.row().text('👥 Рефералка', 'show_referral');
+    keyboard.row().text('🐹 Фабрика хомяков', 'show_referral');
 
     await ctx.editMessageText(
       `👋 Привет, *${user.first_name}*!\n\n` +
@@ -3579,8 +3579,8 @@ function setupBot(env) {
       
       profileMessage += `⭐ *Баллы:* ${userStats.total_points}\n`;
       profileMessage += `🔥 *Серия:* ${userStats.current_streak} дней (рекорд: ${userStats.longest_streak})\n`;
-      profileMessage += `👥 *Рефералы:* ${userStats.referrals_count}\n\n`;
-      
+      profileMessage += `🐹 *Фабрика хомяков:* ${userStats.referrals_count}\n\n`;
+
       profileMessage += `🏆 *Достижения:* ${unlockedAchievements.length}/${achievements.length}\n`;
       profileMessage += `━━━━━━━━━━━━━━━━\n`;
       
@@ -3739,7 +3739,7 @@ function setupBot(env) {
       referralMessage += `_Нажмите на ссылку, чтобы скопировать_\n\n`;
 
       referralMessage += `📊 *Статистика:*\n`;
-      referralMessage += `• Приглашено друзей: ${userStats.referrals_count}\n`;
+      referralMessage += `• Привлечено хомяков: ${userStats.referrals_count}\n`;
       referralMessage += `• Заработано баллов: ${userStats.referrals_count * 10}\n`; // 10 per referral
       referralMessage += `• Активных рефералов: ${Math.min(userStats.referrals_count, 10)}\n\n`; // Placeholder for active count
 
@@ -3749,7 +3749,7 @@ function setupBot(env) {
 
       const keyboard = new InlineKeyboard()
         .switchInline('📤 Поделиться ссылкой', referralLink).row()
-        .text('👥 Мои рефералы', 'show_referral_list').row()
+        .text('🐹 Мои хомячки', 'show_referral_list').row()
         .text('« Назад', 'back_to_start');
       
       await ctx.editMessageText(referralMessage, {
@@ -3772,7 +3772,7 @@ function setupBot(env) {
       // For now, we'll show a placeholder
       const userStats = await getUserStats(env, userId);
       
-      let referralListMessage = `👥 *Мои рефералы* (${userStats.referrals_count} человек)\n\n`;
+      let referralListMessage = `🐹 *Мои хомячки* (${userStats.referrals_count} шт.)\n\n`;
       
       if (userStats.referrals_count > 0) {
         // Placeholder list - in reality this would come from referrals sheet
@@ -3789,7 +3789,7 @@ function setupBot(env) {
       }
       
       const keyboard = new InlineKeyboard()
-        .text('« Назад к рефералке', 'show_referral');
+        .text('« Назад к фабрике', 'show_referral');
       
       await ctx.editMessageText(referralListMessage, {
         parse_mode: 'Markdown',
