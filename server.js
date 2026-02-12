@@ -423,10 +423,13 @@ async function checkRepresentative(env, user) {
     const partnerData = partners.find(p => {
       if (!p.predstavitel) return false;
 
-      // Normalize representative from table (remove @ and lowercase)
-      const normalizedPredstavitel = p.predstavitel.toLowerCase().replace('@', '').trim();
+      // Split multiple representatives if they exist and normalize each
+      const representatives = p.predstavitel.split(',').map(rep => rep.trim()).filter(rep => rep);
+      
+      // Normalize each representative from table (remove @ and lowercase)
+      const normalizedRepresentatives = representatives.map(rep => rep.toLowerCase().replace('@', '').trim());
 
-      return normalizedPredstavitel === normalizedUsername;
+      return normalizedRepresentatives.includes(normalizedUsername);
     });
 
     console.log(`Representative check for ${user.username} (normalized: ${normalizedUsername}):`, partnerData ? partnerData.title : 'not found');
