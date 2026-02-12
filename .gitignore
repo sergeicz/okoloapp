@@ -28,6 +28,15 @@ yarn.lock
 .node_repl_history
 .yarn-integrity
 
+# Cloudflare Workers
+.wrangler/
+.dev.vars
+worker/.dev.vars
+wrangler.toml.backup
+
+# Claude CLI
+.claude/
+
 
 # === Docker ===
 # Docker volumes and data
