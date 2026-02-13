@@ -602,9 +602,10 @@ h2 {
               0 0 50px rgba(255, 0, 0, 0.4);
 }
 
-.obrazovach-emoji {
-  font-size: 1.2rem;
-  display: inline-block;
+.obrazovach-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .back-to-home-btn {
