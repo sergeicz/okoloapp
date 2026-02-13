@@ -532,12 +532,12 @@ function goToIndex() {
     educationTg.HapticFeedback.impactOccurred('light');
   }
 
-  // Закрываем текущий Mini App, чтобы пользователь вернулся к списку команд бота
-  // где он сможет снова открыть Mini App через нужную команду
-  if (educationTg && educationTg.close) {
-    educationTg.close();
+  // Пытаемся открыть главную страницу в скрытом iframe
+  const navFrame = document.getElementById('navigation-frame');
+  if (navFrame) {
+    navFrame.src = 'index.html';
   } else {
-    // Если Telegram WebApp недоступен, используем стандартный переход
+    // Если iframe не найден, используем стандартный переход
     window.location.href = 'index.html';
   }
 }
