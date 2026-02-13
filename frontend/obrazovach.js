@@ -526,18 +526,72 @@ function waitForTelegramWebApp(timeout = 10000) {
 }
 
 // Функция для перехода на главную страницу
-function goToIndex() {
+async function goToIndex() {
   // Вибрация для обратной связи
   if (educationTg && educationTg.HapticFeedback) {
     educationTg.HapticFeedback.impactOccurred('light');
   }
 
-  // Пытаемся открыть главную страницу в скрытом iframe
-  const navFrame = document.getElementById('navigation-frame');
-  if (navFrame) {
-    navFrame.src = 'index.html';
-  } else {
-    // Если iframe не найден, используем стандартный переход
+  try {
+    // Загружаем содержимое главной страницы
+    const response = await fetch('index.html');
+    const htmlContent = await response.text();
+    
+    // Создаем DOM элемент из полученного HTML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    
+    // Извлекаем только нужный контент (обычно это содержимое <body>)
+    const newContent = doc.querySelector('.container');
+    
+    if (newContent) {
+      // Заменяем текущий контент на новый
+      const currentContainer = document.querySelector('.container');
+      if (currentContainer) {
+        currentContainer.innerHTML = newContent.innerHTML;
+        
+        // Обновляем заголовок страницы
+        const newTitle = doc.querySelector('title');
+        if (newTitle) {
+          document.title = newTitle.textContent;
+        }
+        
+        // Выполняем скрипты, если они есть
+        const scripts = doc.querySelectorAll('script');
+        scripts.forEach(script => {
+          if (script.src) {
+            // Внешние скрипты
+            const newScript = document.createElement('script');
+            newScript.src = script.src;
+            document.head.appendChild(newScript);
+          } else {
+            // Встроенные скрипты
+            eval(script.textContent);
+          }
+        });
+      }
+    } else {
+      // Если не удалось найти контейнер, используем весь body
+      const newBody = doc.body.innerHTML;
+      document.body.innerHTML = newBody;
+      
+      // Выполняем скрипты
+      const scripts = doc.querySelectorAll('script');
+      scripts.forEach(script => {
+        if (script.src) {
+          // Внешние скрипты
+          const newScript = document.createElement('script');
+          newScript.src = script.src;
+          document.head.appendChild(newScript);
+        } else {
+          // Встроенные скрипты
+          eval(script.textContent);
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Navigation error:', error);
+    // Если загрузка не удалась, используем стандартный переход
     window.location.href = 'index.html';
   }
 }
