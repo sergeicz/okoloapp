@@ -295,7 +295,7 @@ async function deleteSheetRow(spreadsheetId, sheetName, rowIndex, accessToken) {
 
 async function checkUserActive(bot, userId) {
   try {
-    const member = await bot.api.getChatMember(userId, userId);
+    const member = await globalBot.api.getChatMember(userId, userId);
     return member.status !== 'kicked';
   } catch (error) {
     // If error - user blocked bot or deleted account
@@ -450,6 +450,7 @@ async function checkRepresentative(env, user) {
 // Get user profile photo URL via Telegram Bot API
 async function getUserAvatarUrl(userId) {
   try {
+    // Create bot instance (used during startup before globalBot is initialized)
     const bot = new Bot(env.BOT_TOKEN);
 
     // Get user profile photos
@@ -887,13 +888,12 @@ async function awardPointsToUser(env, userId, achievementId) {
     
     // Still send notification about achievement without points
     try {
-      const bot = new Bot(env.BOT_TOKEN);
-      const achievementTitle = achievement.title;
+        const achievementTitle = achievement.title;
       const achievementDescription = achievement.description;
       
       const message = `🎉 Поздравляем! Новое достижение!\n\n${achievementTitle}\n━━━━━━━━━━━\n${achievementDescription}\n\n🏆 Редкость: ${achievement.rarity}\n⭐ (как админ, вы не получаете баллы за достижения)`;
       
-      await bot.api.sendMessage(userId, message);
+      await globalBot.api.sendMessage(userId, message);
     } catch (error) {
       console.error(`Failed to send achievement notification to admin user ${userId}:`, error);
     }
@@ -909,7 +909,6 @@ async function awardPointsToUser(env, userId, achievementId) {
   
   // Send notification to user
   try {
-    const bot = new Bot(env.BOT_TOKEN);
     const achievementTitle = achievement.title;
     const achievementDescription = achievement.description;
     const pointsAwarded = achievement.points;
@@ -917,7 +916,7 @@ async function awardPointsToUser(env, userId, achievementId) {
     
     const message = `🎉 Поздравляем! Новое достижение!\n\n${achievementTitle}\n━━━━━━━━━━━\n${achievementDescription}\n\n🏆 Редкость: ${achievement.rarity}\n⭐ Награда: +${pointsAwarded} баллов\n\nВаш новый рейтинг: ${totalPoints} баллов`;
     
-    await bot.api.sendMessage(userId, message);
+    await globalBot.api.sendMessage(userId, message);
   } catch (error) {
     console.error(`Failed to send achievement notification to user ${userId}:`, error);
   }
@@ -1225,12 +1224,11 @@ async function handleReferralLink(env, referrerId, newUserId) {
     
     // Send notification to referrer
     try {
-      const bot = new Bot(env.BOT_TOKEN);
-      const message = isAdmin 
+        const message = isAdmin 
         ? `🎉 Ваш друг присоединился! (как админ, вы не получаете баллы за рефералов)`
         : `🎉 Ваш друг присоединился! +10 баллов за реферала`;
       
-      await bot.api.sendMessage(referrerId, message);
+      await globalBot.api.sendMessage(referrerId, message);
     } catch (error) {
       console.error(`Failed to send referral notification to user ${referrerId}:`, error);
     }
@@ -1563,7 +1561,6 @@ async function deleteOldMessages(env) {
   console.log('[AUTO-DELETE] 🗑️ Starting old messages cleanup...');
 
   try {
-    const bot = new Bot(env.BOT_TOKEN);
     let deletedCount = 0;
     let errorCount = 0;
 
@@ -1588,7 +1585,7 @@ async function deleteOldMessages(env) {
           console.log(`[AUTO-DELETE] 🎯 Deleting message ${data.message_id} from chat ${data.chat_id} (${messageType})`);
 
           try {
-            await bot.api.deleteMessage(data.chat_id, data.message_id);
+            await globalBot.api.deleteMessage(data.chat_id, data.message_id);
             deletedCount++;
             console.log(`[AUTO-DELETE] ✅ Deleted message ${data.message_id}`);
           } catch (error) {
@@ -1638,7 +1635,6 @@ async function checkAllUsers(env) {
     const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
 
-    const bot = new Bot(env.BOT_TOKEN);
     let checkedCount = 0;
     let inactiveCount = 0;
     const inactiveUsers = [];
@@ -1654,7 +1650,7 @@ async function checkAllUsers(env) {
 
       try {
         // Get current user info
-        const chatInfo = await bot.api.getChat(user.telegram_id);
+        const chatInfo = await globalBot.api.getChat(user.telegram_id);
         checkedCount++;
 
         // Update user data in table if changed
@@ -1772,7 +1768,6 @@ async function sendWeeklyPartnerReports(env) {
     const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
     const broadcasts = await getSheetData(env.SHEET_ID, 'broadcasts', accessToken);
 
-    const bot = new Bot(env.BOT_TOKEN);
     let sentCount = 0;
 
     // Calculate date range for last week
@@ -1809,7 +1804,7 @@ async function sendWeeklyPartnerReports(env) {
         `👆 Переходов: ${totalClicks}\n`;
 
       try {
-        await bot.api.sendMessage(partner.telegram_id, message, { parse_mode: 'HTML' });
+        await globalBot.api.sendMessage(partner.telegram_id, message, { parse_mode: 'HTML' });
         sentCount++;
         console.log(`[WEEKLY_REPORT] ✅ Report sent to ${partner.title} (${partner.telegram_id})`);
       } catch (error) {
@@ -1842,7 +1837,6 @@ async function sendMonthlyPartnerReports(env) {
     const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
     const broadcasts = await getSheetData(env.SHEET_ID, 'broadcasts', accessToken);
 
-    const bot = new Bot(env.BOT_TOKEN);
     let sentCount = 0;
 
     // Calculate date range for last month
@@ -1879,7 +1873,7 @@ async function sendMonthlyPartnerReports(env) {
         `👆 Переходов: ${totalClicks}\n`;
 
       try {
-        await bot.api.sendMessage(partner.telegram_id, message, { parse_mode: 'HTML' });
+        await globalBot.api.sendMessage(partner.telegram_id, message, { parse_mode: 'HTML' });
         sentCount++;
         console.log(`[MONTHLY_REPORT] ✅ Report sent to ${partner.title} (${partner.telegram_id})`);
       } catch (error) {
@@ -4548,6 +4542,11 @@ function setupBot(env) {
 
 const app = express();
 
+// ═══════════════════════════════════════════════════════════════
+// GLOBAL BOT INSTANCE (will be initialized after all setup)
+// ═══════════════════════════════════════════════════════════════
+let globalBot;
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -4565,8 +4564,7 @@ app.use((req, res, next) => {
 // Fixed webhook path (no token in URL for security)
 app.post('/bot', async (req, res) => {
   try {
-    const bot = setupBot(env);
-    const handleUpdate = webhookCallback(bot, 'express');
+    const handleUpdate = webhookCallback(globalBot, 'express');
     await handleUpdate(req, res);
   } catch (error) {
     console.error('[Webhook] Error:', error);
@@ -4904,16 +4902,18 @@ app.post('/api/click', async (req, res) => {
       partner_keys: Object.keys(partner)
     });
 
+    // Track if promocode was actually sent
+    let promocodeSentSuccessfully = false;
+
     if (promocode && promocode.trim() !== '') {
       console.log(`[PROMOCODE] 🎯 Sending promocode "${promocode}" from ${partner.title} to user ${user_id}`)
       try {
-        const bot = new Bot(env.BOT_TOKEN);
         const message = `🎁 <b>Промокод от ${partner.title}</b>\n\n` +
           `<code>${promocode}</code>\n\n` +
           `Скопируйте промокод и используйте его на сайте партнера!\n\n` +
           `<i>Это сообщение будет автоматически удалено через 24 часа</i>`;
 
-        const sentMessage = await bot.api.sendMessage(user_id, message, { parse_mode: 'HTML' });
+        const sentMessage = await globalBot.api.sendMessage(user_id, message, { parse_mode: 'HTML' });
 
         // Save message info for auto-deletion
         const deleteAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
@@ -4928,6 +4928,7 @@ app.post('/api/click', async (req, res) => {
           })
         );
 
+        promocodeSentSuccessfully = true;
         console.log(`[PROMOCODE] ✅ Sent promocode from ${partner.title} to user ${user_id}`);
       } catch (error) {
         console.error(`[PROMOCODE] ❌ Failed to send promocode:`, {
@@ -4935,6 +4936,11 @@ app.post('/api/click', async (req, res) => {
           description: error.description,
           message: error.message
         });
+
+        // Check if user blocked the bot
+        if (error.error_code === 403) {
+          console.error(`[PROMOCODE] 🚫 User ${user_id} has blocked the bot`);
+        }
       }
     } else {
       console.log(`[PROMOCODE] ⏭️ No promocode to send for ${partner.title} (promocode is empty or missing)`);
@@ -4955,7 +4961,7 @@ app.post('/api/click', async (req, res) => {
       ok: true,
       success: true,
       clicks: clickCount,
-      promocode_sent: !!(partner.promocode && partner.promocode.trim() !== '')
+      promocode_sent: promocodeSentSuccessfully
     });
   } catch (error) {
     console.error('[API] Error tracking click:', error);
@@ -5163,7 +5169,6 @@ app.post('/api/send-video', async (req, res) => {
     await checkRateLimit(env, `send_video:${user_id}`, 5, 60);
 
     // Send video message to user via bot
-    const bot = new Bot(env.BOT_TOKEN);
 
     // Create caption with title and subtitle
     let caption = `🎥 <b>${title || 'Образовательное видео'}</b>`;
@@ -5177,7 +5182,7 @@ app.post('/api/send-video', async (req, res) => {
     let sentMessage;
     if (url_cover && url_cover.trim() !== '') {
       try {
-        sentMessage = await bot.api.sendPhoto(user_id, url_cover, {
+        sentMessage = await globalBot.api.sendPhoto(user_id, url_cover, {
           caption: caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>',
           parse_mode: 'HTML',
           reply_markup: keyboard
@@ -5186,14 +5191,14 @@ app.post('/api/send-video', async (req, res) => {
       } catch (photoError) {
         console.error(`[API] ⚠️ Failed to send photo, falling back to text message:`, photoError.message);
         // Fallback to text message if photo fails
-        sentMessage = await bot.api.sendMessage(user_id, caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>', {
+        sentMessage = await globalBot.api.sendMessage(user_id, caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>', {
           parse_mode: 'HTML',
           reply_markup: keyboard
         });
       }
     } else {
       // Send text message if no cover image
-      sentMessage = await bot.api.sendMessage(user_id, caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>', {
+      sentMessage = await globalBot.api.sendMessage(user_id, caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>', {
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
@@ -5647,6 +5652,12 @@ cron.schedule('0 12 1 * *', async () => {
     console.error('[CRON] ❌ Error in monthly reports:', error);
   }
 });
+
+// ═══════════════════════════════════════════════════════════════
+// INITIALIZE GLOBAL BOT BEFORE SERVER START
+// ═══════════════════════════════════════════════════════════════
+globalBot = setupBot(env);
+console.log('[BOT] ✅ Global bot initialized successfully');
 
 // ═══════════════════════════════════════════════════════════════
 // SERVER START
