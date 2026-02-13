@@ -2328,6 +2328,13 @@ function escapeMarkdown(text) {
   return String(text).replace(/([_*\[\]()~`>#+=|{}.!-])/g, '\\$1');
 }
 
+// Helper function to escape only underscores in URLs
+// URLs should not have dots, slashes, etc. escaped or they will break
+function escapeMarkdownUrl(url) {
+  if (!url) return url;
+  return String(url).replace(/_/g, '\\_');
+}
+
 // ═══════════════════════════════════════════════════════════════
 // BOT SETUP WITH GRAMMY
 // ═══════════════════════════════════════════════════════════════
@@ -2932,9 +2939,9 @@ function setupBot(env) {
       }
 
       if (broadcast.button_text && broadcast.button_url) {
-        // Escape markdown characters in button text and URL
+        // Escape markdown characters in button text and URL (URL only needs underscore escaping)
         const escapedButtonText = escapeMarkdown(broadcast.button_text);
-        const escapedUrl = escapeMarkdown(broadcast.button_url);
+        const escapedUrl = escapeMarkdownUrl(broadcast.button_url);
         text += `\n🔘 *Кнопка:* ${escapedButtonText}\n`;
         text += `🔗 *Ссылка:* ${escapedUrl}`;
       }
@@ -4185,7 +4192,7 @@ function setupBot(env) {
         `🏷️ *Ваш партнер:* ${escapeMarkdown(partnerData.title)}\n` +
         `📁 *Категория:* ${escapeMarkdown(partnerData.category || 'Не указана')}\n` +
         `📅 *Дата размещения:* ${partnerData.date_release || 'Не указана'}\n` +
-        `🔗 *Ссылка:* ${escapeMarkdown(partnerUrl)}\n\n` +
+        `🔗 *Ссылка:* ${escapeMarkdownUrl(partnerUrl)}\n\n` +
         `*📈 Общая статистика:*\n` +
         `👥 Уникальных пользователей: ${uniqueUsers}\n` +
         `🖱️ Всего кликов: ${totalClicks}\n` +
@@ -4281,7 +4288,7 @@ function setupBot(env) {
         `🏷️ *Ваш партнер:* ${escapeMarkdown(partnerData.title)}\n` +
         `📁 *Категория:* ${escapeMarkdown(partnerData.category || 'Не указана')}\n` +
         `📅 *Дата размещения:* ${partnerData.date_release || 'Не указана'}\n` +
-        `🔗 *Ссылка:* ${escapeMarkdown(partnerUrl)}\n\n` +
+        `🔗 *Ссылка:* ${escapeMarkdownUrl(partnerUrl)}\n\n` +
         `*📈 Общая статистика (за все время):*\n` +
         `👥 Уникальных пользователей: ${uniqueUsers}\n` +
         `🖱️ Всего кликов: ${totalClicks}\n` +
