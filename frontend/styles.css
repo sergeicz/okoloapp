@@ -585,7 +585,7 @@ h2 {
               inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
-/* Home button - similar styling to modern-btn but without JS interference */
+/* Home button - identical styling to modern-btn but without JS interference */
 .home-btn {
   display: flex;
   align-items: center;
@@ -649,6 +649,21 @@ h2 {
   transform: scale(0.96);
   box-shadow: 0 2px 10px rgba(255, 0, 0, 0.4),
               inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Additional styles to ensure identical appearance */
+.home-btn .btn-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  border-radius: 50%;
+  padding: 2px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.home-btn:hover .btn-logo {
+  transform: scale(1.15) rotate(5deg);
 }
 
 .obrazovach-btn {
