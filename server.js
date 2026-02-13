@@ -2639,7 +2639,9 @@ function setupBot(env) {
 
     try {
       const userStats = await getUserStats(env, userId);
-      const referralLink = `https://t.me/${env.BOT_USERNAME || 'okolotattoo_bot'}?start=ref_${userId}`;
+      // Escape underscores for Markdown
+      const botUsername = (env.BOT_USERNAME || 'okolotattoo_bot').replace(/_/g, '\\_');
+      const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
 
       let referralMessage = `👥 *Реферальная программа*\n\n`;
       referralMessage += `🔗 *Ваша ссылка для копирования:*\n\`${referralLink}\`\n\n`;
@@ -2915,8 +2917,10 @@ function setupBot(env) {
       }
 
       if (broadcast.button_text && broadcast.button_url) {
+        // Escape underscores in URL for Markdown
+        const escapedUrl = broadcast.button_url.replace(/_/g, '\\_');
         text += `\n🔘 *Кнопка:* ${broadcast.button_text}\n`;
-        text += `🔗 *Ссылка:* ${broadcast.button_url}`;
+        text += `🔗 *Ссылка:* ${escapedUrl}`;
       }
 
       const keyboard = new InlineKeyboard()
@@ -3850,8 +3854,10 @@ function setupBot(env) {
     
     try {
       const userStats = await getUserStats(env, userId);
-      const referralLink = `https://t.me/${env.BOT_USERNAME || 'okolotattoo_bot'}?start=ref_${userId}`;
-      
+      // Escape underscores for Markdown
+      const botUsername = (env.BOT_USERNAME || 'okolotattoo_bot').replace(/_/g, '\\_');
+      const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
+
       let referralMessage = `👥 *Реферальная программа*\n\n`;
       referralMessage += `🔗 *Ваша ссылка для копирования:*\n\`${referralLink}\`\n\n`;
       referralMessage += `_Нажми на ссылку, чтобы скопировать_\n\n`;
