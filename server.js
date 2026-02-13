@@ -2570,6 +2570,7 @@ function setupBot(env) {
     // Add profile and referral buttons for ALL users (including admins)
     keyboard.row().text('👤 Мой профиль', 'show_profile');
     keyboard.row().text('🐹 Фабрика хомяков', 'show_referral');
+    keyboard.row().text('💌 Обратная связь', 'show_feedback');
 
     await ctx.reply(
       `👋 Привет, *${user.first_name}*!\n\n` +
@@ -2725,6 +2726,28 @@ function setupBot(env) {
     } catch (error) {
       console.error('Error showing donate menu:', error);
       await ctx.reply('❌ Ошибка при загрузке меню донатов');
+    }
+  });
+
+  // /feedback command - Show feedback message with link
+  bot.command('feedback', async (ctx) => {
+    const user = ctx.from;
+
+    try {
+      let feedbackMessage = `💌 *Обратная связь*\n\n`;
+      feedbackMessage += `Если у вас есть вопросы, предложения или вы столкнулись с проблемой, пожалуйста, напишите нам!\n\n`;
+      feedbackMessage += `Мы ценим каждый ваш комментарий, так как он помогает нам становиться лучше.`;
+
+      const keyboard = new InlineKeyboard()
+        .url('💬 Написать в поддержку', 'https://clck.ru/3Rncqs');
+
+      await ctx.reply(feedbackMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      console.error('Error showing feedback message:', error);
+      await ctx.reply('❌ Ошибка при загрузке сообщения обратной связи');
     }
   });
 
@@ -3691,6 +3714,7 @@ function setupBot(env) {
     // Add profile and referral buttons for all users
     keyboard.row().text('👤 Мой профиль', 'show_profile');
     keyboard.row().text('🐹 Фабрика хомяков', 'show_referral');
+    keyboard.row().text('💌 Обратная связь', 'show_feedback');
 
     await ctx.editMessageText(
       `👋 Привет, *${escapeMarkdown(user.first_name)}*!\n\n` +
@@ -3920,20 +3944,20 @@ function setupBot(env) {
   // Show referral list
   bot.callbackQuery('show_referral_list', async (ctx) => {
     const userId = ctx.from.id;
-    
+
     try {
       // In a real implementation, this would fetch from the referrals sheet
       // For now, we'll show a placeholder
       const userStats = await getUserStats(env, userId);
-      
+
       let referralListMessage = `🐹 *Мой взвод хомяков* (${userStats.referrals_count} шт.)\n\n`;
-      
+
       if (userStats.referrals_count > 0) {
         // Placeholder list - in reality this would come from referrals sheet
         for (let i = 1; i <= Math.min(userStats.referrals_count, 5); i++) {
           referralListMessage += `${i}. @referral_user${i} - 2 дня назад\n`;
         }
-        
+
         if (userStats.referrals_count > 5) {
           referralListMessage += `... и ещё ${userStats.referrals_count - 5}`;
         }
@@ -3941,10 +3965,10 @@ function setupBot(env) {
         referralListMessage += `Пока никто не присоединился по вашей ссылке.\n\n`;
         referralListMessage += `Поделитесь своей ссылкой, чтобы приглашать друзей!`;
       }
-      
+
       const keyboard = new InlineKeyboard()
         .text('« Назад', 'show_referral');
-      
+
       await ctx.editMessageText(referralListMessage, {
         parse_mode: 'Markdown',
         reply_markup: keyboard
@@ -3953,6 +3977,28 @@ function setupBot(env) {
     } catch (error) {
       console.error('Error showing referral list:', error);
       await ctx.answerCallbackQuery('❌ Ошибка при загрузке списка рефералов');
+    }
+  });
+
+  // Show feedback message
+  bot.callbackQuery('show_feedback', async (ctx) => {
+    try {
+      let feedbackMessage = `💌 *Обратная связь*\n\n`;
+      feedbackMessage += `Если у вас есть вопросы, предложения или вы столкнулись с проблемой, пожалуйста, напишите нам!\n\n`;
+      feedbackMessage += `Мы ценим каждый ваш комментарий, так как он помогает нам становиться лучше.`;
+
+      const keyboard = new InlineKeyboard()
+        .url('💬 Написать в поддержку', 'https://clck.ru/3Rncqs').row()
+        .text('« Назад', 'back_to_start');
+
+      await ctx.editMessageText(feedbackMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+      await ctx.answerCallbackQuery();
+    } catch (error) {
+      console.error('Error showing feedback message:', error);
+      await ctx.answerCallbackQuery('❌ Ошибка при загрузке сообщения обратной связи');
     }
   });
 
@@ -4629,7 +4675,8 @@ function setupBot(env) {
     { command: 'start', description: 'Начать работу с ботом' },
     { command: 'profile', description: 'Посмотреть свой профиль и достижения' },
     { command: 'referrals', description: 'Реферальная программа' },
-    { command: 'donate', description: 'Поддержать проект' }
+    { command: 'donate', description: 'Поддержать проект' },
+    { command: 'feedback', description: 'Связаться с поддержкой' }
   ]).catch(error => {
     console.error('Error setting bot commands:', error);
   });
