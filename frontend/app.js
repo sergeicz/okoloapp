@@ -427,7 +427,7 @@ async function loadUserProfile() {
     console.log('👤 Загрузка профиля пользователя...');
 
     // Get profile data from API
-    const profileData = await safeFetch(`${CONFIG.API_URL}/api/profile/${user.id}`);
+    const profileData = await safeFetch(`${CONFIG.API_URL}/api/profile/quick/${user.id}`);
 
     if (!profileData.success) {
       console.error('Failed to load profile:', profileData.error);
@@ -461,9 +461,20 @@ async function loadUserProfile() {
 
     console.log('✅ Профиль загружен:', profileData.user.first_name, profileData.stats.total_points);
 
+    // Show profile card with fade-in
+    const profileCard = document.getElementById('userProfileCard');
+    if (profileCard) {
+      profileCard.style.opacity = '1';
+    }
+
   } catch (error) {
     console.error('❌ Error loading profile:', error);
     // Don't show error to user - profile card is not critical
+    // Still show the card with default values
+    const profileCard = document.getElementById('userProfileCard');
+    if (profileCard) {
+      profileCard.style.opacity = '1';
+    }
   }
 }
 

@@ -5376,6 +5376,60 @@ Disallow: /
 // ACHIEVEMENT SYSTEM API ENDPOINTS
 // ═══════════════════════════════════════════════════════════════
 
+// Quick profile endpoint for profile card (name + points only)
+app.get('/api/profile/quick/:tg_id', async (req, res) => {
+  try {
+    const { tg_id } = req.params;
+
+    if (!tg_id) {
+      return res.status(400).json({ error: 'Missing tg_id parameter', success: false });
+    }
+
+    // Get cached stats (fast)
+    const userStats = await getUserStats(env, tg_id);
+
+    // Get user name from cache or fetch minimal data
+    const cacheKey = `user_profile_quick:${tg_id}`;
+    let userData = await env.BROADCAST_STATE.get(cacheKey);
+
+    if (!userData) {
+      // Fetch only user data
+      const creds = parsedCredentials;
+      const accessToken = await getAccessToken(env, creds);
+      const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
+      const user = users.find(u => String(u.telegram_id) === String(tg_id));
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found', success: false });
+      }
+
+      userData = {
+        first_name: user.first_name,
+        username: user.username,
+        avatar_url: user.avatar_url || null
+      };
+
+      // Cache for 5 minutes
+      await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(userData), {
+        expirationTtl: 300
+      });
+    } else {
+      userData = JSON.parse(userData);
+    }
+
+    res.json({
+      success: true,
+      user: userData,
+      stats: {
+        total_points: userStats.total_points || 0
+      }
+    });
+  } catch (error) {
+    console.error('[API] Error getting quick profile:', error);
+    res.status(500).json({ error: error.message, success: false });
+  }
+});
+
 // Get user profile
 app.get('/api/profile/:tg_id', async (req, res) => {
   try {
