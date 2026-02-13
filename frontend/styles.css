@@ -992,7 +992,7 @@ h2 {
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
               0 4px 16px rgba(0, 0, 0, 0.2),
               inset 0 1px 1px rgba(255, 255, 255, 0.3);
   text-align: center;
@@ -1058,15 +1058,15 @@ h2 {
     max-width: 100%;
     padding: 18px 20px;
   }
-  
+
   .promo-restart-icon {
     font-size: 2rem;
   }
-  
+
   .promo-restart-text {
     font-size: 0.95rem;
   }
-  
+
   .promo-restart-btn {
     font-size: 0.95rem;
     padding: 11px 22px;
@@ -1079,15 +1079,15 @@ h2 {
     gap: 12px;
     border-radius: 20px;
   }
-  
+
   .promo-restart-icon {
     font-size: 1.8rem;
   }
-  
+
   .promo-restart-text {
     font-size: 0.9rem;
   }
-  
+
   .promo-restart-btn {
     font-size: 0.9rem;
     padding: 10px 20px;
@@ -1099,15 +1099,15 @@ h2 {
     padding: 14px 16px;
     gap: 10px;
   }
-  
+
   .promo-restart-icon {
     font-size: 1.6rem;
   }
-  
+
   .promo-restart-text {
     font-size: 0.85rem;
   }
-  
+
   .promo-restart-btn {
     font-size: 0.85rem;
     padding: 9px 18px;
@@ -1132,7 +1132,7 @@ h2 {
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 30px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
               0 4px 16px rgba(0, 0, 0, 0.2),
               inset 0 1px 1px rgba(255, 255, 255, 0.4);
   text-decoration: none;
@@ -1162,7 +1162,7 @@ h2 {
 .partner-banner:hover {
   background: rgba(168, 85, 247, 0.2);
   border-color: rgba(168, 85, 247, 0.5);
-  box-shadow: 0 12px 40px rgba(168, 85, 247, 0.4), 
+  box-shadow: 0 12px 40px rgba(168, 85, 247, 0.4),
               0 6px 20px rgba(0, 0, 0, 0.3),
               inset 0 1px 1px rgba(255, 255, 255, 0.6);
   transform: translateY(-4px) scale(1.02);
@@ -1261,11 +1261,11 @@ h2 {
 
 .loading-bar {
   height: 100%;
-  background: linear-gradient(90deg, 
-    #FF0000 0%, 
-    #FF4500 25%, 
-    #FF0000 50%, 
-    #FF4500 75%, 
+  background: linear-gradient(90deg,
+    #FF0000 0%,
+    #FF4500 25%,
+    #FF0000 50%,
+    #FF4500 75%,
     #FF0000 100%
   );
   background-size: 200% 100%;
@@ -1665,7 +1665,7 @@ h2 {
   }
 
   .cookie-icon {
-    font-size: 2rem;
+    font-size: 2.0rem;
     margin-bottom: 8px;
   }
 
@@ -1849,7 +1849,7 @@ h2 {
   padding: 18px 28px;
   border-radius: 50px;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
               0 6px 20px rgba(0, 0, 0, 0.3),
               inset 0 1px 1px rgba(255, 255, 255, 0.4);
   display: flex;
@@ -1865,7 +1865,7 @@ h2 {
 .promo-notification:hover {
   background: rgba(255, 255, 255, 0.25);
   border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5),
               0 8px 24px rgba(0, 0, 0, 0.4),
               inset 0 1px 1px rgba(255, 255, 255, 0.6);
   transform: translateX(-50%) translateY(-2px);
@@ -1985,19 +1985,19 @@ h2 {
     max-width: calc(100vw - 32px);
     gap: 12px;
   }
-  
+
   .promo-notification-icon {
     font-size: 30px;
   }
-  
+
   .promo-notification-title {
     font-size: 14px;
   }
-  
+
   .promo-notification-text {
     font-size: 12px;
   }
-  
+
   .promo-notification-close {
     width: 28px;
     height: 28px;
@@ -2010,19 +2010,19 @@ h2 {
     padding: 14px 16px;
     gap: 10px;
   }
-  
+
   .promo-notification-icon {
     font-size: 26px;
   }
-  
+
   .promo-notification-title {
     font-size: 13px;
   }
-  
+
   .promo-notification-text {
     font-size: 11px;
   }
-  
+
   .promo-notification-close {
     width: 26px;
     height: 26px;
@@ -2132,7 +2132,7 @@ social.show {
   color: #000000;
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
               inset 0 1px 1px rgba(255, 255, 255, 0.4);
 }
 
@@ -2146,7 +2146,7 @@ social.show {
   border-color: rgba(255, 255, 255, 0.5);
   color: #FFFFFF;
   transform: translateY(-3px) scale(1.1);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3),
               inset 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
@@ -2162,7 +2162,7 @@ social.show {
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
               0 4px 16px rgba(0, 0, 0, 0.2),
               inset 0 1px 1px rgba(255, 255, 255, 0.4);
   color: #000000;
@@ -2180,7 +2180,7 @@ social.show {
   color: #FFFFFF;
   font-weight: 700;
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
               0 6px 20px rgba(0, 0, 0, 0.3),
               inset 0 1px 1px rgba(255, 255, 255, 0.6);
   transform: translateY(-2px);
@@ -2243,26 +2243,73 @@ social.show {
   transform: scale(0.95);
 }
 
+/* Back Button */
+.back-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: translateY(-30px);
+  animation: fadeInUp 0.6s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.back-button:active {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
 /* Адаптивность баннера партнёрам */
 @media (max-width: 768px) {
   .partner-banner {
     padding: 12px 18px;
     gap: 12px;
   }
-  
+
   .banner-icon {
     width: 28px;
     height: 28px;
   }
-  
+
   .banner-title {
     font-size: 0.95rem;
   }
-  
+
   .banner-text {
     font-size: 0.8rem;
   }
-  
+
   .banner-arrow {
     font-size: 1.5rem;
   }
@@ -2274,20 +2321,20 @@ social.show {
     gap: 10px;
     border-radius: 28px;
   }
-  
+
   .banner-icon {
     width: 24px;
     height: 24px;
   }
-  
+
   .banner-title {
     font-size: 0.9rem;
   }
-  
+
   .banner-text {
     font-size: 0.75rem;
   }
-  
+
   .banner-arrow {
     font-size: 1.3rem;
   }
@@ -2298,20 +2345,20 @@ social.show {
     padding: 8px 14px;
     gap: 8px;
   }
-  
+
   .banner-icon {
     width: 22px;
     height: 22px;
   }
-  
+
   .banner-title {
     font-size: 0.85rem;
   }
-  
+
   .banner-text {
     font-size: 0.7rem;
   }
-  
+
   .banner-arrow {
     font-size: 1.2rem;
   }
@@ -2323,30 +2370,30 @@ social.show {
     margin-top: 35px;
     gap: 10px;
   }
-  
+
   .app-footer {
     margin-top: 25px;
     margin-bottom: 25px;
   }
-  
+
   .social-title {
     font-size: 11px;
   }
-  
+
   .social-links {
     gap: 10px;
   }
-  
+
   .social-link {
     width: 34px;
     height: 34px;
   }
-  
+
   .social-link svg {
     width: 16px;
     height: 16px;
   }
-  
+
   .footer-link {
     padding: 12px 30px;
     font-size: 10px;
@@ -2356,6 +2403,11 @@ social.show {
     padding: 14px 35px;
     font-size: 13px;
   }
+
+  .back-button {
+    padding: 12px 35px;
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -2363,30 +2415,30 @@ social.show {
     margin-top: 30px;
     gap: 10px;
   }
-  
+
   .app-footer {
     margin-top: 20px;
     margin-bottom: 20px;
   }
-  
+
   .social-title {
     font-size: 10px;
   }
-  
+
   .social-links {
     gap: 8px;
   }
-  
+
   .social-link {
     width: 32px;
     height: 32px;
   }
-  
+
   .social-link svg {
     width: 15px;
     height: 15px;
   }
-  
+
   .footer-link {
     padding: 11px 26px;
     font-size: 9px;
@@ -2396,6 +2448,11 @@ social.show {
     padding: 12px 30px;
     font-size: 12px;
   }
+
+  .back-button {
+    padding: 11px 30px;
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -2403,36 +2460,41 @@ social.show {
     margin-top: 25px;
     gap: 8px;
   }
-  
+
   .app-footer {
     margin-top: 18px;
     margin-bottom: 18px;
   }
-  
+
   .social-title {
     font-size: 9px;
   }
-  
+
   .social-links {
     gap: 6px;
   }
-  
+
   .social-link {
     width: 30px;
     height: 30px;
   }
-  
+
   .social-link svg {
     width: 14px;
     height: 14px;
   }
-  
+
   .footer-link {
     padding: 10px 22px;
     font-size: 8px;
   }
 
   .footer-donate-btn {
+    padding: 10px 25px;
+    font-size: 11px;
+  }
+
+  .back-button {
     padding: 10px 25px;
     font-size: 11px;
   }
