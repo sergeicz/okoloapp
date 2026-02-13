@@ -2728,6 +2728,26 @@ function setupBot(env) {
     }
   });
 
+  // /feedback command - Open feedback form
+  bot.command('feedback', async (ctx) => {
+    try {
+      const feedbackMessage = `📩 *Обратная связь*\n\n`;
+      feedbackMessage += `Если у вас есть вопросы, предложения или отзывы, пожалуйста, заполните нашу форму обратной связи.\n\n`;
+      feedbackMessage += `👉 *Перейти к форме:*`;
+
+      const keyboard = new InlineKeyboard()
+        .url('📝 Заполнить форму', 'https://forms.yandex.ru/u/698ef7701f1eb56dd2198078');
+
+      await ctx.reply(feedbackMessage, {
+        parse_mode: 'Markdown',
+        reply_markup: keyboard
+      });
+    } catch (error) {
+      console.error('Error showing feedback form:', error);
+      await ctx.reply('❌ Ошибка при открытии формы обратной связи');
+    }
+  });
+
   // ═══════════════════════════════════════════════════════════════
   // ОБРАБОТКА CALLBACK QUERIES
   // ═══════════════════════════════════════════════════════════════
@@ -4621,6 +4641,17 @@ function setupBot(env) {
       '📢 *Создание рассылки*\n\n*Шаг 6 из 6:* Кнопка\n\n✅ Видеозаметка загружена!\n\n🔗 Отправьте *текст и ссылку для кнопки* в формате:\n\nТекст кнопки | https://example.com',
       { parse_mode: 'Markdown', reply_markup: keyboard }
     );
+  });
+
+  // Установка команд меню для бота
+  bot.api.setMyCommands([
+    { command: 'start', description: 'Начать работу с ботом' },
+    { command: 'profile', description: 'Посмотреть свой профиль и достижения' },
+    { command: 'referrals', description: 'Реферальная программа' },
+    { command: 'donate', description: 'Поддержать проект' },
+    { command: 'feedback', description: 'Форма обратной связи' }
+  ]).catch(error => {
+    console.error('Error setting bot commands:', error);
   });
 
   return bot;
