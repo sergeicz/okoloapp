@@ -602,6 +602,13 @@ h2 {
               0 0 50px rgba(255, 0, 0, 0.4);
 }
 
+.obrazovach-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
 .modern-btn .btn-logo {
   width: 32px;
   height: 32px;
