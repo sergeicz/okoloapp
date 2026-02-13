@@ -429,39 +429,50 @@ async function loadUserProfile() {
     // Get profile data from API
     const profileData = await safeFetch(`${CONFIG.API_URL}/api/profile/quick/${user.id}`);
 
-    if (!profileData.success) {
-      console.error('Failed to load profile:', profileData.error);
-      return;
-    }
-
     // Update profile card
     const profileName = document.getElementById('profileName');
     const profilePoints = document.getElementById('profilePoints');
     const profileAvatar = document.getElementById('profileAvatar');
 
-    // Set name
-    if (profileName) {
-      profileName.textContent = profileData.user.first_name || user.first_name || 'Хомяк';
+    if (profileData.success) {
+      // Set name
+      if (profileName) {
+        profileName.textContent = profileData.user.first_name || user.first_name || 'Хомяк';
+      }
+
+      // Set points
+      if (profilePoints) {
+        profilePoints.textContent = profileData.stats.total_points || 0;
+      }
+
+      // Set avatar
+      if (profileAvatar && profileData.user.avatar_url) {
+        // If we have avatar URL, replace placeholder with image
+        profileAvatar.innerHTML = `<img src="${profileData.user.avatar_url}" alt="${profileData.user.first_name}" loading="lazy">`;
+      } else if (profileAvatar) {
+        // Use first letter of name as fallback
+        const firstLetter = (profileData.user.first_name || user.first_name || 'Х')[0].toUpperCase();
+        profileAvatar.innerHTML = `<span class="profile-avatar-placeholder">${firstLetter}</span>`;
+      }
+
+      console.log('✅ Профиль загружен:', profileData.user.first_name, profileData.stats.total_points);
+    } else {
+      // Profile not found - use fallback data from Telegram
+      console.warn('Profile not found, using Telegram data as fallback');
+
+      if (profileName) {
+        profileName.textContent = user.first_name || 'Хомяк';
+      }
+      if (profilePoints) {
+        profilePoints.textContent = '0';
+      }
+      if (profileAvatar) {
+        const firstLetter = (user.first_name || 'Х')[0].toUpperCase();
+        profileAvatar.innerHTML = `<span class="profile-avatar-placeholder">${firstLetter}</span>`;
+      }
     }
 
-    // Set points
-    if (profilePoints) {
-      profilePoints.textContent = profileData.stats.total_points || 0;
-    }
-
-    // Set avatar
-    if (profileAvatar && profileData.user.avatar_url) {
-      // If we have avatar URL, replace placeholder with image
-      profileAvatar.innerHTML = `<img src="${profileData.user.avatar_url}" alt="${profileData.user.first_name}" loading="lazy">`;
-    } else if (profileAvatar) {
-      // Use first letter of name as fallback
-      const firstLetter = (profileData.user.first_name || user.first_name || 'Х')[0].toUpperCase();
-      profileAvatar.innerHTML = `<span class="profile-avatar-placeholder">${firstLetter}</span>`;
-    }
-
-    console.log('✅ Профиль загружен:', profileData.user.first_name, profileData.stats.total_points);
-
-    // Show profile card with fade-in
+    // Always show profile card with fade-in
     const profileCard = document.getElementById('userProfileCard');
     if (profileCard) {
       profileCard.style.opacity = '1';
