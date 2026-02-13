@@ -478,16 +478,12 @@ async function initApp() {
       body: JSON.stringify(user),
     }).catch(err => console.warn('User registration failed:', err));
 
-    // Load user profile card
-    await loadUserProfile();
-
-    // Проверка прав администратора
-    console.log('🔐 Проверка прав администратора...');
-    await checkAdmin();
-
-    // Загрузка партнеров
-    console.log('📦 Загрузка партнерских ссылок...');
-    await loadPartners();
+    // Загрузка профиля, проверка админа и партнёров — параллельно
+    await Promise.allSettled([
+      loadUserProfile(),
+      checkAdmin(),
+      loadPartners(),
+    ]);
 
     console.log('✅ Инициализация завершена!');
 

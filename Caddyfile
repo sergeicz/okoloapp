@@ -1,6 +1,6 @@
 app.okolotattooing.ru {
     # Encode responses
-    encode gzip
+    encode zstd gzip
 
     # API endpoints to backend
     handle /api/* {
@@ -20,6 +20,10 @@ app.okolotattooing.ru {
     # Serve frontend static files
     handle /* {
         root * /srv/frontend
+
+        @static path *.css *.js *.png *.jpg *.svg *.ico *.webp *.woff2
+        header @static Cache-Control "public, max-age=86400"
+
         file_server
         try_files {path} {path}/ /index.html
     }

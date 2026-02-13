@@ -67,6 +67,9 @@ const env = {
   }
 };
 
+// Cached parsed credentials to avoid repeated JSON.parse on every request
+const parsedCredentials = JSON.parse(env.CREDENTIALS_JSON);
+
 // ═══════════════════════════════════════════════════════════════
 // UTILITY FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
@@ -349,7 +352,7 @@ async function getCachedAdmins(env) {
     return JSON.parse(cached);
   }
 
-  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const creds = parsedCredentials;
   const accessToken = await getAccessToken(env, creds);
   const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
 
@@ -370,7 +373,7 @@ async function getCachedPartners(env) {
     return JSON.parse(cached);
   }
 
-  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const creds = parsedCredentials;
   const accessToken = await getAccessToken(env, creds);
   const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
 
@@ -415,7 +418,7 @@ async function checkRepresentative(env, user) {
     }
 
     // Admins can also be partner representatives
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const partners = await getCachedPartners(env);
 
@@ -486,7 +489,7 @@ async function getUserAvatarUrl(userId) {
 // Initialize required sheets in Google Spreadsheet
 async function initializeRequiredSheets(env) {
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     
     // Get all existing sheet names
@@ -614,7 +617,7 @@ async function initializeAchievements(env) {
 
   try {
     // Try to fetch from Google Sheets
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const sheetAchievements = await getSheetData(env.SHEET_ID, 'achievements', accessToken);
     
@@ -750,7 +753,7 @@ async function getUserAchievementProgress(env, userId, achievementId) {
   
   try {
     // Try to fetch from Google Sheets
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const userAchievements = await getSheetData(env.SHEET_ID, 'user_achievements', accessToken);
     
@@ -808,7 +811,7 @@ async function updateUserAchievementProgress(env, userId, achievementId, progres
 
   try {
     // Try to update Google Sheets
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const userAchievements = await getSheetData(env.SHEET_ID, 'user_achievements', accessToken);
 
@@ -882,7 +885,7 @@ async function awardPointsToUser(env, userId, achievementId) {
   }
   
   // Check if user is an admin - if so, don't award points
-  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const creds = parsedCredentials;
   const accessToken = await getAccessToken(env, creds);
   const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
   
@@ -944,7 +947,7 @@ async function getUserStats(env, userId) {
   
   // Fetch from users sheet as fallback
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
     
@@ -999,7 +1002,7 @@ async function getUserStats(env, userId) {
 // Update user statistics
 async function updateUserStats(env, userId, updates) {
   // Check if user is an admin - if so, only update non-points stats
-  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const creds = parsedCredentials;
   const accessToken = await getAccessToken(env, creds);
   const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
   
@@ -1100,7 +1103,7 @@ async function updateUserStats(env, userId, updates) {
 // Check and unlock achievements for user
 async function checkAndUnlockAchievements(env, userId, conditionType, conditionValue = 1) {
   // Check if user is an admin - if so, process achievements but don't award points
-  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const creds = parsedCredentials;
   const accessToken = await getAccessToken(env, creds);
   const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
   
@@ -1193,7 +1196,7 @@ async function handleReferralLink(env, referrerId, newUserId) {
     }
     
     // Check if referrer is an admin - if so, process referral but don't award points
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
     
@@ -1270,7 +1273,7 @@ async function handleReferralLink(env, referrerId, newUserId) {
 // Get referral data
 async function getReferralData(env, referrerId, referredId) {
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const referrals = await getSheetData(env.SHEET_ID, 'referrals', accessToken);
     
@@ -1299,7 +1302,7 @@ async function getReferralData(env, referrerId, referredId) {
 // Calculate conversion rate for a partner
 async function calculatePartnerConversion(env, partnerTitle) {
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     
     // Get all clicks for this partner
@@ -1345,7 +1348,7 @@ async function calculatePartnerConversion(env, partnerTitle) {
 // Calculate conversion rate for a specific user and partner
 async function calculateUserPartnerConversion(env, userId, partnerTitle) {
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     
     // Get clicks for this user and partner
@@ -1401,7 +1404,7 @@ async function updateConversionRate(env, partnerTitle) {
       return null;
     }
     
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     
     // Get all clicks for this partner
@@ -1462,7 +1465,7 @@ async function trackDailyActivity(env, userId) {
     
     // Also update in Google Sheets
     try {
-      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const creds = parsedCredentials;
       const accessToken = await getAccessToken(env, creds);
       const dailyActivities = await getSheetData(env.SHEET_ID, 'daily_activity', accessToken);
       
@@ -1506,7 +1509,7 @@ async function trackDailyActivity(env, userId) {
   
   // Add to Google Sheets
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     
     await appendSheetRow(
@@ -1658,7 +1661,7 @@ async function checkAllUsers(env) {
   console.log('[CRON] 🕐 Starting automatic user check...');
 
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
 
@@ -1789,7 +1792,7 @@ async function sendWeeklyPartnerReports(env) {
   try {
     console.log('[WEEKLY_REPORT] 📊 Starting weekly partner reports...');
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
     const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
@@ -1858,7 +1861,7 @@ async function sendMonthlyPartnerReports(env) {
   try {
     console.log('[MONTHLY_REPORT] 📊 Starting monthly partner reports...');
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
     const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
@@ -2030,7 +2033,7 @@ async function sendBroadcastToUser(api, user, messageText, keyboard, mediaType, 
 }
 
 async function executeBroadcast(ctx, env, state) {
-  const creds = JSON.parse(env.CREDENTIALS_JSON);
+  const creds = parsedCredentials;
   const accessToken = await getAccessToken(env, creds);
   const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
 
@@ -2387,7 +2390,7 @@ function setupBot(env) {
     }
 
     // Регистрируем пользователя
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
     const existing = users.find(u => String(u.telegram_id) === String(chatId));
@@ -2760,7 +2763,7 @@ function setupBot(env) {
       return;
     }
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
     const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
@@ -2784,7 +2787,7 @@ function setupBot(env) {
       return;
     }
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
 
     try {
@@ -2886,7 +2889,7 @@ function setupBot(env) {
     }
 
     const broadcastId = ctx.match[1];
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
 
     try {
@@ -3023,7 +3026,7 @@ function setupBot(env) {
 
     const partnerIndex = parseInt(ctx.match[1]);
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
 
@@ -3144,7 +3147,7 @@ function setupBot(env) {
     await ctx.answerCallbackQuery('📊 Загружаю список...');
 
     try {
-      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const creds = parsedCredentials;
       const accessToken = await getAccessToken(env, creds);
       const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
@@ -3250,7 +3253,7 @@ function setupBot(env) {
     await ctx.answerCallbackQuery('📊 Загружаю список...');
 
     try {
-      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const creds = parsedCredentials;
       const accessToken = await getAccessToken(env, creds);
       const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
@@ -3357,7 +3360,7 @@ function setupBot(env) {
     await ctx.answerCallbackQuery('📊 Формирую статистику...');
 
     try {
-      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const creds = parsedCredentials;
       const accessToken = await getAccessToken(env, creds);
       const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
@@ -3442,7 +3445,7 @@ function setupBot(env) {
       return;
     }
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
 
@@ -3485,7 +3488,7 @@ function setupBot(env) {
 
     const partnerIndex = parseInt(ctx.match[1]);
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
 
@@ -3527,7 +3530,7 @@ function setupBot(env) {
     await ctx.answerCallbackQuery('📊 Формирую отчет...');
 
     try {
-      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const creds = parsedCredentials;
       const accessToken = await getAccessToken(env, creds);
       const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
@@ -4153,7 +4156,7 @@ function setupBot(env) {
     await ctx.answerCallbackQuery('📊 Формирую отчет...');
 
     try {
-      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const creds = parsedCredentials;
       const accessToken = await getAccessToken(env, creds);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
 
@@ -4232,7 +4235,7 @@ function setupBot(env) {
     await ctx.answerCallbackQuery('📊 Формирую отчет...');
 
     try {
-      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const creds = parsedCredentials;
       const accessToken = await getAccessToken(env, creds);
       const clicks = await getSheetData(env.SHEET_ID, 'clicks', accessToken);
 
@@ -4330,7 +4333,7 @@ function setupBot(env) {
     await ctx.answerCallbackQuery('📊 Загружаю статистику...');
 
     try {
-      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const creds = parsedCredentials;
       const accessToken = await getAccessToken(env, creds);
       const broadcasts = await getSheetData(env.SHEET_ID, 'broadcasts', accessToken);
 
@@ -4430,7 +4433,7 @@ function setupBot(env) {
       await saveBroadcastState(env, ctx.chat.id, state);
 
       // Получаем список партнеров
-      const creds = JSON.parse(env.CREDENTIALS_JSON);
+      const creds = parsedCredentials;
       const accessToken = await getAccessToken(env, creds);
       const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
 
@@ -4671,7 +4674,7 @@ app.get('/r/:broadcastId/*', async (req, res) => {
 
     console.log(`[REDIRECT] 📊 Broadcast click tracked: ${broadcastId}`);
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
 
     // Update click_count in broadcasts sheet
@@ -4729,50 +4732,22 @@ app.get('/api/health', (req, res) => {
 // Get partners
 app.get('/api/partners', async (req, res) => {
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
-    const accessToken = await getAccessToken(env, creds);
-    const partners = await getSheetData(env.SHEET_ID, 'partners', accessToken);
-
-    console.log('[API /partners] ========================================');
-    console.log('[API /partners] Raw partners from sheet:', partners.length);
-
-    if (partners.length > 0) {
-      console.log('[API /partners] First partner object:', JSON.stringify(partners[0], null, 2));
-      console.log('[API /partners] Partner keys:', Object.keys(partners[0]));
-    } else {
-      console.warn('[API /partners] ⚠️ No partners found in Google Sheets!');
-    }
+    const partners = await getCachedPartners(env);
 
     // Filter and format partners
     // Support both 'url'/'link' and 'logo_url'/'logo' field names
     const formattedPartners = partners
-      .filter(p => {
-        const hasTitle = !!p.title;
-        const hasUrl = !!(p.url || p.link); // Support both field names
-        if (!hasTitle || !hasUrl) {
-          console.warn(`[API /partners] ⚠️ Skipping partner - title: ${hasTitle}, url/link: ${hasUrl}`, p);
-        }
-        return hasTitle && hasUrl;
-      })
+      .filter(p => !!p.title && !!(p.url || p.link))
       .map(p => ({
         id: p.id || p.title,
         title: p.title,
-        url: p.url || p.link, // Use either 'url' or 'link' from Google Sheets
-        logo_url: p.logo_url || p.logo || '', // Use either 'logo_url' or 'logo' from Google Sheets
+        url: p.url || p.link,
+        logo_url: p.logo_url || p.logo || '',
         description: p.description || '',
         category: p.category || 'Другое',
         promocode: p.promocode || p.promo_code || p['Промокод'] || p['промокод'] || p.PromoCode || p.Promocode || '',
         predstavitel: p.predstavitel || ''
       }));
-
-    console.log('[API /partners] After filtering:', formattedPartners.length, 'partners');
-
-    if (formattedPartners.length > 0) {
-      console.log('[API /partners] First formatted partner:', JSON.stringify(formattedPartners[0], null, 2));
-    }
-
-    console.log('[API /partners] Sending response with', formattedPartners.length, 'partners');
-    console.log('[API /partners] ========================================');
 
     res.json({
       ok: true,
@@ -4788,7 +4763,7 @@ app.get('/api/partners', async (req, res) => {
 // Diagnostic endpoint for broadcasts sheet
 app.get('/api/debug/broadcasts', async (req, res) => {
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
 
     // Try to read broadcasts sheet
@@ -4859,7 +4834,7 @@ app.post('/api/click', async (req, res) => {
     // Rate limiting
     await checkRateLimit(env, `click:${user_id}:${partner_id}`, 10, 60);
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
 
     // Get partners to find partner title
@@ -5086,7 +5061,7 @@ app.post('/api/user', async (req, res) => {
       return res.status(400).json({ error: 'Missing user id', success: false });
     }
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
     const existing = users.find(u => String(u.telegram_id) === String(id));
@@ -5190,7 +5165,7 @@ app.post('/api/me', async (req, res) => {
       return res.json({ isAdmin: false });
     }
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
     const isAdmin = admins.some(a => a.username && a.username.toLowerCase() === username.toLowerCase());
@@ -5205,7 +5180,7 @@ app.post('/api/me', async (req, res) => {
 // Get subscriber count
 app.get('/api/subscribers', async (req, res) => {
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
 
@@ -5222,7 +5197,7 @@ app.get('/api/subscribers', async (req, res) => {
 // Get educational materials from obrazovach sheet
 app.get('/api/obrazovach', async (req, res) => {
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
 
     console.log('[API] Attempting to fetch data from obrazovach sheet...');
@@ -5328,7 +5303,7 @@ app.post('/api/send-video', async (req, res) => {
     console.log(`[API] 📅 Video message scheduled for deletion in 24 hours: ${title}`);
 
     // Check if this video was already viewed by this user
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
 
     let educationViews = [];
@@ -5410,7 +5385,7 @@ app.get('/api/profile/:tg_id', async (req, res) => {
       return res.status(400).json({ error: 'Missing tg_id parameter', success: false });
     }
 
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
     
@@ -5616,7 +5591,7 @@ app.get('/api/widget/profile/:tg_id', async (req, res) => {
     }
 
     // Placeholder data for username and first name
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     const users = await getSheetData(env.SHEET_ID, 'users', accessToken);
     const user = users.find(u => String(u.telegram_id) === String(tg_id));
@@ -5640,7 +5615,7 @@ app.get('/api/widget/profile/:tg_id', async (req, res) => {
 // Get spreadsheet structure
 app.get('/api/spreadsheet/structure', async (req, res) => {
   try {
-    const creds = JSON.parse(env.CREDENTIALS_JSON);
+    const creds = parsedCredentials;
     const accessToken = await getAccessToken(env, creds);
     
     // Get all sheet names
