@@ -87,7 +87,6 @@ jobs:
           --exclude '.git' \
           --exclude '.github' \
           --exclude 'node_modules' \
-          --exclude 'worker' \
           --exclude '.wrangler' \
           --exclude 'logs' \
           ./ root@46.17.44.239:/opt/telegram-miniapp/
