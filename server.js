@@ -2263,7 +2263,7 @@ async function executeBroadcast(ctx, env, state) {
 
     // Send error to admin
     try {
-      await ctx.reply(`⚠️ *Предупреждение:* Рассылка отправлена, но не удалось сохранить статистику в таблицу.\n\nОшибка: ${saveError}`, { parse_mode: 'Markdown' });
+      await ctx.reply(`⚠️ *Предупреждение:* Рассылка отправлена, но не удалось сохранить статистику в таблицу.\n\nОшибка: ${escapeMarkdown(saveError)}`, { parse_mode: 'Markdown' });
     } catch (e) {
       console.error(`[РАССЫЛКА] ❌ Не удалось отправить сообщение об ошибке:`, e);
     }
@@ -2315,6 +2315,17 @@ async function executeBroadcast(ctx, env, state) {
   const resultKeyboard = new InlineKeyboard().text('« Вернуться в админку', 'admin_panel');
 
   await ctx.reply(reportText, { parse_mode: 'Markdown', reply_markup: resultKeyboard });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS FOR MARKDOWN
+// ═══════════════════════════════════════════════════════════════
+
+// Helper function to escape special Markdown characters
+// This prevents Markdown parsing errors when user data contains special symbols
+function escapeMarkdown(text) {
+  if (!text) return text;
+  return String(text).replace(/([_*\[\]()~`>#+=|{}.!-])/g, '\\$1');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2580,7 +2591,7 @@ function setupBot(env) {
 
       // Format profile message
       let profileMessage = `📊 *Ваш профиль*\n\n`;
-      profileMessage += `👤 @${user.username || 'не указан'}\n`;
+      profileMessage += `👤 @${escapeMarkdown(user.username || 'не указан')}\n`;
       profileMessage += `🆔 Регистрация: ${userStats.date_registered || 'N/A'}\n\n`;
 
       profileMessage += `⭐ *Баллы:* ${userStats.total_points}\n`;
@@ -2592,7 +2603,7 @@ function setupBot(env) {
 
       if (unlockedAchievements.length > 0) {
         for (const achievement of unlockedAchievements) {
-          profileMessage += `✅ ${achievement.icon_emoji} ${achievement.title} (${achievement.points} баллов)\n`;
+          profileMessage += `✅ ${achievement.icon_emoji} ${escapeMarkdown(achievement.title)} (${achievement.points} баллов)\n`;
         }
       } else {
         profileMessage += `❌ Пока нет разблокированных достижений\n`;
@@ -2613,7 +2624,7 @@ function setupBot(env) {
             progressText = `(0/${achievement.condition_value} переходов)`;
           }
 
-          profileMessage += `🔒 ${achievement.icon_emoji} ${achievement.title} ${progressText}\n`;
+          profileMessage += `🔒 ${achievement.icon_emoji} ${escapeMarkdown(achievement.title)} ${progressText}\n`;
         }
       }
 
@@ -2757,12 +2768,6 @@ function setupBot(env) {
     });
     await ctx.answerCallbackQuery();
   });
-
-  // Helper function to escape special Markdown characters
-  function escapeMarkdown(text) {
-    if (!text) return text;
-    return String(text).replace(/([_*\[\]()~`>#+=|{}.!-])/g, '\\$1');
-  }
 
   // Статистика рассылок
   bot.callbackQuery('admin_broadcasts_stats', async (ctx) => {
@@ -3677,7 +3682,7 @@ function setupBot(env) {
     keyboard.row().text('🐹 Фабрика хомяков', 'show_referral');
 
     await ctx.editMessageText(
-      `👋 Привет, *${user.first_name}*!\n\n` +
+      `👋 Привет, *${escapeMarkdown(user.first_name)}*!\n\n` +
       `🔗 Жми кнопку и открывай приложение.\n\n` +
       `Внутри — уникальные промокоды, акции и контент.\n` +
       `⚠️ *Бота не останавливай*❌: сюда приходят самые жирные офферы.\n\n` +
@@ -3707,31 +3712,31 @@ function setupBot(env) {
       
       // Format profile message
       let profileMessage = `📊 *Ваш профиль*\n\n`;
-      profileMessage += `👤 @${user.username || 'не указан'}\n`;
+      profileMessage += `👤 @${escapeMarkdown(user.username || 'не указан')}\n`;
       profileMessage += `🆔 Регистрация: ${userStats.date_registered || 'N/A'}\n\n`;
-      
+
       profileMessage += `⭐ *Баллы:* ${userStats.total_points}\n`;
       profileMessage += `🔥 *Серия:* ${userStats.current_streak} дней (рекорд: ${userStats.longest_streak})\n`;
       profileMessage += `🐹 *Фабрика хомяков:* ${userStats.referrals_count}\n\n`;
 
       profileMessage += `🏆 *Достижения:* ${unlockedAchievements.length}/${achievements.length}\n`;
       profileMessage += `━━━━━━━━━━━━━━━━\n`;
-      
+
       if (unlockedAchievements.length > 0) {
         for (const achievement of unlockedAchievements) {
-          profileMessage += `✅ ${achievement.icon_emoji} ${achievement.title} (${achievement.points} баллов)\n`;
+          profileMessage += `✅ ${achievement.icon_emoji} ${escapeMarkdown(achievement.title)} (${achievement.points} баллов)\n`;
         }
       } else {
         profileMessage += `❌ Пока нет разблокированных достижений\n`;
       }
-      
+
       // Add locked achievements
       const lockedAchievements = achievements.filter(a => !unlockedAchievements.some(ua => ua.id === a.id));
       if (lockedAchievements.length > 0) {
         profileMessage += `\n🔒 *Предстоящие достижения:*\n`;
         for (const achievement of lockedAchievements.slice(0, 3)) { // Show only first 3 locked
           let progressText = '';
-          
+
           if (achievement.condition_type === 'referral_count') {
             progressText = `(${userStats.referrals_count}/${achievement.condition_value} рефералов)`;
           } else if (achievement.condition_type === 'daily_streak') {
@@ -3740,8 +3745,8 @@ function setupBot(env) {
             // We would need to track partner clicks separately
             progressText = `(0/${achievement.condition_value} переходов)`;
           }
-          
-          profileMessage += `🔒 ${achievement.icon_emoji} ${achievement.title} ${progressText}\n`;
+
+          profileMessage += `🔒 ${achievement.icon_emoji} ${escapeMarkdown(achievement.title)} ${progressText}\n`;
         }
       }
       
@@ -4177,10 +4182,10 @@ function setupBot(env) {
       const weekUniqueUsers = new Set(weekClicks.map(c => c.telegram_id)).size;
 
       const report = `📊 *Еженедельный отчет*\n\n` +
-        `🏷️ *Ваш партнер:* ${partnerData.title}\n` +
-        `📁 *Категория:* ${partnerData.category || 'Не указана'}\n` +
+        `🏷️ *Ваш партнер:* ${escapeMarkdown(partnerData.title)}\n` +
+        `📁 *Категория:* ${escapeMarkdown(partnerData.category || 'Не указана')}\n` +
         `📅 *Дата размещения:* ${partnerData.date_release || 'Не указана'}\n` +
-        `🔗 *Ссылка:* ${partnerUrl}\n\n` +
+        `🔗 *Ссылка:* ${escapeMarkdown(partnerUrl)}\n\n` +
         `*📈 Общая статистика:*\n` +
         `👥 Уникальных пользователей: ${uniqueUsers}\n` +
         `🖱️ Всего кликов: ${totalClicks}\n` +
@@ -4232,7 +4237,7 @@ function setupBot(env) {
         const keyboard = new InlineKeyboard().text('« Назад', 'representative_cabinet');
         await ctx.editMessageText(
           `📊 *Ежемесячный отчет*\n\n` +
-          `🏷️ *Партнер:* ${partnerData.title}\n\n` +
+          `🏷️ *Партнер:* ${escapeMarkdown(partnerData.title)}\n\n` +
           `📭 По вашей ссылке пока нет переходов.`,
           { parse_mode: 'Markdown', reply_markup: keyboard }
         );
@@ -4273,10 +4278,10 @@ function setupBot(env) {
 
       const report = `📊 *Ежемесячный отчет*\n` +
         `📅 *Период:* ${previousMonthName}\n\n` +
-        `🏷️ *Ваш партнер:* ${partnerData.title}\n` +
-        `📁 *Категория:* ${partnerData.category || 'Не указана'}\n` +
+        `🏷️ *Ваш партнер:* ${escapeMarkdown(partnerData.title)}\n` +
+        `📁 *Категория:* ${escapeMarkdown(partnerData.category || 'Не указана')}\n` +
         `📅 *Дата размещения:* ${partnerData.date_release || 'Не указана'}\n` +
-        `🔗 *Ссылка:* ${partnerUrl}\n\n` +
+        `🔗 *Ссылка:* ${escapeMarkdown(partnerUrl)}\n\n` +
         `*📈 Общая статистика (за все время):*\n` +
         `👥 Уникальных пользователей: ${uniqueUsers}\n` +
         `🖱️ Всего кликов: ${totalClicks}\n` +
