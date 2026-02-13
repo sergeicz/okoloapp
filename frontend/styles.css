@@ -585,93 +585,6 @@ h2 {
               inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
-/* Home button - identical styling to modern-btn but without JS interference */
-.home-btn,
-.back-button-container .home-btn {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  max-width: 100%;
-  padding: 16px 24px !important;
-  margin: 12px 0 !important;
-  text-align: center;
-  color: var(--text-primary) !important;
-  text-decoration: none !important;
-  font-size: 1rem !important;
-  font-weight: 700 !important;
-  border-radius: 16px !important;
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.15), rgba(204, 0, 0, 0.15)) !important;
-  backdrop-filter: blur(30px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
-  word-wrap: break-word;
-  overflow: hidden;
-  border: 2px solid rgba(255, 0, 0, 0.3) !important;
-  box-shadow: 0 4px 20px rgba(255, 0, 0, 0.4),
-              inset 0 1px 1px rgba(255, 255, 255, 0.1),
-              0 0 20px rgba(255, 0, 0, 0.2) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  position: relative !important;
-  cursor: pointer !important;
-  text-transform: uppercase !important;
-  letter-spacing: 1px !important;
-  -webkit-tap-highlight-color: transparent !important;
-  user-select: none !important;
-}
-
-/* Эффект свечения при наведении */
-.home-btn::before,
-.back-button-container .home-btn::before {
-  content: '';
-  position: absolute !important;
-  top: 0 !important;
-  left: -100% !important;
-  width: 100% !important;
-  height: 100% !important;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
-  transition: left 0.5s !important;
-}
-
-.home-btn:hover::before,
-.back-button-container .home-btn:hover::before {
-  left: 100% !important;
-}
-
-.home-btn:hover,
-.back-button-container .home-btn:hover {
-  transform: translateY(-2px) !important;
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.25), rgba(204, 0, 0, 0.25)) !important;
-  border-color: rgba(255, 0, 0, 0.5) !important;
-  box-shadow: 0 8px 30px rgba(255, 0, 0, 0.5),
-              inset 0 1px 1px rgba(255, 255, 255, 0.2),
-              0 0 40px rgba(255, 0, 0, 0.3) !important;
-}
-
-.home-btn:active,
-.back-button-container .home-btn:active {
-  animation: tapScale 0.2s ease-out !important;
-  transform: scale(0.96) !important;
-  box-shadow: 0 2px 10px rgba(255, 0, 0, 0.4),
-              inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Additional styles to ensure identical appearance */
-.home-btn .btn-logo,
-.back-button-container .home-btn .btn-logo {
-  width: 32px !important;
-  height: 32px !important;
-  object-fit: contain !important;
-  transition: transform 0.3s ease !important;
-  border-radius: 50% !important;
-  padding: 2px !important;
-  background: rgba(255, 255, 255, 0.1) !important;
-}
-
-.home-btn:hover .btn-logo,
-.back-button-container .home-btn:hover .btn-logo {
-  transform: scale(1.15) rotate(5deg) !important;
-}
 
 .obrazovach-btn {
   background: linear-gradient(135deg, rgba(255, 0, 0, 0.25), rgba(204, 0, 0, 0.25));
@@ -704,42 +617,19 @@ h2 {
 .back-to-home-btn {
   margin-top: 40px;
   margin-bottom: 40px;
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.15), rgba(204, 0, 0, 0.15)) !important;
-  backdrop-filter: blur(30px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
-  border: 2px solid rgba(255, 0, 0, 0.3) !important;
-  box-shadow: 0 4px 20px rgba(255, 0, 0, 0.4),
-              inset 0 1px 1px rgba(255, 255, 255, 0.1),
-              0 0 20px rgba(255, 0, 0, 0.2) !important;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.2);
   text-decoration: none;
   font-size: 1rem;
-  color: var(--text-primary) !important;
-  border-radius: 16px !important;
-  padding: 16px 24px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 12px !important;
-  text-align: center !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 1px !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  position: relative !important;
-  cursor: pointer !important;
-  -webkit-tap-highlight-color: transparent !important;
-  user-select: none !important;
 }
 
 .back-to-home-btn:hover {
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.25), rgba(204, 0, 0, 0.25)) !important;
-  box-shadow: 0 8px 30px rgba(255, 0, 0, 0.5),
-              inset 0 1px 1px rgba(255, 255, 255, 0.2),
-              0 0 40px rgba(255, 0, 0, 0.3) !important;
-  transform: translateY(-2px) !important;
-  border-color: rgba(255, 0, 0, 0.5) !important;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4),
+              inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .modern-btn .btn-logo {
