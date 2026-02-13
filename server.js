@@ -2731,17 +2731,16 @@ function setupBot(env) {
   // /feedback command - Open feedback form
   bot.command('feedback', async (ctx) => {
     try {
+      // Формируем сообщение
       const feedbackMessage = `📩 *Обратная связь*\n\n`;
       feedbackMessage += `Если у вас есть вопросы, предложения или отзывы, пожалуйста, заполните нашу форму обратной связи.\n\n`;
       feedbackMessage += `👉 *Перейти к форме:*`;
 
-      // Используем тестовый URL для проверки
-      const formUrl = 'https://www.google.com/';
-      
       // Создаем клавиатуру с URL-кнопкой
-      const keyboard = new InlineKeyboard();
-      keyboard.url('📝 Заполнить форму', formUrl);
+      const keyboard = new InlineKeyboard()
+        .url('📝 Заполнить форму', 'https://www.google.com/');
 
+      // Отправляем сообщение с клавиатурой
       await ctx.reply(feedbackMessage, {
         parse_mode: 'Markdown',
         reply_markup: keyboard
