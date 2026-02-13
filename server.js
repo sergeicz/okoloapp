@@ -4921,13 +4921,21 @@ app.post('/api/click', async (req, res) => {
     // Check for different possible field names for promocodes
     const promocode = partner.promocode || partner.promo_code || partner['Промокод'] || partner['промокод'] || partner.PromoCode || partner.Promocode || '';
 
+    // Check if user is admin (admins always get promocodes for testing)
+    const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+    const isAdmin = admins.some(a => {
+      const idMatch = a.telegram_id && String(a.telegram_id) === String(user_id);
+      return idMatch;
+    });
+
     console.log(`[PROMOCODE-DEBUG] Checking promocode for partner ${partner.title}:`, {
       has_promocode: !!promocode,
       promocode_value: promocode,
       promocode_length: promocode ? promocode.length : 0,
       is_empty_after_trim: promocode ? promocode.trim() === '' : true,
       partner_keys: Object.keys(partner),
-      is_first_click: existingClickIndex === -1
+      is_first_click: existingClickIndex === -1,
+      is_admin: isAdmin
     });
 
     // Track if promocode was actually sent
@@ -4935,9 +4943,12 @@ app.post('/api/click', async (req, res) => {
     let promocodeAlreadySent = false;
 
     if (promocode && promocode.trim() !== '') {
-      // Only send promocode on FIRST click
-      if (existingClickIndex === -1) {
-        console.log(`[PROMOCODE] 🎯 Sending promocode "${promocode}" from ${partner.title} to user ${user_id} (first click)`)
+      // Admins ALWAYS get promocodes (for testing), regular users only on FIRST click
+      const shouldSendPromocode = isAdmin || existingClickIndex === -1;
+
+      if (shouldSendPromocode) {
+        const clickType = isAdmin ? 'admin (always send)' : 'first click';
+        console.log(`[PROMOCODE] 🎯 Sending promocode "${promocode}" from ${partner.title} to user ${user_id} (${clickType})`)
         try {
           const message = `🎁 <b>Промокод от ${partner.title}</b>\n\n` +
             `<code>${promocode}</code>\n\n` +
@@ -4974,9 +4985,9 @@ app.post('/api/click', async (req, res) => {
           }
         }
       } else {
-        // Repeat click - promocode was already sent
+        // Repeat click - promocode was already sent (only for non-admin users)
         promocodeAlreadySent = true;
-        console.log(`[PROMOCODE] 🔁 Promocode already sent for ${partner.title} to user ${user_id} (repeat click)`);
+        console.log(`[PROMOCODE] 🔁 Promocode already sent for ${partner.title} to user ${user_id} (repeat click, non-admin)`);
       }
     } else {
       console.log(`[PROMOCODE] ⏭️ No promocode to send for ${partner.title} (promocode is empty or missing)`);
