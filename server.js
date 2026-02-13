@@ -2682,7 +2682,7 @@ function setupBot(env) {
 
       const keyboard = new InlineKeyboard()
         .switchInline('📤 Поделиться ссылкой', referralLink).row()
-        .text('🐹 Мои хомячки', 'show_referral_list').row()
+        .text('🐹 Мой взвод хомяков', 'show_referral_list').row()
         .text('🔄 Обновить', 'show_referral');
 
       await ctx.reply(referralMessage, {
@@ -3903,7 +3903,7 @@ function setupBot(env) {
 
       const keyboard = new InlineKeyboard()
         .switchInline('📤 Поделиться ссылкой', referralLink).row()
-        .text('🐹 Мои хомячки', 'show_referral_list').row()
+        .text('🐹 Мой взвод хомяков', 'show_referral_list').row()
         .text('« Назад', 'back_to_start');
       
       await ctx.editMessageText(referralMessage, {
@@ -3926,7 +3926,7 @@ function setupBot(env) {
       // For now, we'll show a placeholder
       const userStats = await getUserStats(env, userId);
       
-      let referralListMessage = `🐹 *Мои хомячки* (${userStats.referrals_count} шт.)\n\n`;
+      let referralListMessage = `🐹 *Мой взвод хомяков* (${userStats.referrals_count} шт.)\n\n`;
       
       if (userStats.referrals_count > 0) {
         // Placeholder list - in reality this would come from referrals sheet
