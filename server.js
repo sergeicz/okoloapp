@@ -2728,25 +2728,6 @@ function setupBot(env) {
     }
   });
 
-  // /feedback command - Open feedback form
-  bot.command('feedback', async (ctx) => {
-    try {
-      // Формируем сообщение с прямой ссылкой
-      const feedbackMessage = `📩 *Обратная связь*\n\n`;
-      feedbackMessage += `Если у вас есть вопросы, предложения или отзывы, пожалуйста, заполните нашу форму обратной связи.\n\n`;
-      feedbackMessage += `👉 *Перейти к форме:*\n`;
-      feedbackMessage += `[📝 Заполнить форму](https://www.google.com/)`;
-
-      // Отправляем сообщение без клавиатуры
-      await ctx.reply(feedbackMessage, {
-        parse_mode: 'Markdown'
-      });
-    } catch (error) {
-      console.error('Error showing feedback form:', error);
-      console.error('Stack trace:', error.stack);
-      await ctx.reply('❌ Ошибка при открытии формы обратной связи');
-    }
-  });
 
   // ═══════════════════════════════════════════════════════════════
   // ОБРАБОТКА CALLBACK QUERIES
@@ -4648,8 +4629,7 @@ function setupBot(env) {
     { command: 'start', description: 'Начать работу с ботом' },
     { command: 'profile', description: 'Посмотреть свой профиль и достижения' },
     { command: 'referrals', description: 'Реферальная программа' },
-    { command: 'donate', description: 'Поддержать проект' },
-    { command: 'feedback', description: 'Форма обратной связи' }
+    { command: 'donate', description: 'Поддержать проект' }
   ]).catch(error => {
     console.error('Error setting bot commands:', error);
   });
