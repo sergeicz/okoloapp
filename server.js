@@ -2731,19 +2731,15 @@ function setupBot(env) {
   // /feedback command - Open feedback form
   bot.command('feedback', async (ctx) => {
     try {
-      // Формируем сообщение
+      // Формируем сообщение с прямой ссылкой
       const feedbackMessage = `📩 *Обратная связь*\n\n`;
       feedbackMessage += `Если у вас есть вопросы, предложения или отзывы, пожалуйста, заполните нашу форму обратной связи.\n\n`;
-      feedbackMessage += `👉 *Перейти к форме:*`;
+      feedbackMessage += `👉 *Перейти к форме:*\n`;
+      feedbackMessage += `[📝 Заполнить форму](https://www.google.com/)`;
 
-      // Создаем клавиатуру с URL-кнопкой
-      const keyboard = new InlineKeyboard()
-        .url('📝 Заполнить форму', 'https://www.google.com/');
-
-      // Отправляем сообщение с клавиатурой
+      // Отправляем сообщение без клавиатуры
       await ctx.reply(feedbackMessage, {
-        parse_mode: 'Markdown',
-        reply_markup: keyboard
+        parse_mode: 'Markdown'
       });
     } catch (error) {
       console.error('Error showing feedback form:', error);
