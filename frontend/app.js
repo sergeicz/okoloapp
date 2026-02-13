@@ -472,19 +472,22 @@ async function loadUserProfile() {
       }
     }
 
-    // Always show profile card with fade-in
-    const profileCard = document.getElementById('userProfileCard');
-    if (profileCard) {
-      profileCard.style.opacity = '1';
-    }
-
   } catch (error) {
     console.error('❌ Error loading profile:', error);
-    // Don't show error to user - profile card is not critical
-    // Still show the card with default values
-    const profileCard = document.getElementById('userProfileCard');
-    if (profileCard) {
-      profileCard.style.opacity = '1';
+    // Use Telegram fallback on error
+    const profileName = document.getElementById('profileName');
+    const profilePoints = document.getElementById('profilePoints');
+    const profileAvatar = document.getElementById('profileAvatar');
+
+    if (profileName) {
+      profileName.textContent = user.first_name || 'Хомяк';
+    }
+    if (profilePoints) {
+      profilePoints.textContent = '0';
+    }
+    if (profileAvatar) {
+      const firstLetter = (user.first_name || 'Х')[0].toUpperCase();
+      profileAvatar.innerHTML = `<span class="profile-avatar-placeholder">${firstLetter}</span>`;
     }
   }
 }
