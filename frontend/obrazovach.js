@@ -525,6 +525,27 @@ function waitForTelegramWebApp(timeout = 10000) {
   });
 }
 
+// Функция для перехода на главную страницу
+function goToIndex() {
+  // Вибрация для обратной связи
+  if (educationTg && educationTg.HapticFeedback) {
+    educationTg.HapticFeedback.impactOccurred('light');
+  }
+
+  // Проверяем, можем ли мы использовать Telegram WebApp для навигации
+  if (educationTg && educationTg.CloudStorage) {
+    // Используем CloudStorage для хранения состояния, если нужно
+    // или переходим к главной странице через закрытие текущего окна
+    educationTg.close();
+  } else if (educationTg && educationTg.openLink) {
+    // Открываем главную страницу как веб-ссылку
+    educationTg.openLink(`${window.location.origin}/index.html`);
+  } else {
+    // Если Telegram WebApp недоступен, используем стандартный переход
+    window.location.href = 'index.html';
+  }
+}
+
 // Запуск приложения при загрузке
 document.addEventListener('DOMContentLoaded', async () => {
   // Ждем загрузки Telegram WebApp SDK
