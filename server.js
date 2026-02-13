@@ -4899,48 +4899,57 @@ app.post('/api/click', async (req, res) => {
       promocode_value: promocode,
       promocode_length: promocode ? promocode.length : 0,
       is_empty_after_trim: promocode ? promocode.trim() === '' : true,
-      partner_keys: Object.keys(partner)
+      partner_keys: Object.keys(partner),
+      is_first_click: existingClickIndex === -1
     });
 
     // Track if promocode was actually sent
     let promocodeSentSuccessfully = false;
+    let promocodeAlreadySent = false;
 
     if (promocode && promocode.trim() !== '') {
-      console.log(`[PROMOCODE] 🎯 Sending promocode "${promocode}" from ${partner.title} to user ${user_id}`)
-      try {
-        const message = `🎁 <b>Промокод от ${partner.title}</b>\n\n` +
-          `<code>${promocode}</code>\n\n` +
-          `Скопируйте промокод и используйте его на сайте партнера!\n\n` +
-          `<i>Это сообщение будет автоматически удалено через 24 часа</i>`;
+      // Only send promocode on FIRST click
+      if (existingClickIndex === -1) {
+        console.log(`[PROMOCODE] 🎯 Sending promocode "${promocode}" from ${partner.title} to user ${user_id} (first click)`)
+        try {
+          const message = `🎁 <b>Промокод от ${partner.title}</b>\n\n` +
+            `<code>${promocode}</code>\n\n` +
+            `Скопируйте промокод и используйте его на сайте партнера!\n\n` +
+            `<i>Это сообщение будет автоматически удалено через 24 часа</i>`;
 
-        const sentMessage = await globalBot.api.sendMessage(user_id, message, { parse_mode: 'HTML' });
+          const sentMessage = await globalBot.api.sendMessage(user_id, message, { parse_mode: 'HTML' });
 
-        // Save message info for auto-deletion
-        const deleteAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
-        await redis.setex(
-          `promo_msg_${user_id}_${Date.now()}`,
-          86400, // 24 hours in seconds
-          JSON.stringify({
-            chat_id: user_id,
-            message_id: sentMessage.message_id,
-            partner: partner.title,
-            delete_at: deleteAt
-          })
-        );
+          // Save message info for auto-deletion
+          const deleteAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+          await redis.setex(
+            `promo_msg_${user_id}_${Date.now()}`,
+            86400, // 24 hours in seconds
+            JSON.stringify({
+              chat_id: user_id,
+              message_id: sentMessage.message_id,
+              partner: partner.title,
+              delete_at: deleteAt
+            })
+          );
 
-        promocodeSentSuccessfully = true;
-        console.log(`[PROMOCODE] ✅ Sent promocode from ${partner.title} to user ${user_id}`);
-      } catch (error) {
-        console.error(`[PROMOCODE] ❌ Failed to send promocode:`, {
-          error_code: error.error_code,
-          description: error.description,
-          message: error.message
-        });
+          promocodeSentSuccessfully = true;
+          console.log(`[PROMOCODE] ✅ Sent promocode from ${partner.title} to user ${user_id}`);
+        } catch (error) {
+          console.error(`[PROMOCODE] ❌ Failed to send promocode:`, {
+            error_code: error.error_code,
+            description: error.description,
+            message: error.message
+          });
 
-        // Check if user blocked the bot
-        if (error.error_code === 403) {
-          console.error(`[PROMOCODE] 🚫 User ${user_id} has blocked the bot`);
+          // Check if user blocked the bot
+          if (error.error_code === 403) {
+            console.error(`[PROMOCODE] 🚫 User ${user_id} has blocked the bot`);
+          }
         }
+      } else {
+        // Repeat click - promocode was already sent
+        promocodeAlreadySent = true;
+        console.log(`[PROMOCODE] 🔁 Promocode already sent for ${partner.title} to user ${user_id} (repeat click)`);
       }
     } else {
       console.log(`[PROMOCODE] ⏭️ No promocode to send for ${partner.title} (promocode is empty or missing)`);
@@ -4961,7 +4970,8 @@ app.post('/api/click', async (req, res) => {
       ok: true,
       success: true,
       clicks: clickCount,
-      promocode_sent: promocodeSentSuccessfully
+      promocode_sent: promocodeSentSuccessfully,
+      promocode_already_sent: promocodeAlreadySent
     });
   } catch (error) {
     console.error('[API] Error tracking click:', error);

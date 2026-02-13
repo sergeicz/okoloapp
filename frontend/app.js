@@ -248,7 +248,7 @@ function showPromoNotification() {
   if (existing) {
     existing.remove();
   }
-  
+
   // Создаем новое уведомление
   const notification = document.createElement('div');
   notification.className = 'promo-notification';
@@ -260,22 +260,22 @@ function showPromoNotification() {
     </div>
     <button class="promo-notification-close">×</button>
   `;
-  
+
   // Добавляем на страницу
   document.body.appendChild(notification);
-  
+
   // Вибрация для обратной связи
   if (tg.HapticFeedback) {
     tg.HapticFeedback.notificationOccurred('success');
   }
-  
+
   // Закрытие по клику на крестик
   const closeBtn = notification.querySelector('.promo-notification-close');
   closeBtn.onclick = () => {
     notification.classList.add('hiding');
     setTimeout(() => notification.remove(), 300);
   };
-  
+
   // Автоматическое закрытие через 4 секунды
   setTimeout(() => {
     if (notification.parentElement) {
@@ -287,6 +287,54 @@ function showPromoNotification() {
       }, 300);
     }
   }, 4000);
+}
+
+// Показ уведомления о том, что промокод уже был отправлен
+function showPromoAlreadySentNotification() {
+  // Удаляем предыдущее уведомление если есть
+  const existing = document.querySelector('.promo-notification');
+  if (existing) {
+    existing.remove();
+  }
+
+  // Создаем новое уведомление
+  const notification = document.createElement('div');
+  notification.className = 'promo-notification';
+  notification.innerHTML = `
+    <div class="promo-notification-icon">💬</div>
+    <div class="promo-notification-content">
+      <div class="promo-notification-title">Твой промокод уже в боте</div>
+      <div class="promo-notification-text">Проверь личные сообщения с ботом</div>
+    </div>
+    <button class="promo-notification-close">×</button>
+  `;
+
+  // Добавляем на страницу
+  document.body.appendChild(notification);
+
+  // Вибрация для обратной связи (более мягкая)
+  if (tg.HapticFeedback) {
+    tg.HapticFeedback.notificationOccurred('warning');
+  }
+
+  // Закрытие по клику на крестик
+  const closeBtn = notification.querySelector('.promo-notification-close');
+  closeBtn.onclick = () => {
+    notification.classList.add('hiding');
+    setTimeout(() => notification.remove(), 300);
+  };
+
+  // Автоматическое закрытие через 3 секунды
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.classList.add('hiding');
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.remove();
+        }
+      }, 300);
+    }
+  }, 3000);
 }
 
 // Показ загрузки
@@ -694,11 +742,15 @@ async function handleLinkClick(event, link) {
     if (response.ok) {
       const data = await response.json();
       console.log('[CLICK] Response:', data);
-      
+
       if (data.promocode_sent) {
         console.log('[PROMOCODE] ✅ Промокод отправлен в бот!');
-        // Показываем красивое уведомление
+        // Показываем красивое уведомление о новом промокоде
         showPromoNotification();
+      } else if (data.promocode_already_sent) {
+        console.log('[PROMOCODE] 🔁 Промокод уже был отправлен ранее');
+        // Показываем уведомление что промокод уже в боте
+        showPromoAlreadySentNotification();
       }
 
       // Track partner click in Yandex.Metrika
