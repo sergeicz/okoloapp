@@ -794,7 +794,7 @@ async function getUserAchievementProgress(env, userId, achievementId) {
 // Update user's achievement progress
 async function updateUserAchievementProgress(env, userId, achievementId, progress, isUnlocked = false) {
   const cacheKey = `user_achievement:${userId}:${achievementId}`;
-  
+
   const achievementData = {
     telegram_id: userId,
     achievement_id: achievementId,
@@ -803,19 +803,25 @@ async function updateUserAchievementProgress(env, userId, achievementId, progres
     unlocked_at: isUnlocked ? new Date().toISOString() : null,
     updated_at: new Date().toISOString()
   };
-  
+
+  let wasAlreadyUnlocked = false;
+
   try {
     // Try to update Google Sheets
     const creds = JSON.parse(env.CREDENTIALS_JSON);
     const accessToken = await getAccessToken(env, creds);
     const userAchievements = await getSheetData(env.SHEET_ID, 'user_achievements', accessToken);
-    
-    const existingIndex = userAchievements.findIndex(ua => 
-      String(ua.telegram_id) === String(userId) && 
+
+    const existingIndex = userAchievements.findIndex(ua =>
+      String(ua.telegram_id) === String(userId) &&
       String(ua.achievement_id) === String(achievementId)
     );
-    
+
     if (existingIndex !== -1) {
+      // Check if it was already unlocked before this update
+      const existingRecord = userAchievements[existingIndex];
+      wasAlreadyUnlocked = existingRecord.is_unlocked === 'TRUE' || existingRecord.is_unlocked === true;
+
       // Update existing record
       const rowIndex = existingIndex + 2; // +2 because: +1 for header, +1 for 1-based index
       await updateSheetRow(
@@ -827,7 +833,7 @@ async function updateUserAchievementProgress(env, userId, achievementId, progres
           achievementId,
           String(progress),
           isUnlocked ? 'TRUE' : 'FALSE',
-          achievementData.unlocked_at || '',
+          wasAlreadyUnlocked ? existingRecord.unlocked_at : (achievementData.unlocked_at || ''),
           achievementData.updated_at
         ],
         accessToken
@@ -851,15 +857,18 @@ async function updateUserAchievementProgress(env, userId, achievementId, progres
   } catch (error) {
     console.error(`Error updating achievement progress for user ${userId}, achievement ${achievementId}:`, error);
   }
-  
+
   // Cache for 1 hour
   await env.BROADCAST_STATE.put(cacheKey, JSON.stringify(achievementData), { expirationTtl: 3600 });
-  
-  // If unlocked, award points
-  if (isUnlocked) {
+
+  // Award points and send notification ONLY if this is a NEW unlock (wasn't unlocked before)
+  if (isUnlocked && !wasAlreadyUnlocked) {
     await awardPointsToUser(env, userId, achievementId);
+    console.log(`[ACHIEVEMENT] 🆕 NEW unlock for user ${userId}, achievement ${achievementId} - awarding points`);
+  } else if (isUnlocked && wasAlreadyUnlocked) {
+    console.log(`[ACHIEVEMENT] ⏭️ Achievement ${achievementId} already unlocked for user ${userId} - skipping award`);
   }
-  
+
   return achievementData;
 }
 
@@ -1132,25 +1141,43 @@ async function checkAndUnlockAchievements(env, userId, conditionType, conditionV
     }
     
     // Check if achievement should be unlocked
-    const shouldUnlock = achievement.condition_value 
-      ? newProgress >= achievement.condition_value 
+    const shouldUnlock = achievement.condition_value
+      ? newProgress >= achievement.condition_value
       : newProgress > 0; // For achievements without specific threshold
-    
+
+    // Check if this is a NEW unlock (not already unlocked)
+    const isNewUnlock = shouldUnlock && !currentProgress.is_unlocked;
+
     // Update progress
     await updateUserAchievementProgress(
-      env, 
-      userId, 
-      achievement.id, 
-      newProgress, 
+      env,
+      userId,
+      achievement.id,
+      newProgress,
       shouldUnlock || currentProgress.is_unlocked // Keep unlocked if already unlocked
     );
-    
-    // If achievement is unlocked and user is not admin, award points
-    if (shouldUnlock && !isAdmin) {
+
+    // If achievement is NEWLY unlocked (not already unlocked before), award points and send notification
+    if (isNewUnlock && !isAdmin) {
       await awardPointsToUser(env, userId, achievement.id);
-    } else if (shouldUnlock && isAdmin) {
-      // For admins, just update the achievement status without awarding points
-      console.log(`[ACHIEVEMENT] Admin ${userId} unlocked achievement ${achievement.id} but not receiving points`);
+      console.log(`[ACHIEVEMENT] ✅ User ${userId} unlocked NEW achievement: ${achievement.id}`);
+    } else if (isNewUnlock && isAdmin) {
+      // For admins, send notification without awarding points
+      console.log(`[ACHIEVEMENT] Admin ${userId} unlocked NEW achievement ${achievement.id} but not receiving points`);
+
+      try {
+        const achievementTitle = achievement.title;
+        const achievementDescription = achievement.description;
+
+        const message = `🎉 Поздравляем! Новое достижение!\n\n${achievementTitle}\n━━━━━━━━━━━\n${achievementDescription}\n\n🏆 Редкость: ${achievement.rarity}\n⭐ (как админ, вы не получаете баллы за достижения)`;
+
+        await globalBot.api.sendMessage(userId, message);
+      } catch (error) {
+        console.error(`Failed to send achievement notification to admin user ${userId}:`, error);
+      }
+    } else if (shouldUnlock && currentProgress.is_unlocked) {
+      // Achievement already unlocked - skip notification
+      console.log(`[ACHIEVEMENT] ⏭️ User ${userId} already has achievement ${achievement.id}, skipping notification`);
     }
   }
 }
