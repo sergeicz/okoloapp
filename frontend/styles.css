@@ -603,10 +603,9 @@ h2 {
 }
 
 .obrazovach-icon {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
 }
 
 .back-to-home-btn {
