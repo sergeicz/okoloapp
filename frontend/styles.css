@@ -2075,6 +2075,32 @@ social.show {
   transform: translateY(0);
 }
 
+.footer-legal-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.footer-legal-link {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-legal-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: underline;
+}
+
+.footer-legal-separator {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
 .social-title {
   font-size: 12px;
   font-weight: 600;
