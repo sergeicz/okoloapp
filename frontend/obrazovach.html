@@ -21,67 +21,93 @@
 <meta name="theme-color" content="#000000">
 <meta name="msapplication-TileColor" content="#FF0000">
 
-<!-- Preload критичных ресурсов -->
 <link rel="preload" href="styles.css" as="style">
-
-<!-- Стили -->
 <link rel="stylesheet" href="styles.css?v=20260204-2305">
 
-<!-- DNS Prefetch для API -->
 <link rel="dns-prefetch" href="https://app.okolotattooing.ru">
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="metrika.js"></script>
-<noscript><div><img src="https://mc.yandex.ru/watch/106803279" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+
+<noscript>
+  <div>
+    <img src="https://mc.yandex.ru/watch/106803279" style="position:absolute; left:-9999px;" alt="" />
+  </div>
+</noscript>
+
+<style>
+/* КНОПКА НАЗАД */
+.home-floating-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000001;
+
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 600;
+
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  transition: 0.3s ease;
+}
+
+.home-floating-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(0, 0, 0, 0.95);
+}
+</style>
+
 </head>
 <body>
-  <!-- Preloader -->
-  <div id="preloader" class="preloader">
-    <div class="hamster-container">
-      <span class="hamster hamster-1">🐹</span>
-      <span class="hamster hamster-2">🐹</span>
-      <span class="hamster hamster-3">🐹</span>
-      <span class="hamster hamster-4">🐹</span>
-      <span class="hamster hamster-5">🐹</span>
-    </div>
+
+<!-- КНОПКА НА ГЛАВНУЮ -->
+<a href="index.html" class="home-floating-btn">⬅ На главную</a>
+
+<!-- Preloader -->
+<div id="preloader" class="preloader">
+  <div class="hamster-container">
+    <span class="hamster hamster-1">🐹</span>
+    <span class="hamster hamster-2">🐹</span>
+    <span class="hamster hamster-3">🐹</span>
+    <span class="hamster hamster-4">🐹</span>
+    <span class="hamster hamster-5">🐹</span>
   </div>
-
-  <!-- Notification Popup -->
-  <div id="notificationPopup">
-    <div class="notification-box">
-      <div class="notification-icon" id="notificationIcon">✅</div>
-      <div class="notification-text" id="notificationText">Успешно!</div>
-      <div class="notification-subtext" id="notificationSubtext">Проверь сообщения в боте</div>
-    </div>
-  </div>
-
-  <div class="container">
-    <h1>ОБРАЗОВАЧ</h1>
-    <h2>Смотри чо па кайфу</h2>
-
-    <div id="education-cards"></div>
-
-  <div class="home-return">
-    <a href="index.html" class="home-return__button">
-        На главную
-    </a>
 </div>
 
-
-    <!-- Footer -->
-    <footer class="app-footer">
-      <a href="https://t.me/feedback_svr_bot" target="_blank" class="footer-link">
-        🖤 разработано нами 🖤
-      </a>
-      <div class="footer-legal-links">
-        <a href="offer.html" class="footer-legal-link">Оферта</a>
-        <span class="footer-legal-separator">•</span>
-        <a href="policy.html" class="footer-legal-link">Политика конфиденциальности</a>
-      </div>
-    </footer>
+<!-- Notification Popup -->
+<div id="notificationPopup">
+  <div class="notification-box">
+    <div class="notification-icon" id="notificationIcon">✅</div>
+    <div class="notification-text" id="notificationText">Успешно!</div>
+    <div class="notification-subtext" id="notificationSubtext">Проверь сообщения в боте</div>
   </div>
+</div>
 
-  <!-- Scripts -->
-  <script src="obrazovach.js?v=20260204-2300" defer></script>
+<!-- ОСНОВНОЙ КОНТЕЙНЕР -->
+<div class="container">
+  <h1>ОБРАЗОВАЧ</h1>
+  <h2>Смотри чо па кайфу</h2>
+
+  <div id="education-cards"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <a href="https://t.me/feedback_svr_bot" target="_blank" class="footer-link">
+      🖤 разработано нами 🖤
+    </a>
+    <div class="footer-legal-links">
+      <a href="offer.html" class="footer-legal-link">Оферта</a>
+      <span class="footer-legal-separator">•</span>
+      <a href="policy.html" class="footer-legal-link">Политика конфиденциальности</a>
+    </div>
+  </footer>
+</div>
+
+<script src="obrazovach.js?v=20260204-2300" defer></script>
+
 </body>
 </html>

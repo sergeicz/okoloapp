@@ -2612,28 +2612,7 @@ social.show {
   text-align: center;
 }
 
-/* Обёртка */
-.home-return {
-    margin: 20px 0;
-    text-align: center;
-}
 
-/* Сама кнопка */
-.home-return__button {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #2c3e50;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-    font-weight: 500;
-    transition: 0.3s;
-}
-
-/* Эффект при наведении */
-.home-return__button:hover {
-    background-color: #34495e;
-}
 
 
 /* =====================================================
@@ -2680,3 +2659,4 @@ social.show {
     min-width: 400px;
   }
 }
+
