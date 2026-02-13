@@ -606,6 +606,11 @@ h2 {
   width: 24px;
   height: 24px;
   object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.obrazovach-btn:hover .obrazovach-icon {
+  transform: scale(1.15) rotate(5deg);
 }
 
 .back-to-home-btn {
