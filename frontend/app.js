@@ -15,6 +15,46 @@
 // =====================================================
 // =====================================================
 
+// =====================================================
+// CLOUD STORAGE DIRECT LINK CONVERTER
+// =====================================================
+
+/**
+ * Converts Yandex Disk and Google Drive share links to direct download/view links
+ * @param {string} url - Original share URL
+ * @returns {string} - Direct link or original URL if conversion failed
+ */
+function convertToDirectLink(url) {
+  if (!url || typeof url !== 'string') return url;
+
+  // Yandex Disk: https://disk.yandex.ru/i/xxx or https://yadi.sk/i/xxx
+  if (url.includes('disk.yandex.ru') || url.includes('yadi.sk')) {
+    // Extract the file ID
+    const match = url.match(/\/[id]\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      const fileId = match[1];
+      return `https://downloader.disk.yandex.ru/disk/file/${fileId}`;
+    }
+    // If it's already a public link, try to get direct download
+    if (url.includes('/d/')) {
+      return url.replace('/d/', '/i/');
+    }
+  }
+
+  // Google Drive: https://drive.google.com/file/d/FILE_ID/view
+  if (url.includes('drive.google.com')) {
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      const fileId = match[1];
+      // Use Google Drive's thumbnail/direct view endpoint
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+  }
+
+  // Return original URL if no conversion needed
+  return url;
+}
+
 // Cookie Consent Management
 function checkCookieConsent() {
   const consent = localStorage.getItem('cookieConsent');
@@ -670,22 +710,28 @@ async function loadPartners() {
 
         // Добавляем логотип если есть
         if (link.logo_url && link.logo_url.trim() !== '') {
-          console.log('[LOGO] Adding:', link.logo_url);
+          const originalUrl = link.logo_url;
+          const directUrl = convertToDirectLink(originalUrl);
+
+          console.log('[LOGO] Adding:', originalUrl);
+          if (originalUrl !== directUrl) {
+            console.log('[LOGO] Converted to direct link:', directUrl);
+          }
 
           const logo = document.createElement('img');
-          logo.src = link.logo_url;
+          logo.src = directUrl;
           logo.alt = link.title;
           logo.className = 'btn-logo';
           logo.loading = 'lazy'; // Lazy loading для логотипов
           logo.decoding = 'async'; // Асинхронная декодировка
 
           logo.onerror = function() {
-            console.error('[LOGO] Load failed:', link.logo_url);
+            console.error('[LOGO] Load failed:', directUrl);
             this.style.display = 'none';
           };
 
           logo.onload = function() {
-            console.log('[LOGO] Load success:', link.logo_url);
+            console.log('[LOGO] Load success:', directUrl);
           };
 
           a.appendChild(logo);

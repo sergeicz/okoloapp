@@ -2,6 +2,46 @@
 // ОБРАЗОВАТЕЛЬНЫЕ МАТЕРИАЛЫ - ЛОГИКА
 // =====================================================
 
+// =====================================================
+// CLOUD STORAGE DIRECT LINK CONVERTER
+// =====================================================
+
+/**
+ * Converts Yandex Disk and Google Drive share links to direct download/view links
+ * @param {string} url - Original share URL
+ * @returns {string} - Direct link or original URL if conversion failed
+ */
+function convertToDirectLink(url) {
+  if (!url || typeof url !== 'string') return url;
+
+  // Yandex Disk: https://disk.yandex.ru/i/xxx or https://yadi.sk/i/xxx
+  if (url.includes('disk.yandex.ru') || url.includes('yadi.sk')) {
+    // Extract the file ID
+    const match = url.match(/\/[id]\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      const fileId = match[1];
+      return `https://downloader.disk.yandex.ru/disk/file/${fileId}`;
+    }
+    // If it's already a public link, try to get direct download
+    if (url.includes('/d/')) {
+      return url.replace('/d/', '/i/');
+    }
+  }
+
+  // Google Drive: https://drive.google.com/file/d/FILE_ID/view
+  if (url.includes('drive.google.com')) {
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      const fileId = match[1];
+      // Use Google Drive's thumbnail/direct view endpoint
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+  }
+
+  // Return original URL if no conversion needed
+  return url;
+}
+
 // Конфигурация
 const EDUCATION_CONFIG = {
   API_URL: 'https://app.okolotattooing.ru',  // Используем серверный домен
@@ -284,8 +324,15 @@ async function loadEducationMaterials() {
 
       // Обложка
       if (material.url_cover) {
+        const originalUrl = material.url_cover;
+        const directUrl = convertToDirectLink(originalUrl);
+
+        if (originalUrl !== directUrl) {
+          console.log('[EDUCATION] Converted cover URL to direct link:', directUrl);
+        }
+
         const coverImg = document.createElement('img');
-        coverImg.src = material.url_cover;
+        coverImg.src = directUrl;
         coverImg.alt = material.title;
         coverImg.style.width = '100%';
         coverImg.style.borderRadius = '12px';
@@ -293,7 +340,7 @@ async function loadEducationMaterials() {
         coverImg.style.objectFit = 'cover';
         coverImg.style.height = '200px';
         coverImg.onerror = function() {
-          console.error('[EDUCATION] Failed to load image:', material.url_cover);
+          console.error('[EDUCATION] Failed to load image:', directUrl);
           this.style.display = 'none';
         };
         card.appendChild(coverImg);
