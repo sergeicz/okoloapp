@@ -2738,8 +2738,9 @@ function setupBot(env) {
       // Проверяем, что URL формы корректен
       const formUrl = 'https://forms.yandex.ru/u/698ef7701f1eb56dd2198078';
       
-      const keyboard = new InlineKeyboard()
-        .url('📝 Заполнить форму', formUrl);
+      // Создаем клавиатуру с URL-кнопкой
+      const keyboard = new InlineKeyboard();
+      keyboard.url('📝 Заполнить форму', formUrl);
 
       await ctx.reply(feedbackMessage, {
         parse_mode: 'Markdown',
@@ -2747,6 +2748,7 @@ function setupBot(env) {
       });
     } catch (error) {
       console.error('Error showing feedback form:', error);
+      console.error('Stack trace:', error.stack);
       await ctx.reply('❌ Ошибка при открытии формы обратной связи');
     }
   });
