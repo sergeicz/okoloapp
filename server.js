@@ -2570,7 +2570,7 @@ function setupBot(env) {
     // Add profile and referral buttons for ALL users (including admins)
     keyboard.row().text('👤 Мой профиль', 'show_profile');
     keyboard.row().text('🐹 Фабрика хомяков', 'show_referral');
-    keyboard.row().text('💌 Обратная связь', 'show_feedback');
+    
 
     await ctx.reply(
       `👋 Привет, *${user.first_name}*!\n\n` +
@@ -3714,7 +3714,7 @@ function setupBot(env) {
     // Add profile and referral buttons for all users
     keyboard.row().text('👤 Мой профиль', 'show_profile');
     keyboard.row().text('🐹 Фабрика хомяков', 'show_referral');
-    keyboard.row().text('💌 Обратная связь', 'show_feedback');
+    
 
     await ctx.editMessageText(
       `👋 Привет, *${escapeMarkdown(user.first_name)}*!\n\n` +
