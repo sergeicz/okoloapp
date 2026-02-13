@@ -2735,8 +2735,11 @@ function setupBot(env) {
       feedbackMessage += `Если у вас есть вопросы, предложения или отзывы, пожалуйста, заполните нашу форму обратной связи.\n\n`;
       feedbackMessage += `👉 *Перейти к форме:*`;
 
+      // Проверяем, что URL формы корректен
+      const formUrl = 'https://forms.yandex.ru/u/698ef7701f1eb56dd2198078';
+      
       const keyboard = new InlineKeyboard()
-        .url('📝 Заполнить форму', 'https://forms.yandex.ru/u/698ef7701f1eb56dd2198078');
+        .url('📝 Заполнить форму', formUrl);
 
       await ctx.reply(feedbackMessage, {
         parse_mode: 'Markdown',
