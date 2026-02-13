@@ -517,64 +517,6 @@ h2 {
 }
 
 /* =====================================================
-   SWIPE INDICATOR
-   ===================================================== */
-
-.swipe-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 12px 20px;
-  margin: 15px auto;
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-  border-radius: 50px;
-  max-width: 280px;
-  opacity: 1;
-  transition: opacity 0.5s ease-out;
-  animation: swipePulse 2s ease-in-out infinite;
-}
-
-.swipe-indicator.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.swipe-emoji {
-  font-size: 1.5rem;
-  animation: swipeAnimation 1.5s ease-in-out infinite;
-  display: inline-block;
-}
-
-.swipe-text {
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  font-weight: 500;
-  letter-spacing: 0.3px;
-}
-
-@keyframes swipeAnimation {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(10px);
-  }
-}
-
-@keyframes swipePulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
-  }
-}
-
-/* =====================================================
    КНОПКИ
    ===================================================== */
 

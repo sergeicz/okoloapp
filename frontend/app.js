@@ -704,25 +704,8 @@ async function loadPartners() {
 
     // DON'T use innerHTML += as it destroys event listeners!
     // Tags are already properly closed by the DOM structure
-
-    // Hide swipe indicator after categories are loaded
-    const swipeIndicator = document.getElementById('swipeIndicator');
-    if (swipeIndicator) {
-      setTimeout(() => {
-        swipeIndicator.classList.add('hidden');
-        // Remove from DOM after animation
-        setTimeout(() => {
-          swipeIndicator.remove();
-        }, 500);
-      }, 2000); // Show for 2 seconds, then hide
-    }
   } catch (error) {
     container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки партнеров</p>';
-    // Hide indicator on error too
-    const swipeIndicator = document.getElementById('swipeIndicator');
-    if (swipeIndicator) {
-      swipeIndicator.classList.add('hidden');
-    }
   }
 }
 
