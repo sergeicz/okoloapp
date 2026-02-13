@@ -1024,3 +1024,32 @@ function openDonate() {
 
   tg.openTelegramLink(donateUrl);
 }
+
+// Функции для открытия документов в Telegram Mini App
+function openPolicy() {
+  // Вибрация для обратной связи
+  if (tg.HapticFeedback) {
+    tg.HapticFeedback.impactOccurred('light');
+  }
+
+  // Открываем документ через Telegram WebApp
+  if (tg.openLink) {
+    tg.openLink(`${CONFIG.API_URL}/policy.html`);
+  } else {
+    window.open('./policy.html', '_blank');
+  }
+}
+
+function openOffer() {
+  // Вибрация для обратной связи
+  if (tg.HapticFeedback) {
+    tg.HapticFeedback.impactOccurred('light');
+  }
+
+  // Открываем документ через Telegram WebApp
+  if (tg.openLink) {
+    tg.openLink(`${CONFIG.API_URL}/offer.html`);
+  } else {
+    window.open('./offer.html', '_blank');
+  }
+}

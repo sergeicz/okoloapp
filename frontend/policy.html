@@ -280,8 +280,21 @@ hr {
   <h2>11. Контакты</h2>
   <p>По вопросам, связанным с обработкой персональных данных, пользователь может обратиться к администрации <a href="https://t.me/nononotattoo" target="_blank">Околотату</a>.</p>
 
-  <a href="../" class="back-link">← Вернуться на главную</a>
+  <a href="#" class="back-link" onclick="goToMainPage(); return false;">← Вернуться на главную</a>
 </div>
 
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  function goToMainPage() {
+    // Проверяем, можем ли мы использовать Telegram WebApp для навигации
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+      // Открываем бота, чтобы пользователь мог снова открыть Mini App через кнопку
+      window.Telegram.WebApp.openTelegramLink('https://t.me/okolotattoo_bot');
+    } else {
+      // Если Telegram WebApp недоступен, используем стандартный переход
+      window.location.href = '../';
+    }
+  }
+</script>
 </body>
 </html>
