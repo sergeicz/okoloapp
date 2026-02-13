@@ -2758,6 +2758,12 @@ function setupBot(env) {
     await ctx.answerCallbackQuery();
   });
 
+  // Helper function to escape special Markdown characters
+  function escapeMarkdown(text) {
+    if (!text) return text;
+    return String(text).replace(/([_*\[\]()~`>#+=|{}.!-])/g, '\\$1');
+  }
+
   // Статистика рассылок
   bot.callbackQuery('admin_broadcasts_stats', async (ctx) => {
     const isAdmin = await checkAdmin(env, ctx.from);
@@ -2807,7 +2813,8 @@ function setupBot(env) {
 
       recentBroadcasts.forEach((broadcast, index) => {
         const convRate = broadcast.conversion_rate || '0.00%';
-        text += `\n${index + 1}. *${broadcast.name || 'Без названия'}*\n`;
+        const broadcastName = escapeMarkdown(broadcast.name || 'Без названия');
+        text += `\n${index + 1}. *${broadcastName}*\n`;
         text += `📅 ${broadcast.date} | 🕐 ${broadcast.time}\n`;
         text += `✉️ ${broadcast.sent_count} | 👆 ${broadcast.click_count} | 📈 ${convRate}\n`;
       });
@@ -2880,7 +2887,7 @@ function setupBot(env) {
       }
 
       let text = `📊 *Детальная статистика*\n\n`;
-      text += `📢 *Название:* ${broadcast.name || 'Без названия'}\n`;
+      text += `📢 *Название:* ${escapeMarkdown(broadcast.name || 'Без названия')}\n`;
       text += `🆔 *ID:* \`${broadcast.broadcast_id}\`\n\n`;
 
       text += `📅 *Дата:* ${broadcast.date}\n`;
@@ -2912,17 +2919,18 @@ function setupBot(env) {
       text += `📝 *СОДЕРЖАНИЕ:*\n\n`;
 
       if (broadcast.title) {
-        text += `*Заголовок:* ${broadcast.title}\n`;
+        text += `*Заголовок:* ${escapeMarkdown(broadcast.title)}\n`;
       }
 
       if (broadcast.subtitle) {
-        text += `*Текст:* ${broadcast.subtitle}\n`;
+        text += `*Текст:* ${escapeMarkdown(broadcast.subtitle)}\n`;
       }
 
       if (broadcast.button_text && broadcast.button_url) {
-        // Escape underscores in URL for Markdown
-        const escapedUrl = broadcast.button_url.replace(/_/g, '\\_');
-        text += `\n🔘 *Кнопка:* ${broadcast.button_text}\n`;
+        // Escape markdown characters in button text and URL
+        const escapedButtonText = escapeMarkdown(broadcast.button_text);
+        const escapedUrl = escapeMarkdown(broadcast.button_url);
+        text += `\n🔘 *Кнопка:* ${escapedButtonText}\n`;
         text += `🔗 *Ссылка:* ${escapedUrl}`;
       }
 
