@@ -2779,9 +2779,18 @@ function setupBot(env) {
 
       // Сортируем по дате (последние сначала)
       broadcasts.sort((a, b) => {
-        const dateA = new Date(a.date + ' ' + a.time);
-        const dateB = new Date(b.date + ' ' + b.time);
-        return dateB - dateA;
+        try {
+          const dateA = new Date(a.date + ' ' + a.time);
+          const dateB = new Date(b.date + ' ' + b.time);
+          // Check if dates are valid
+          if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+            return 0; // Keep original order if dates are invalid
+          }
+          return dateB - dateA;
+        } catch (error) {
+          console.error('[BROADCASTS_STATS] Error sorting broadcasts:', error);
+          return 0;
+        }
       });
 
       // Показываем последние 10 рассылок
@@ -2807,7 +2816,8 @@ function setupBot(env) {
 
       // Добавляем кнопки для первых 5 рассылок
       recentBroadcasts.slice(0, 5).forEach((broadcast, index) => {
-        const shortName = broadcast.name.length > 20 ? broadcast.name.substring(0, 20) + '...' : broadcast.name;
+        const name = broadcast.name || 'Без названия';
+        const shortName = name.length > 20 ? name.substring(0, 20) + '...' : name;
         keyboard.text(`${index + 1}. ${shortName}`, `broadcast_detail_${broadcast.broadcast_id}`);
         if (index % 2 === 1) keyboard.row(); // По 2 кнопки в ряд
       });
@@ -2820,7 +2830,25 @@ function setupBot(env) {
       });
       await ctx.answerCallbackQuery();
     } catch (error) {
-      console.error('[BROADCASTS_STATS] Error:', error);
+      console.error('[BROADCASTS_STATS] Error loading broadcast stats:', {
+        error_message: error.message,
+        error_stack: error.stack,
+        user_id: ctx.from.id
+      });
+
+      try {
+        await ctx.editMessageText(
+          '❌ *Ошибка загрузки статистики рассылок*\n\n' +
+          'Попробуйте еще раз или обратитесь к администратору.',
+          {
+            parse_mode: 'Markdown',
+            reply_markup: new InlineKeyboard().text('« Назад', 'admin_panel')
+          }
+        );
+      } catch (editError) {
+        console.error('[BROADCASTS_STATS] Error editing message:', editError);
+      }
+
       await ctx.answerCallbackQuery('❌ Ошибка загрузки статистики');
     }
   });
