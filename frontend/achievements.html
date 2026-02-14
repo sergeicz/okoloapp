@@ -42,9 +42,9 @@ body {
   color: var(--text-primary);
   line-height: 1.8;
   min-height: 100vh;
-  padding: clamp(10px, 3vw, 20px); /* Адаптивный отступ body */
+  padding: clamp(10px, 3vw, 20px);
   overflow-x: hidden;
-  padding-bottom: clamp(10px, 3vw, 20px); /* Адаптивный нижний отступ */
+  padding-bottom: clamp(10px, 3vw, 20px);
 }
 
 .container {
@@ -55,15 +55,15 @@ body {
   backdrop-filter: blur(50px) saturate(180%);
   -webkit-backdrop-filter: blur(50px) saturate(180%);
   border: 1px solid rgba(124, 58, 237, 0.3);
-  border-radius: clamp(16px, 3vw, 32px); /* Адаптивный border-radius */
-  padding: clamp(20px, 4vw, 50px); /* Адаптивные отступы */
+  border-radius: clamp(16px, 3vw, 32px);
+  padding: clamp(20px, 4vw, 50px);
   animation: fadeIn 0.8s ease;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
               0 0 100px rgba(124, 58, 237, 0.2),
               inset 0 1px 1px rgba(255, 255, 255, 0.1);
   overflow-wrap: break-word;
   word-wrap: break-word;
-  padding-bottom: clamp(60px, 8vw, 80px); /* Адаптивный нижний отступ для кнопки */
+  padding-bottom: clamp(60px, 8vw, 80px);
 }
 
 @keyframes fadeIn {
@@ -72,29 +72,29 @@ body {
 }
 
 h1 {
-  font-size: clamp(1.6rem, 4vw, 3rem); /* Адаптивный размер */
+  font-size: clamp(1.6rem, 4vw, 3rem);
   font-weight: 900;
   background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 50%, #c084fc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: clamp(10px, 2vw, 15px); /* Адаптивный отступ */
+  margin-bottom: clamp(10px, 2vw, 15px);
   text-align: center;
   text-transform: uppercase;
-  letter-spacing: clamp(0.5px, 1.5vw, 3px); /* Адаптивная буквица */
+  letter-spacing: clamp(0.5px, 1.5vw, 3px);
   word-wrap: break-word;
   overflow-wrap: break-word;
   filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.4));
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(8px, 2vw, 15px); /* Адаптивный отступ между элементами */
+  gap: clamp(8px, 2vw, 15px);
   width: 100%;
   flex-wrap: wrap;
 }
 
 .title-icon {
-  font-size: clamp(1.8rem, 4vw, 3rem); /* Адаптивный размер иконки */
+  font-size: clamp(1.8rem, 4vw, 3rem);
   flex-shrink: 0;
   filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.4));
 }
@@ -102,20 +102,20 @@ h1 {
 .subtitle {
   text-align: center;
   color: var(--text-secondary);
-  font-size: clamp(1rem, 2.5vw, 1.3rem); /* Адаптивный размер */
-  margin-bottom: clamp(35px, 5vw, 50px); /* Адаптивный отступ */
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  margin-bottom: clamp(35px, 5vw, 50px);
   font-weight: 600;
 }
 
 h2 {
-  font-size: clamp(1.3rem, 3.5vw, 2rem); /* Адаптивный размер */
+  font-size: clamp(1.3rem, 3.5vw, 2rem);
   font-weight: 800;
   color: var(--primary);
-  margin: clamp(35px, 5vw, 50px) 0 clamp(20px, 3vw, 25px); /* Адаптивные отступы */
+  margin: clamp(35px, 5vw, 50px) 0 clamp(20px, 3vw, 25px);
   text-transform: uppercase;
-  letter-spacing: clamp(0.5px, 1.5vw, 2px); /* Адаптивная буквица */
+  letter-spacing: clamp(0.5px, 1.5vw, 2px);
   position: relative;
-  padding-bottom: clamp(10px, 2vw, 15px); /* Адаптивный нижний отступ */
+  padding-bottom: clamp(10px, 2vw, 15px);
 }
 
 h2::after {
@@ -123,23 +123,23 @@ h2::after {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: clamp(40px, 8vw, 60px); /* Адаптивная ширина */
-  height: clamp(3px, 0.8vw, 4px); /* Адаптивная высота */
+  width: clamp(40px, 8vw, 60px);
+  height: clamp(3px, 0.8vw, 4px);
   background: linear-gradient(90deg, var(--primary) 0%, transparent 100%);
-  border-radius: clamp(1px, 0.3vw, 2px); /* Адаптивный border-radius */
+  border-radius: clamp(1px, 0.3vw, 2px);
 }
 
 h3 {
-  font-size: clamp(1.2rem, 2.5vw, 1.5rem); /* Адаптивный размер */
+  font-size: clamp(1.2rem, 2.5vw, 1.5rem);
   font-weight: 700;
   color: var(--accent);
-  margin: clamp(25px, 4vw, 30px) 0 clamp(12px, 2vw, 15px); /* Адаптивные отступы */
+  margin: clamp(25px, 4vw, 30px) 0 clamp(12px, 2vw, 15px);
 }
 
 p {
-  margin-bottom: clamp(12px, 2.5vw, 15px); /* Адаптивный нижний отступ */
+  margin-bottom: clamp(12px, 2.5vw, 15px);
   color: var(--text-secondary);
-  font-size: clamp(0.9rem, 2.2vw, 1.1rem); /* Адаптивный размер */
+  font-size: clamp(0.9rem, 2.2vw, 1.1rem);
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
@@ -147,13 +147,13 @@ p {
 a {
   overflow-wrap: break-word;
   word-wrap: break-word;
-  color: var(--accent); /* Добавим цвет для ссылок */
-  text-decoration: underline; /* И подчеркивание для ясности */
-  transition: color 0.3s ease; /* Плавный переход цвета */
+  color: var(--accent);
+  text-decoration: underline;
+  transition: color 0.3s ease;
 }
 
 a:hover {
-  color: var(--primary); /* Цвет при наведении */
+  color: var(--primary);
 }
 
 img {
@@ -164,17 +164,17 @@ img {
 hr {
   border: none;
   border-top: 1px solid rgba(124, 58, 237, 0.3);
-  margin: clamp(30px, 5vw, 40px) 0; /* Адаптивный отступ */
+  margin: clamp(30px, 5vw, 40px) 0;
 }
 
 .highlight-box {
   background: rgba(124, 58, 237, 0.1);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border-left: clamp(3px, 0.7vw, 4px) solid var(--primary); /* Адаптивная толщина границы */
-  padding: clamp(15px, 3vw, 20px) clamp(18px, 4vw, 25px); /* Адаптивные отступы */
-  margin: clamp(25px, 4vw, 30px) 0; /* Адаптивные отступы */
-  border-radius: clamp(16px, 3vw, 20px); /* Адаптивный border-radius */
+  border-left: clamp(3px, 0.7vw, 4px) solid var(--primary);
+  padding: clamp(15px, 3vw, 20px) clamp(18px, 4vw, 25px);
+  margin: clamp(25px, 4vw, 30px) 0;
+  border-radius: clamp(16px, 3vw, 20px);
   border: 1px solid rgba(124, 58, 237, 0.3);
   box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2),
               inset 0 1px 1px rgba(255, 255, 255, 0.1);
@@ -185,9 +185,9 @@ hr {
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
   border: 1px solid rgba(124, 58, 237, 0.3);
-  border-radius: clamp(16px, 3vw, 24px); /* Адаптивный border-radius */
-  padding: clamp(15px, 3vw, 25px); /* Адаптивные отступы */
-  margin: clamp(15px, 2vw, 20px) 0; /* Адаптивные отступы */
+  border-radius: clamp(16px, 3vw, 24px);
+  padding: clamp(15px, 3vw, 25px);
+  margin: clamp(15px, 2vw, 20px) 0;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -221,35 +221,35 @@ hr {
 .achievement-header {
   display: flex;
   align-items: center;
-  gap: clamp(8px, 2vw, 15px); /* Адаптивный отступ */
-  margin-bottom: clamp(12px, 2.5vw, 15px); /* Адаптивный отступ */
-  flex-wrap: wrap; /* Позволяет переноситься */
+  gap: clamp(8px, 2vw, 15px);
+  margin-bottom: clamp(12px, 2.5vw, 15px);
+  flex-wrap: wrap;
 }
 
 .achievement-icon {
-  font-size: clamp(2rem, 3.5vw, 2.5rem); /* Адаптивный размер */
+  font-size: clamp(2rem, 3.5vw, 2.5rem);
   flex-shrink: 0;
 }
 
 .achievement-info {
   flex: 1;
-  min-width: 0; /* Позволяет сжиматься */
+  min-width: 0;
 }
 
 .achievement-title {
-  font-size: clamp(1.1rem, 2.3vw, 1.4rem); /* Адаптивный размер */
+  font-size: clamp(1.1rem, 2.3vw, 1.4rem);
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: clamp(3px, 1vw, 5px); /* Адаптивный отступ */
-  word-wrap: break-word; /* Обязательно для названий */
+  margin-bottom: clamp(3px, 1vw, 5px);
+  word-wrap: break-word;
 }
 
 .achievement-meta {
   display: flex;
-  gap: clamp(10px, 2vw, 15px); /* Адаптивный отступ */
-  font-size: clamp(0.8rem, 1.8vw, 0.9rem); /* Адаптивный размер */
+  gap: clamp(10px, 2vw, 15px);
+  font-size: clamp(0.8rem, 1.8vw, 0.9rem);
   color: var(--text-secondary);
-  flex-wrap: wrap; /* Позволяет переноситься мета-данным */
+  flex-wrap: wrap;
 }
 
 .achievement-points {
@@ -283,20 +283,20 @@ hr {
 
 .achievement-description {
   color: var(--text-secondary);
-  font-size: clamp(0.95rem, 2vw, 1.05rem); /* Адаптивный размер */
-  margin-bottom: clamp(12px, 2.5vw, 15px); /* Адаптивный отступ */
-  overflow-wrap: break-word; /* Обязательно для описаний */
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+  margin-bottom: clamp(12px, 2.5vw, 15px);
+  overflow-wrap: break-word;
   word-wrap: break-word;
 }
 
 .achievement-condition {
   background: rgba(124, 58, 237, 0.15);
-  padding: clamp(10px, 2vw, 12px) clamp(15px, 3vw, 18px); /* Адаптивные отступы */
-  border-radius: clamp(10px, 2vw, 12px); /* Адаптивный border-radius */
-  font-size: clamp(0.9rem, 1.9vw, 0.95rem); /* Адаптивный размер */
+  padding: clamp(10px, 2vw, 12px) clamp(15px, 3vw, 18px);
+  border-radius: clamp(10px, 2vw, 12px);
+  font-size: clamp(0.9rem, 1.9vw, 0.95rem);
   color: var(--accent);
   border: 1px solid rgba(124, 58, 237, 0.2);
-  overflow-wrap: break-word; /* Обязательно для условий */
+  overflow-wrap: break-word;
   word-wrap: break-word;
 }
 
@@ -306,8 +306,8 @@ hr {
 
 .back-link {
   display: inline-block;
-  margin-top: clamp(30px, 5vw, 40px); /* Адаптивный отступ */
-  padding: clamp(12px, 2.5vw, 14px) clamp(28px, 5vw, 36px); /* Адаптивные отступы */
+  margin-top: clamp(30px, 5vw, 40px);
+  padding: clamp(12px, 2.5vw, 14px) clamp(28px, 5vw, 36px);
   background: rgba(124, 58, 237, 0.15);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
@@ -315,13 +315,13 @@ hr {
   color: var(--text-primary);
   border-radius: 50px;
   text-transform: uppercase;
-  letter-spacing: clamp(0.5px, 1vw, 1px); /* Адаптивная буквица */
+  letter-spacing: clamp(0.5px, 1vw, 1px);
   font-weight: 700;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
               inset 0 1px 1px rgba(255, 255, 255, 0.1);
   text-decoration: none;
-  font-size: clamp(0.9rem, 2vw, 1rem); /* Адаптивный размер шрифта */
+  font-size: clamp(0.9rem, 2vw, 1rem);
   width: 100%;
   text-align: center;
 }
@@ -337,15 +337,15 @@ hr {
 }
 
 .rarity-section {
-  margin: clamp(30px, 5vw, 40px) 0; /* Адаптивный отступ */
+  margin: clamp(30px, 5vw, 40px) 0;
 }
 
 .rarity-title {
-  font-size: clamp(1.5rem, 3vw, 1.8rem); /* Адаптивный размер */
+  font-size: clamp(1.5rem, 3vw, 1.8rem);
   font-weight: 800;
-  margin-bottom: clamp(20px, 4vw, 25px); /* Адаптивный отступ */
+  margin-bottom: clamp(20px, 4vw, 25px);
   text-transform: uppercase;
-  letter-spacing: clamp(0.5px, 1.5vw, 1.5px); /* Адаптивная буквица */
+  letter-spacing: clamp(0.5px, 1.5vw, 1.5px);
 }
 
 /* --- Новые стили для home-floating-btn --- */
@@ -353,10 +353,10 @@ hr {
   display: block !important;
   max-width: 90vw !important;
   width: fit-content !important;
-  min-width: clamp(140px, 30vw, 200px) !important; /* Адаптивная минимальная ширина */
-  margin: clamp(25px, 3vw, 40px) auto 0 auto !important; /* Адаптивный отступ сверху */
+  min-width: clamp(140px, 30vw, 200px) !important;
+  margin: clamp(25px, 3vw, 40px) auto 0 auto !important;
 
-  padding: clamp(10px, 2.5vw, 14px) clamp(20px, 5vw, 36px) !important; /* Адаптивные отступы */
+  padding: clamp(10px, 2.5vw, 14px) clamp(20px, 5vw, 36px) !important;
 
   background: rgba(124, 58, 237, 0.15) !important;
   backdrop-filter: blur(30px) saturate(180%) !important;
@@ -368,13 +368,13 @@ hr {
 
   border-radius: 50px !important;
   text-transform: uppercase !important;
-  letter-spacing: clamp(0.5px, 1vw, 1px) !important; /* Адаптивная буквица */
+  letter-spacing: clamp(0.5px, 1vw, 1px) !important;
   font-weight: 700 !important;
-  font-size: clamp(0.85rem, 2.5vw, 0.95rem) !important; /* Адаптивный размер шрифта */
+  font-size: clamp(0.85rem, 2.5vw, 0.95rem) !important;
 
-  white-space: nowrap !important;        /* запрет переноса */
-  overflow: hidden !important;           /* скрыть лишнее */
-  text-overflow: ellipsis !important;    /* добавить ... если текст слишком длинный */
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.2),
@@ -385,9 +385,70 @@ hr {
 }
 
 .home-floating-btn:hover {
-  transform: scale(1.02) !important; /* Лёгкий масштаб при наведении */
+  transform: scale(1.02) !important;
   background: rgba(124, 58, 237, 0.25) !important;
   border-color: rgba(124, 58, 237, 0.6) !important;
+}
+
+/* --- Адаптивные списки --- */
+/* Для ненумерованных списков (ul) */
+.highlight-box ul {
+  list-style: none; /* Убираем стандартные маркеры */
+  padding-left: 0; /* Убираем стандартный отступ */
+  margin: 0; /* Убираем внешний отступ */
+}
+
+.highlight-box ul li {
+  position: relative; /* Позиционируем относительно родителя для ::before */
+  padding-left: clamp(20px, 4vw, 25px); /* Создаём отступ для вручную созданного маркера */
+  margin: clamp(8px, 1.5vw, 10px) 0; /* Внутренний отступ между элементами списка */
+  font-size: clamp(0.9rem, 2vw, 1rem); /* Адаптивный размер шрифта для текста */
+  line-height: 1.6; /* Улучшаем читаемость */
+}
+
+.highlight-box ul li::before {
+  content: '•'; /* Символ маркера */
+  position: absolute;
+  left: 0; /* Позиционируем слева отступа */
+  top: 50%; /* Выравнивание по вертикали */
+  transform: translateY(-50%); /* Выравнивание по вертикали */
+  font-size: inherit; /* Маркер наследует размер шрифта li */
+  color: var(--accent); /* Цвет маркера */
+  line-height: 1; /* Убираем лишнее пространство вокруг маркера */
+}
+
+/* Для нумерованных списков (ol) */
+.highlight-box ol {
+  list-style: none; /* Убираем стандартные цифры */
+  padding-left: 0;
+  margin: 0;
+  counter-reset: item; /* Сбрасываем счётчик */
+}
+
+.highlight-box ol li {
+  position: relative;
+  padding-left: clamp(25px, 5vw, 30px); /* Отступ под цифру */
+  margin: clamp(8px, 1.5vw, 10px) 0;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  line-height: 1.6;
+  counter-increment: item; /* Увеличиваем счётчик */
+}
+
+.highlight-box ol li::before {
+  content: counter(item) "."; /* Выводим значение счётчика */
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: inherit; /* Маркер наследует размер шрифта li */
+  color: var(--accent);
+  font-weight: 700; /* Делаем цифру жирной */
+  line-height: 1;
+}
+
+/* --- Общие стили для li внутри highlight-box (если нужно унифицировать) --- */
+.highlight-box li {
+  /* Общие стили, если нужно */
 }
 
 </style>
@@ -592,25 +653,20 @@ hr {
 
   <div class="highlight-box">
     <h3 style="margin-top: 0; color: var(--text-primary); font-size: clamp(1.2rem, 2.5vw, 1.3rem);">💡 Советы по получению достижений</h3>
-    <ul style="list-style: none; padding: 0; margin: clamp(10px, 2vw, 15px) 0 0 0;">
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0; padding-left: clamp(20px, 4vw, 25px); position: relative; font-size: clamp(0.9rem, 2vw, 1rem);">
-        <span style="position: absolute; left: 0;">✅</span>
+    <ul style="margin: clamp(10px, 2vw, 15px) 0 0 0;">
+      <li>
         <strong>Проверяй свой профиль:</strong> Команда /profile в боте показывает текущий прогресс по всем достижениям
       </li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0; padding-left: clamp(20px, 4vw, 25px); position: relative; font-size: clamp(0.9rem, 2vw, 1rem);">
-        <span style="position: absolute; left: 0;">✅</span>
+      <li>
         <strong>Серия активности:</strong> Не пропускай дни! Заходи в приложение каждый день, чтобы сохранить серию
       </li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0; padding-left: clamp(20px, 4vw, 25px); position: relative; font-size: clamp(0.9rem, 2vw, 1rem);">
-        <span style="position: absolute; left: 0;">✅</span>
+      <li>
         <strong>Рефералы:</strong> Делись своей реферальной ссылкой с друзьями в тату-индустрии
       </li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0; padding-left: clamp(20px, 4vw, 25px); position: relative; font-size: clamp(0.9rem, 2vw, 1rem);">
-        <span style="position: absolute; left: 0;">✅</span>
+      <li>
         <strong>Уникальность:</strong> Некоторые достижения (например, "Любознательный хомяк") требуют уникальных действий — повторы не считаются
       </li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0; padding-left: clamp(20px, 4vw, 25px); position: relative; font-size: clamp(0.9rem, 2vw, 1rem);">
-        <span style="position: absolute; left: 0;">✅</span>
+      <li>
         <strong>Автоматизация:</strong> Все достижения присваиваются автоматически, тебе не нужно ничего запрашивать вручную
       </li>
     </ul>
@@ -625,49 +681,49 @@ hr {
 
   <div class="highlight-box">
     <h3 style="margin-top: 0; color: var(--text-primary); font-size: clamp(1.2rem, 2.5vw, 1.3rem);">Как это работает?</h3>
-    <ol style="padding: clamp(10px, 2vw, 15px) 0 0 clamp(20px, 4vw, 25px); margin: 0; font-size: clamp(0.95rem, 2vw, 1.1rem);">
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Вы получаете уникальную ссылку для приглашения друзей</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Делитесь этой ссылкой с друзьями</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Когда ваш друг переходит по ссылке и запускает бота, он становится вашим рефералом</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">За каждого реферала вы получаете <strong>+10 баллов</strong></li>
+    <ol style="margin: clamp(10px, 2vw, 15px) 0 0 0; font-size: clamp(0.95rem, 2vw, 1.1rem);">
+      <li>Вы получаете уникальную ссылку для приглашения друзей</li>
+      <li>Делитесь этой ссылкой с друзьями</li>
+      <li>Когда ваш друг переходит по ссылке и запускает бота, он становится вашим рефералом</li>
+      <li>За каждого реферала вы получаете <strong>+10 баллов</strong></li>
     </ol>
   </div>
 
   <div class="highlight-box">
     <h3 style="margin-top: 0; color: var(--text-primary); font-size: clamp(1.2rem, 2.5vw, 1.3rem);">Сколько можно заработать?</h3>
-    <ul style="padding: clamp(10px, 2vw, 15px) 0 0 clamp(20px, 4vw, 25px); margin: 0; font-size: clamp(0.95rem, 2vw, 1.1rem);">
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">За каждого привлеченного друга: <strong>+10 баллов</strong></li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Если вы пригласите 10 друзей: <strong>+100 баллов</strong></li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">И у вас появится достижение: <strong>"👑 Проактивный хомяк"</strong></li>
+    <ul style="margin: clamp(10px, 2vw, 15px) 0 0 0; font-size: clamp(0.95rem, 2vw, 1.1rem);">
+      <li>За каждого привлеченного друга: <strong>+10 баллов</strong></li>
+      <li>Если вы пригласите 10 друзей: <strong>+100 баллов</strong></li>
+      <li>И у вас появится достижение: <strong>"👑 Проактивный хомяк"</strong></li>
     </ul>
   </div>
 
   <div class="highlight-box">
     <h3 style="margin-top: 0; color: var(--text-primary); font-size: clamp(1.2rem, 2.5vw, 1.3rem);">Зачем это нужно?</h3>
-    <ul style="padding: clamp(10px, 2vw, 15px) 0 0 clamp(20px, 4vw, 25px); margin: 0; font-size: clamp(0.95rem, 2vw, 1.1rem);">
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;"><strong>Баллы</strong> можно использовать для получения различных привилегий и бонусов в будущем</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;"><strong>Достижения</strong> — это ваш статус и признание активности</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;"><strong>Помощь сообществу</strong> — вы помогаете интересным проектам и предложениям распространяться среди тех, кто может быть ими заинтересован</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;"><strong>Пассивный доход</strong> — просто поделившись ссылкой, вы можете получать баллы</li>
+    <ul style="margin: clamp(10px, 2vw, 15px) 0 0 0; font-size: clamp(0.95rem, 2vw, 1.1rem);">
+      <li><strong>Баллы</strong> можно использовать для получения различных привилегий и бонусов в будущем</li>
+      <li><strong>Достижения</strong> — это ваш статус и признание активности</li>
+      <li><strong>Помощь сообществу</strong> — вы помогаете интересным проектам и предложениям распространяться среди тех, кто может быть ими заинтересован</li>
+      <li><strong>Пассивный доход</strong> — просто поделившись ссылкой, вы можете получать баллы</li>
     </ul>
   </div>
 
   <div class="highlight-box">
     <h3 style="margin-top: 0; color: var(--text-primary); font-size: clamp(1.2rem, 2.5vw, 1.3rem);">Как начать?</h3>
-    <ol style="padding: clamp(10px, 2vw, 15px) 0 0 clamp(20px, 4vw, 25px); margin: 0; font-size: clamp(0.95rem, 2vw, 1.1rem);">
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Введите команду <strong>/referrals</strong> в боте</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Скопируйте свою уникальную ссылку</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Делитесь ею с друзьями</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Следите за статистикой в своем профиле</li>
+    <ol style="margin: clamp(10px, 2vw, 15px) 0 0 0; font-size: clamp(0.95rem, 2vw, 1.1rem);">
+      <li>Введите команду <strong>/referrals</strong> в боте</li>
+      <li>Скопируйте свою уникальную ссылку</li>
+      <li>Делитесь ею с друзьями</li>
+      <li>Следите за статистикой в своем профиле</li>
     </ol>
   </div>
 
   <div class="highlight-box">
     <h3 style="margin-top: 0; color: var(--text-primary); font-size: clamp(1.2rem, 2.5vw, 1.3rem);">Советы:</h3>
-    <ul style="padding: clamp(10px, 2vw, 15px) 0 0 clamp(20px, 4vw, 25px); margin: 0; font-size: clamp(0.95rem, 2vw, 1.1rem);">
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Делитесь ссылкой с друзьями, которые интересуются татуировками, событиями или партнерскими предложениями</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Чем больше друзей вы пригласите, тем больше баллов и достижений получите</li>
-      <li style="margin: clamp(8px, 1.5vw, 10px) 0;">Ваша ссылка всегда прикреплена к вашему аккаунту, так что вы будете получать баллы за всех, кто по ней перейдет</li>
+    <ul style="margin: clamp(10px, 2vw, 15px) 0 0 0; font-size: clamp(0.95rem, 2vw, 1.1rem);">
+      <li>Делитесь ссылкой с друзьями, которые интересуются татуировками, событиями или партнерскими предложениями</li>
+      <li>Чем больше друзей вы пригласите, тем больше баллов и достижений получите</li>
+      <li>Ваша ссылка всегда прикреплена к вашему аккаунту, так что вы будете получать баллы за всех, кто по ней перейдет</li>
     </ul>
   </div>
 
