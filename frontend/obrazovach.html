@@ -42,25 +42,29 @@
   bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
-
   z-index: 1000001;
 
   display: inline-block;
+  max-width: 90vw; /* чтобы не выходила за экран */
+
   padding: 14px 36px;
 
   background: rgba(124, 58, 237, 0.15);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
-
   border: 1px solid rgba(124, 58, 237, 0.4);
+
   color: var(--text-primary);
+  text-decoration: none;
 
   border-radius: 50px;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: 700;
 
-  text-decoration: none;
+  white-space: nowrap;        /* запрет переноса */
+  overflow: hidden;           /* скрыть лишнее */
+  text-overflow: ellipsis;    /* добавить ... */
 
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.2),
@@ -123,6 +127,30 @@
 </div>
 
 <script src="obrazovach.js?v=20260204-2300" defer></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  const btn = document.querySelector('.home-floating-btn');
+  const tg = window.Telegram?.WebApp;
+
+  if (!btn) return;
+
+  btn.addEventListener('click', function () {
+
+    // 📳 Telegram Mini App вибрация
+    if (tg?.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred('medium');
+    }
+    // 📳 Android браузер fallback
+    else if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+
+  });
+
+});
+</script>
 
 </body>
 </html>
