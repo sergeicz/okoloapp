@@ -41,6 +41,7 @@ body {
   line-height: 1.8;
   min-height: 100vh;
   padding: 20px;
+  padding-bottom: 100px; /* Добавляем нижний отступ для кнопки */
 }
 
 @keyframes gradient {
@@ -129,23 +130,52 @@ hr {
   margin: 30px 0;
 }
 
-.back-link {
-  display: inline-block;
-  margin-top: 40px;
-  padding: 12px 30px;
-  background: var(--brutal-red);
-  color: #ffffff;
-  border-radius: 8px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 700;
-  transition: all 0.3s ease;
+/* Стили для кнопки "Назад", адаптированные под текущую тему */
+.home-floating-btn {
+  position: fixed !important;
+  bottom: 30px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 1000001 !important;
+
+  display: inline-block !important;
+  max-width: 90vw !important;
+  width: fit-content !important;
+  min-width: 200px !important;
+
+  padding: 14px 36px !important;
+
+  /* Адаптируем цвета под красную тему */
+  background: rgba(255, 0, 0, 0.15) !important; /* Красноватый фон */
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 0, 0, 0.4) !important; /* Красноватая граница */
+
+  color: var(--text-primary) !important; /* Белый текст */
+  text-decoration: none !important;
+
+  border-radius: 50px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  font-weight: 700 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+
+  transition: all 0.3s ease !important;
+  text-align: center !important;
 }
 
-.back-link:hover {
-  background: #FF4500;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(255, 0, 0, 0.5);
+.home-floating-btn:hover {
+  transform: translateX(-50%) translateY(-3px) !important;
+  /* Более насыщенный красный при наведении */
+  background: rgba(255, 0, 0, 0.25) !important;
+  border-color: rgba(255, 0, 0, 0.6) !important;
 }
 
 @media (max-width: 768px) {
@@ -163,6 +193,51 @@ hr {
   
   p, ul li {
     font-size: 1rem;
+  }
+
+  body {
+    padding: 15px;
+    padding-bottom: 110px; /* Увеличиваем нижний отступ для мобильных */
+  }
+
+  /* Адаптивные стили для кнопки */
+  .home-floating-btn {
+    padding: 12px 24px !important;
+    font-size: 0.95rem !important;
+    min-width: 160px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+    padding-bottom: 100px; /* Увеличиваем нижний отступ для маленьких экранов */
+  }
+  
+  .container {
+    padding: 20px 15px;
+    border-radius: 16px;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+  }
+  
+  h2 {
+    font-size: 1.2rem;
+    letter-spacing: 0.5px;
+  }
+  
+  p, ul li {
+    font-size: 0.95rem;
+  }
+
+  /* Адаптивные стили для кнопки */
+  .home-floating-btn {
+    padding: 10px 20px !important;
+    font-size: 0.85rem !important;
+    min-width: 140px !important;
   }
 }
 </style>
@@ -269,7 +344,8 @@ hr {
     <li>не имеет и не будет иметь претензий к Администрации, связанных с использованием Сервиса.</li>
   </ul>
 
-  <a href="index.html" class="back-link" onclick="goToMainPage(); return false;">← Вернуться на главную</a>
+  <!-- КНОПКА НА ГЛАВНУЮ -->
+  <a href="index.html" class="home-floating-btn">⬅ Кнопка для деда</a>
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
