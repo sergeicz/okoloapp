@@ -44,7 +44,7 @@ body {
   line-height: 1.8;
   min-height: 100vh;
   padding: 20px;
-  padding-bottom: 100px; /* Добавляем нижний отступ, чтобы кнопка не перекрывала контент */
+  /* Убрали padding-bottom у body */
 }
 
 .container {
@@ -61,6 +61,8 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 
               0 0 100px rgba(124, 58, 237, 0.2),
               inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  /* Добавили padding-bottom для контейнера */
+  padding-bottom: 60px;
 }
 
 @keyframes fadeIn {
@@ -338,18 +340,21 @@ hr {
               inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
-/* Стили для кнопки "Назад", аналогичные предыдущей странице */
+/* Стили для кнопки "Назад" - теперь она НЕ фиксированная */
 .home-floating-btn {
-  position: fixed !important;
+  /* Убрали position: fixed и связанные свойства */
+  /* position: fixed !important;
   bottom: 30px !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  z-index: 1000001 !important;
+  z-index: 1000001 !important; */
 
-  display: inline-block !important;
-  max-width: 90vw !important; /* чтобы не выходила за экран */
-  width: fit-content !important; /* Занимает ровно столько ширины, сколько нужно тексту */
-  min-width: 200px !important; /* Минимальная ширина для мобильных, если текст короткий */
+  /* Оставим display и размеры */
+  display: block !important; /* Теперь блочный элемент */
+  max-width: 90vw !important;
+  width: fit-content !important;
+  min-width: 200px !important;
+  margin: 40px auto 0 auto !important; /* Отступ сверху и выравнивание по центру */
 
   padding: 14px 36px !important;
 
@@ -379,19 +384,18 @@ hr {
 }
 
 .home-floating-btn:hover {
-  transform: translateX(-50%) translateY(-3px) !important;
+  /* Убрали transform по Y, так как кнопка не фиксирована */
+  /* transform: translateX(-50%) translateY(-3px) !important; */
+  transform: scale(1.02) !important; /* Лёгкий масштаб при наведении */
   background: rgba(124, 58, 237, 0.25) !important;
   border-color: rgba(124, 58, 237, 0.6) !important;
 }
 
 @media (max-width: 768px) {
-  body {
-    padding: 15px;
-    padding-bottom: 110px; /* Увеличиваем нижний отступ для мобильных */
-  }
-  
   .container {
     padding: 30px 20px;
+    /* Снижаем padding-bottom для мобильных */
+    padding-bottom: 50px;
   }
   
   h1 {
@@ -457,18 +461,21 @@ hr {
     padding: 12px 24px !important;
     font-size: 0.95rem !important;
     min-width: 160px !important; /* Минимальная ширина на мобильных */
+    margin: 30px auto 0 auto !important; /* Меньше отступ сверху */
   }
 }
 
 @media (max-width: 480px) {
   body {
     padding: 10px;
-    padding-bottom: 100px; /* Увеличиваем нижний отступ для маленьких экранов */
+    /* Убрали padding-bottom у body */
   }
   
   .container {
     padding: 25px 15px;
     border-radius: 16px;
+    /* Снижаем padding-bottom для маленьких экранов */
+    padding-bottom: 40px;
   }
   
   h1 {
@@ -536,6 +543,7 @@ hr {
     padding: 10px 20px !important;
     font-size: 0.85rem !important;
     min-width: 140px !important; /* Еще меньше минимальная ширина */
+    margin: 25px auto 0 auto !important; /* Ещё меньше отступ сверху */
   }
 }
 </style>
@@ -673,23 +681,22 @@ hr {
     <p style="margin: 0;"><strong>Если вам нужно разовое размещение — это не к нам.<br>Если нужен результат — поговорим.</strong></p>
   </div>
 
-  <!-- КНОПКА НА ГЛАВНУЮ -->
+  <!-- КНОПКА НА ГЛАВНУЮ - теперь находится ВНУТРИ .container, после всего текста -->
   <a href="index.html" class="home-floating-btn">⬅ Кнопка для деда</a>
-
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>
-    function goToMainPage() {
-      // Проверяем, можем ли мы использовать Telegram WebApp для навигации
-      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
-        // Открываем бота, чтобы пользователь мог снова открыть Mini App через кнопку
-        window.Telegram.WebApp.openTelegramLink('https://t.me/okolotattoo_bot');
-      } else {
-        // Если Telegram WebApp недоступен, используем стандартный переход
-        window.location.href = '../';
-      }
-    }
-  </script>
 </div>
 
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  function goToMainPage() {
+    // Проверяем, можем ли мы использовать Telegram WebApp для навигации
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+      // Открываем бота, чтобы пользователь мог снова открыть Mini App через кнопку
+      window.Telegram.WebApp.openTelegramLink('https://t.me/okolotattoo_bot');
+    } else {
+      // Если Telegram WebApp недоступен, используем стандартный переход
+      window.location.href = '../';
+    }
+  }
+</script>
 </body>
 </html>
