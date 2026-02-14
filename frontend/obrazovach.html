@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -24,61 +25,61 @@
 <link rel="preload" href="styles.css" as="style">
 <link rel="stylesheet" href="styles.css?v=20260204-2305">
 
-<link rel="dns-prefetch" href="https://app.okolotattooing.ru">
+<style>
+  :where(.home-floating-btn) {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000001;
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+    display: inline-block;
+    max-width: 90vw; /* чтобы не выходила за экран */
+
+    padding: 14px 36px;
+
+    background: rgba(124, 58, 237, 0.15);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(124, 58, 237, 0.4);
+
+    color: var(--text-primary);
+    text-decoration: none;
+
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+
+    white-space: nowrap;        /* запрет переноса */
+    overflow: hidden;           /* скрыть лишнее */
+    text-overflow: ellipsis;    /* добавить ... */
+
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.2),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1);
+
+    transition: all 0.3s ease;
+  }
+
+  :where(.home-floating-btn:hover) {
+    transform: translateX(-50%) translateY(-3px);
+    background: rgba(124, 58, 237, 0.25);
+    border-color: rgba(124, 58, 237, 0.6);
+  }
+</style>
+
+<link rel="dns-prefetch" href="https://app.okolotattooing.ru  ">
+
+<script src="https://telegram.org/js/telegram-web-app.js  "></script>
 <script src="metrika.js"></script>
 
 <noscript>
   <div>
-    <img src="https://mc.yandex.ru/watch/106803279" style="position:absolute; left:-9999px;" alt="" />
+    <img src="https://mc.yandex.ru/watch/106803279  " style="position:absolute; left:-9999px;" alt="" />
   </div>
 </noscript>
 
-<style>
-/* КНОПКА НАЗАД */
-.home-floating-btn {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000001;
-
-  display: inline-block;
-  max-width: 90vw; /* чтобы не выходила за экран */
-
-  padding: 14px 36px;
-
-  background: rgba(124, 58, 237, 0.15);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid rgba(124, 58, 237, 0.4);
-
-  color: var(--text-primary);
-  text-decoration: none;
-
-  border-radius: 50px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 700;
-
-  white-space: nowrap;        /* запрет переноса */
-  overflow: hidden;           /* скрыть лишнее */
-  text-overflow: ellipsis;    /* добавить ... */
-
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.2),
-    inset 0 1px 1px rgba(255, 255, 255, 0.1);
-
-  transition: all 0.3s ease;
-}
-
-.home-floating-btn:hover {
-  transform: translateX(-50%) translateY(-3px);
-  background: rgba(124, 58, 237, 0.25);
-  border-color: rgba(124, 58, 237, 0.6);
-}
-</style>
 
 </head>
 <body>
@@ -115,7 +116,7 @@
 
   <!-- Footer -->
   <footer class="app-footer">
-    <a href="https://t.me/feedback_svr_bot" target="_blank" class="footer-link">
+    <a href="https://t.me/feedback_svr_bot  " target="_blank" class="footer-link">
       🖤 разработано нами 🖤
     </a>
     <div class="footer-legal-links">
@@ -154,3 +155,4 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </body>
 </html>
+```
