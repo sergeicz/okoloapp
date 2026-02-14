@@ -39,26 +39,40 @@
 /* КНОПКА НАЗАД */
 .home-floating-btn {
   position: fixed;
-  bottom: 25px;        /* вместо top */
-  left: 50%;           /* центр по горизонтали */
+  bottom: 30px;
+  left: 50%;
   transform: translateX(-50%);
 
   z-index: 1000001;
 
-  padding: 12px 20px;
-  background: rgba(0, 0, 0, 0.9);
-  color: #fff;
-  text-decoration: none;
-  border-radius: 14px;
-  font-weight: 600;
+  display: inline-block;
+  padding: 14px 36px;
 
-  backdrop-filter: blur(8px);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-  transition: 0.3s ease;
+  background: rgba(124, 58, 237, 0.15);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+
+  border: 1px solid rgba(124, 58, 237, 0.4);
+  color: var(--text-primary);
+
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+
+  text-decoration: none;
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+
+  transition: all 0.3s ease;
 }
 
 .home-floating-btn:hover {
   transform: translateX(-50%) translateY(-3px);
+  background: rgba(124, 58, 237, 0.25);
+  border-color: rgba(124, 58, 237, 0.6);
 }
 </style>
 
