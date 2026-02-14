@@ -17,6 +17,7 @@
 <link rel="manifest" href="/tg_miniapps_links/frontend/img/favicon/site.webmanifest">
 <meta name="theme-color" content="#000000">
 <meta name="msapplication-TileColor" content="#7c3aed">
+
 <style>
 * {
   margin: 0;
@@ -43,6 +44,7 @@ body {
   line-height: 1.8;
   min-height: 100vh;
   padding: 20px;
+  padding-bottom: 100px; /* Добавляем нижний отступ, чтобы кнопка не перекрывала контент */
 }
 
 .container {
@@ -336,11 +338,56 @@ hr {
               inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
+/* Стили для кнопки "Назад", аналогичные предыдущей странице */
+.home-floating-btn {
+  position: fixed !important;
+  bottom: 30px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 1000001 !important;
 
+  display: inline-block !important;
+  max-width: 90vw !important; /* чтобы не выходила за экран */
+  width: fit-content !important; /* Занимает ровно столько ширины, сколько нужно тексту */
+  min-width: 200px !important; /* Минимальная ширина для мобильных, если текст короткий */
+
+  padding: 14px 36px !important;
+
+  background: rgba(124, 58, 237, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(124, 58, 237, 0.4) !important;
+
+  color: var(--text-primary) !important;
+  text-decoration: none !important;
+
+  border-radius: 50px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  font-weight: 700 !important;
+
+  white-space: nowrap !important;        /* запрет переноса */
+  overflow: hidden !important;           /* скрыть лишнее */
+  text-overflow: ellipsis !important;    /* добавить ... если текст слишком длинный */
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+
+  transition: all 0.3s ease !important;
+  text-align: center !important; /* Центрируем текст внутри кнопки */
+}
+
+.home-floating-btn:hover {
+  transform: translateX(-50%) translateY(-3px) !important;
+  background: rgba(124, 58, 237, 0.25) !important;
+  border-color: rgba(124, 58, 237, 0.6) !important;
+}
 
 @media (max-width: 768px) {
   body {
     padding: 15px;
+    padding-bottom: 110px; /* Увеличиваем нижний отступ для мобильных */
   }
   
   .container {
@@ -392,11 +439,6 @@ hr {
     letter-spacing: 1px;
   }
   
-  .back-link {
-    padding: 12px 30px;
-    font-size: 0.95rem;
-  }
-  
   .title-icon {
     width: 2rem;
     height: 2rem;
@@ -409,11 +451,19 @@ hr {
   .subtitle {
     font-size: 1.1rem;
   }
+
+  /* Адаптивные стили для кнопки */
+  .home-floating-btn {
+    padding: 12px 24px !important;
+    font-size: 0.95rem !important;
+    min-width: 160px !important; /* Минимальная ширина на мобильных */
+  }
 }
 
 @media (max-width: 480px) {
   body {
     padding: 10px;
+    padding-bottom: 100px; /* Увеличиваем нижний отступ для маленьких экранов */
   }
   
   .container {
@@ -476,17 +526,20 @@ hr {
     margin-bottom: 35px;
   }
   
-  .back-link {
-    padding: 12px 28px;
-    font-size: 0.9rem;
-  }
-  
   .highlight-box {
     padding: 15px 20px;
     font-size: 1rem;
   }
+
+  /* Адаптивные стили для кнопки */
+  .home-floating-btn {
+    padding: 10px 20px !important;
+    font-size: 0.85rem !important;
+    min-width: 140px !important; /* Еще меньше минимальная ширина */
+  }
 }
 </style>
+
 <script src="metrika.js"></script>
 <noscript><div><img src="https://mc.yandex.ru/watch/106803279" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 </head>
@@ -620,9 +673,8 @@ hr {
     <p style="margin: 0;"><strong>Если вам нужно разовое размещение — это не к нам.<br>Если нужен результат — поговорим.</strong></p>
   </div>
 
-  <div style="text-align: center;">
-    <a href="index.html" class="back-link" onclick="goToMainPage(); return false;">Вернуться на главную</a>
-  </div>
+  <!-- КНОПКА НА ГЛАВНУЮ -->
+  <a href="index.html" class="home-floating-btn">⬅ Кнопка для деда</a>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
