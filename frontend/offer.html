@@ -41,7 +41,7 @@ body {
   line-height: 1.8;
   min-height: 100vh;
   padding: 20px;
-  padding-bottom: 100px; /* Добавляем нижний отступ для кнопки */
+  /* Убрали padding-bottom у body */
 }
 
 @keyframes gradient {
@@ -58,6 +58,8 @@ body {
   border-radius: 20px;
   padding: 40px;
   animation: fadeIn 0.8s ease;
+  /* Добавили padding-bottom для контейнера */
+  padding-bottom: 60px;
 }
 
 @keyframes fadeIn {
@@ -130,28 +132,31 @@ hr {
   margin: 30px 0;
 }
 
-/* Стили для кнопки "Назад", адаптированные под текущую тему */
+/* Стили для кнопки "Назад" - теперь она НЕ фиксированная */
 .home-floating-btn {
-  position: fixed !important;
+  /* Убрали position: fixed и связанные свойства */
+  /* position: fixed !important;
   bottom: 30px !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  z-index: 1000001 !important;
+  z-index: 1000001 !important; */
 
-  display: inline-block !important;
+  /* Оставим display и размеры */
+  display: block !important; /* Теперь блочный элемент */
   max-width: 90vw !important;
   width: fit-content !important;
   min-width: 200px !important;
+  margin: 40px auto 0 auto !important; /* Отступ сверху и выравнивание по центру */
 
   padding: 14px 36px !important;
 
   /* Адаптируем цвета под красную тему */
-  background: rgba(255, 0, 0, 0.15) !important; /* Красноватый фон */
+  background: rgba(255, 0, 0, 0.15) !important;
   backdrop-filter: blur(30px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
-  border: 1px solid rgba(255, 0, 0, 0.4) !important; /* Красноватая граница */
+  border: 1px solid rgba(255, 0, 0, 0.4) !important;
 
-  color: var(--text-primary) !important; /* Белый текст */
+  color: var(--text-primary) !important;
   text-decoration: none !important;
 
   border-radius: 50px !important;
@@ -172,8 +177,9 @@ hr {
 }
 
 .home-floating-btn:hover {
-  transform: translateX(-50%) translateY(-3px) !important;
-  /* Более насыщенный красный при наведении */
+  /* Убрали transform по Y, так как кнопка не фиксирована */
+  /* transform: translateX(-50%) translateY(-3px) !important; */
+  transform: scale(1.02) !important; /* Лёгкий масштаб при наведении */
   background: rgba(255, 0, 0, 0.25) !important;
   border-color: rgba(255, 0, 0, 0.6) !important;
 }
@@ -181,6 +187,8 @@ hr {
 @media (max-width: 768px) {
   .container {
     padding: 25px;
+    /* Снижаем padding-bottom для мобильных */
+    padding-bottom: 50px;
   }
   
   h1 {
@@ -197,7 +205,7 @@ hr {
 
   body {
     padding: 15px;
-    padding-bottom: 110px; /* Увеличиваем нижний отступ для мобильных */
+    /* Убрали padding-bottom у body */
   }
 
   /* Адаптивные стили для кнопки */
@@ -205,18 +213,21 @@ hr {
     padding: 12px 24px !important;
     font-size: 0.95rem !important;
     min-width: 160px !important;
+    margin: 30px auto 0 auto !important; /* Меньше отступ сверху */
   }
 }
 
 @media (max-width: 480px) {
   body {
     padding: 10px;
-    padding-bottom: 100px; /* Увеличиваем нижний отступ для маленьких экранов */
+    /* Убрали padding-bottom у body */
   }
   
   .container {
     padding: 20px 15px;
     border-radius: 16px;
+    /* Снижаем padding-bottom для маленьких экранов */
+    padding-bottom: 40px;
   }
   
   h1 {
@@ -238,6 +249,7 @@ hr {
     padding: 10px 20px !important;
     font-size: 0.85rem !important;
     min-width: 140px !important;
+    margin: 25px auto 0 auto !important; /* Ещё меньше отступ сверху */
   }
 }
 </style>
@@ -344,7 +356,7 @@ hr {
     <li>не имеет и не будет иметь претензий к Администрации, связанных с использованием Сервиса.</li>
   </ul>
 
-  <!-- КНОПКА НА ГЛАВНУЮ -->
+  <!-- КНОПКА НА ГЛАВНУЮ - теперь находится ВНУТРИ .container, после всего текста -->
   <a href="index.html" class="home-floating-btn">⬅ Кнопка для деда</a>
 </div>
 
