@@ -162,7 +162,8 @@
     <p class="promo-restart-text">
       Если промокод не приходит
     </p>
-    <a href="https://t.me/okolotattoo_bot" target="_blank" class="promo-restart-btn">
+    <!-- Исправленная кнопка с вызовом JS и вибрацией -->
+    <a href="#" onclick="restartBotAndVibrate(); return false;" class="promo-restart-btn">
       🔄 Перезапусти бот
     </a>
   </div>
@@ -197,5 +198,41 @@
 
 <!-- Scripts -->
 <script src="app.js?v=20260213-1320" defer></script>
+<script>
+    function restartBotAndVibrate() {
+        // 1. Проверяем, доступен ли Telegram WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            // 2. Вызываем openTelegramLink для перезапуска бота
+            window.Telegram.WebApp.openTelegramLink('https://t.me/okolotattoo_bot?start=restart_from_mini_app'); // Добавлен параметр start
+
+            // 3. Вибрация через HapticFeedback (если доступен)
+            if (window.Telegram.WebApp.HapticFeedback) {
+                try {
+                    window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+                } catch(e) {
+                    console.warn("HapticFeedback impactOccurred failed:", e);
+                    // Fallback: обычная вибрация браузера
+                    if (navigator.vibrate) {
+                        navigator.vibrate([10]); // Вибрация на 10мс
+                    }
+                }
+            } else {
+                 // Fallback: обычная вибрация браузера
+                 if (navigator.vibrate) {
+                     navigator.vibrate([10]); // Вибрация на 10мс
+                 }
+            }
+        } else {
+            // Fallback: если WebApp API недоступен, открываем в новой вкладке
+            console.warn("Telegram WebApp API недоступен. Открываем ссылку в новой вкладке.");
+            window.open('https://t.me/okolotattoo_bot', '_blank');
+
+            // Вибрация браузера (если поддерживается)
+            if (navigator.vibrate) {
+                navigator.vibrate([10]);
+            }
+        }
+    }
+</script>
 </body>
 </html>
