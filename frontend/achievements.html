@@ -44,6 +44,8 @@ body {
   min-height: 100vh;
   padding: 20px;
   overflow-x: hidden;
+  /* Убираем нижний отступ body, так как кнопка теперь в контейнере */
+  padding-bottom: 20px; /* Но оставим немного для отступа от низа окна */
 }
 
 .container {
@@ -62,6 +64,8 @@ body {
               inset 0 1px 1px rgba(255, 255, 255, 0.1);
   overflow-wrap: break-word;
   word-wrap: break-word;
+  /* Добавляем нижний отступ к контейнеру для места под кнопку */
+  padding-bottom: 80px;
 }
 
 @keyframes fadeIn {
@@ -328,6 +332,47 @@ hr {
   letter-spacing: 1.5px;
 }
 
+/* --- Новые стили для home-floating-btn --- */
+.home-floating-btn {
+  display: block !important;
+  max-width: 90vw !important;
+  width: fit-content !important;
+  min-width: 200px !important;
+  margin: 40px auto 0 auto !important; /* Отступ сверху и выравнивание по центру */
+
+  padding: 14px 36px !important;
+
+  background: rgba(124, 58, 237, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(124, 58, 237, 0.4) !important;
+
+  color: var(--text-primary) !important;
+  text-decoration: none !important;
+
+  border-radius: 50px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  font-weight: 700 !important;
+
+  white-space: nowrap !important;        /* запрет переноса */
+  overflow: hidden !important;           /* скрыть лишнее */
+  text-overflow: ellipsis !important;    /* добавить ... если текст слишком длинный */
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+
+  transition: all 0.3s ease !important;
+  text-align: center !important;
+}
+
+.home-floating-btn:hover {
+  transform: scale(1.02) !important; /* Лёгкий масштаб при наведении */
+  background: rgba(124, 58, 237, 0.25) !important;
+  border-color: rgba(124, 58, 237, 0.6) !important;
+}
+
 @media (max-width: 768px) {
   body {
     padding: 15px;
@@ -373,6 +418,14 @@ hr {
 
   p, .achievement-description {
     word-break: break-word;
+  }
+
+  /* Адаптивные стили для home-floating-btn */
+  .home-floating-btn {
+    padding: 12px 24px !important;
+    font-size: 0.95rem !important;
+    min-width: 160px !important;
+    margin: 30px auto 0 auto !important; /* Меньше отступ сверху */
   }
 }
 
@@ -456,6 +509,14 @@ hr {
   .highlight-box {
     padding: 15px 18px;
     border-radius: 16px;
+  }
+
+  /* Адаптивные стили для home-floating-btn */
+  .home-floating-btn {
+    padding: 10px 20px !important;
+    font-size: 0.85rem !important;
+    min-width: 140px !important;
+    margin: 25px auto 0 auto !important; /* Ещё меньше отступ сверху */
   }
 }
 </style>
@@ -746,6 +807,9 @@ hr {
   <div style="text-align: center;">
     <button id="referralBtn" class="back-link" style="border: none; cursor: pointer;">Пригласить друзей</button>
   </div>
+
+  <!-- КНОПКА НА ГЛАВНУЮ -->
+  <a href="index.html" class="home-floating-btn">⬅ Кнопка для деда</a>
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
