@@ -363,9 +363,12 @@ function showSuccess(message) {
 
 // Показ красивого уведомления о промокоде
 function showPromoNotification() {
+  console.log('[PROMO-UI] Showing notification...');
+  
   // Удаляем предыдущее уведомление если есть
   const existing = document.querySelector('.promo-notification');
   if (existing) {
+    console.log('[PROMO-UI] Removing existing notification');
     existing.remove();
   }
 
@@ -383,6 +386,7 @@ function showPromoNotification() {
 
   // Добавляем на страницу
   document.body.appendChild(notification);
+  console.log('[PROMO-UI] Notification appended to body');
 
   // Вибрация для обратной связи
   if (tg.HapticFeedback) {
@@ -392,6 +396,7 @@ function showPromoNotification() {
   // Закрытие по клику на крестик
   const closeBtn = notification.querySelector('.promo-notification-close');
   closeBtn.onclick = () => {
+    console.log('[PROMO-UI] Closing notification via close button');
     notification.classList.add('hiding');
     setTimeout(() => notification.remove(), 300);
   };
@@ -399,6 +404,7 @@ function showPromoNotification() {
   // Автоматическое закрытие через 4 секунды
   setTimeout(() => {
     if (notification.parentElement) {
+      console.log('[PROMO-UI] Auto-closing notification');
       notification.classList.add('hiding');
       setTimeout(() => {
         if (notification.parentElement) {
@@ -961,13 +967,19 @@ async function handleLinkClick(event, link) {
   // Отправляем трек-запрос в фоне (fire-and-forget)
   // Ссылка НЕ открывается - промокод придёт в боте с кнопкой
   sendClickTracking(link).then(data => {
+    console.log('[CLICK] Response data:', data);
+    
     // Обработка ответа происходит в фоне
     if (data && data.promocode_sent) {
       console.log('[PROMOCODE] ✅ Промокод отправлен в бот!');
+      console.log('[PROMO-UI] Calling showPromoNotification()');
       showPromoNotification();
     } else if (data && data.promocode_already_sent) {
       console.log('[PROMOCODE] 🔁 Промокод уже был отправлен ранее');
+      console.log('[PROMO-UI] Calling showPromoAlreadySentNotification()');
       showPromoAlreadySentNotification();
+    } else {
+      console.log('[PROMOCODE] ⚠️ No promocode flags in response:', data);
     }
 
     // Track partner click in Yandex.Metrika
@@ -976,11 +988,6 @@ async function handleLinkClick(event, link) {
     }
   }).catch(error => {
     console.error('[CLICK] Tracking error (non-blocking):', error);
-  }).finally(() => {
-    // Восстанавливаем прозрачность кнопки
-    setTimeout(() => {
-      clickedElement.style.opacity = originalOpacity || '1';
-    }, 200);
   });
 }
 
