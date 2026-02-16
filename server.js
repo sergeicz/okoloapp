@@ -5312,7 +5312,8 @@ app.get('/api/obrazovach', async (req, res) => {
         title: m.title,
         subtitle: m.subtitle || '',
         url_video: m.url_video,
-        text_button: m.text_button || 'Смотреть видео'
+        text_button: m.text_button || 'Смотреть видео',
+        lector_username: m.lector_username || m.lector || ''
       }));
 
     console.log('[API] Formatted materials:', formattedMaterials);
