@@ -21,14 +21,14 @@
 <link rel="preload" href="img/img.png?v=4" as="image">
 
 <!-- Стили -->
-<link rel="stylesheet" href="styles.css?v=20260218-0015">
+<link rel="stylesheet" href="styles.css?v=20260218-0030">
 
 <!-- DNS Prefetch для API -->
 <link rel="dns-prefetch" href="#">
 
 <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
 <script src="metrika.js" defer></script>
-<script src="app.js?v=20260218-0015" defer></script>
+<script src="app.js?v=20260218-0030" defer></script>
 <noscript><div><img src="https://mc.yandex.ru/watch/106803279" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 </head>
 <body>
@@ -46,15 +46,27 @@
   <!-- Cookie Modal -->
   <div id="cookieConsent">
     <div class="cookie-box">
-    <div class="cookie-icon">🐹</div>
-    <div class="cookie-text">
-      <p>Мы используем cookies и аналитику.</p>
-      <p>Продолжая использование ты соглашаешься с:</p>
-      <p><a href="#" onclick="openPolicy(); return false;" target="_blank">Политикой конфиденциальности</a> и <a href="#" onclick="openOffer(); return false;" target="_blank">Офертой</a></p>
+      <div class="cookie-icon">🐹</div>
+      <div class="cookie-text">
+        <p>Мы используем cookies и аналитику.</p>
+        <p>Для продолжения работы необходимо согласие:</p>
+
+        <div class="cookie-checkboxes">
+          <label class="cookie-checkbox-label">
+            <input type="checkbox" id="cookiePersonalData" class="cookie-checkbox">
+            <span class="cookie-checkbox-text"><a href="#" onclick="openPolicy(); return false;">Соглашаюсь на обработку персональных данных</a></span>
+          </label>
+
+          <label class="cookie-checkbox-label">
+            <input type="checkbox" id="cookieMarketing" class="cookie-checkbox">
+            <span class="cookie-checkbox-text"><a href="#" onclick="openOffer(); return false;">Соглашаюсь на получение маркетинговых рассылок</a></span>
+          </label>
+        </div>
+      </div>
+      <button class="cookie-btn" id="cookieAcceptBtn" onclick="handleCookieAccept()" disabled>
+        Принять
+      </button>
     </div>
-    <button class="cookie-btn" onclick="acceptCookies()">
-      Понятно
-    </button>
   </div>
 </div>
 

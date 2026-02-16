@@ -62,7 +62,87 @@ function checkCookieConsent() {
     document.getElementById('cookieConsent').classList.add('hidden');
   } else {
     document.getElementById('cookieConsent').classList.remove('hidden');
+    // Инициализация чекбоксов
+    initCookieCheckboxes();
   }
+}
+
+// Инициализация чекбоксов cookie
+function initCookieCheckboxes() {
+  const personalDataCheckbox = document.getElementById('cookiePersonalData');
+  const marketingCheckbox = document.getElementById('cookieMarketing');
+  const acceptBtn = document.getElementById('cookieAcceptBtn');
+
+  if (!personalDataCheckbox || !marketingCheckbox || !acceptBtn) return;
+
+  // Проверка состояния чекбоксов
+  function updateButtonState() {
+    acceptBtn.disabled = !(personalDataCheckbox.checked && marketingCheckbox.checked);
+  }
+
+  // Обработчики изменений
+  personalDataCheckbox.addEventListener('change', updateButtonState);
+  marketingCheckbox.addEventListener('change', updateButtonState);
+
+  // Клик по тексту ссылки тоже активирует чекбокс
+  personalDataCheckbox.parentElement.addEventListener('click', function(e) {
+    if (e.target.tagName !== 'A') {
+      personalDataCheckbox.checked = !personalDataCheckbox.checked;
+      updateButtonState();
+    }
+  });
+
+  marketingCheckbox.parentElement.addEventListener('click', function(e) {
+    if (e.target.tagName !== 'A') {
+      marketingCheckbox.checked = !marketingCheckbox.checked;
+      updateButtonState();
+    }
+  });
+}
+
+function handleCookieAccept() {
+  const personalDataCheckbox = document.getElementById('cookiePersonalData');
+  const marketingCheckbox = document.getElementById('cookieMarketing');
+
+  // Проверяем чекбоксы
+  if (!personalDataCheckbox.checked || !marketingCheckbox.checked) {
+    // Показываем уведомление
+    showCookieWarning();
+    return;
+  }
+
+  // Если все проставлено - принимаем
+  acceptCookies();
+}
+
+// Показать уведомление о необходимости проставить чекбоксы
+function showCookieWarning() {
+  // Удаляем предыдущее уведомление если есть
+  const existing = document.querySelector('.cookie-warning');
+  if (existing) {
+    existing.remove();
+  }
+
+  // Создаем уведомление
+  const warning = document.createElement('div');
+  warning.className = 'cookie-warning';
+  warning.innerHTML = `
+    <div class="cookie-warning-icon">⚠️</div>
+    <div class="cookie-warning-text">Необходимо согласие на оба пункта</div>
+  `;
+
+  // Добавляем в cookie-box
+  const cookieBox = document.querySelector('.cookie-box');
+  if (cookieBox) {
+    cookieBox.insertBefore(warning, cookieBox.querySelector('.cookie-btn'));
+  }
+
+  // Удаляем через 3 секунды
+  setTimeout(() => {
+    if (warning.parentElement) {
+      warning.remove();
+    }
+  }, 3000);
 }
 
 function acceptCookies() {
