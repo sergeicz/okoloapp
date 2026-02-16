@@ -685,16 +685,39 @@ async function loadPartners() {
       categories[p.category].push(p);
     });
 
-    // Отрисовка категорий как горизонтального карусели
-    container.innerHTML = '<div class="categories-container"><div class="categories-swipe">';
-    
-    for (const [catName, links] of Object.entries(categories)) {
-      const div = document.createElement('div');
-      div.className = 'glass-card category-item';
+    const categoryNames = Object.keys(categories);
+    if (categoryNames.length === 0) {
+      container.innerHTML = '<p style="text-align:center;">Партнерские ссылки пока не добавлены</p>';
+      return;
+    }
 
-      const h = document.createElement('h3');
-      h.textContent = catName;
-      div.appendChild(h);
+    // Создаем контейнер с табами
+    container.innerHTML = '';
+    const tabsContainer = document.createElement('div');
+    tabsContainer.className = 'categories-tabs';
+
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'categories-container';
+
+    let firstTab = true;
+
+    for (const [catName, links] of Object.entries(categories)) {
+      // Создаем таб
+      const tab = document.createElement('div');
+      tab.className = 'categories-tab' + (firstTab ? ' active' : '');
+      tab.textContent = catName;
+      tab.setAttribute('data-category', catName);
+      tab.onclick = () => switchCategory(catName);
+      tabsContainer.appendChild(tab);
+
+      // Создаем контент категории
+      const content = document.createElement('div');
+      content.className = 'categories-content' + (firstTab ? ' active' : '');
+      content.id = 'category-' + catName.replace(/\s+/g, '-').toLowerCase();
+
+      // Сетка для кнопок
+      const grid = document.createElement('div');
+      grid.className = 'partners-grid';
 
       links.forEach(link => {
         console.log(`[BTN] Creating button: ${link.title}`);
@@ -707,7 +730,7 @@ async function loadPartners() {
         btn.className = 'modern-btn';
         btn.type = 'button';
         btn.setAttribute('data-partner', link.title);
-        
+
         // iOS requires both touchstart and click for reliable handling
         btn.ontouchstart = (e) => {
           // Prevent default touch behavior to avoid double-tap zoom
@@ -735,8 +758,8 @@ async function loadPartners() {
           logo.src = directUrl;
           logo.alt = link.title;
           logo.className = 'btn-logo';
-          logo.loading = 'lazy'; // Lazy loading для логотипов
-          logo.decoding = 'async'; // Асинхронная декодировка
+          logo.loading = 'lazy';
+          logo.decoding = 'async';
 
           logo.onerror = function() {
             console.error('[LOGO] Load failed:', directUrl);
@@ -755,14 +778,41 @@ async function loadPartners() {
         text.textContent = link.title;
         btn.appendChild(text);
 
-        div.appendChild(btn);
+        grid.appendChild(btn);
       });
 
-      container.querySelector('.categories-swipe').appendChild(div);
+      content.appendChild(grid);
+      contentContainer.appendChild(content);
+
+      firstTab = false;
     }
 
-    // DON'T use innerHTML += as it destroys event listeners!
-    // Tags are already properly closed by the DOM structure
+    container.appendChild(tabsContainer);
+    container.appendChild(contentContainer);
+
+    // Функция переключения категорий
+    window.switchCategory = function(categoryName) {
+      // Убираем активный класс у всех табов
+      document.querySelectorAll('.categories-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      // Добавляем активный класс выбранному табу
+      const activeTab = document.querySelector(`.categories-tab[data-category="${categoryName}"]`);
+      if (activeTab) activeTab.classList.add('active');
+
+      // Скрываем все контенты
+      document.querySelectorAll('.categories-content').forEach(content => {
+        content.classList.remove('active');
+      });
+
+      // Показываем выбранный контент
+      const activeContent = document.getElementById('category-' + categoryName.replace(/\s+/g, '-').toLowerCase());
+      if (activeContent) activeContent.classList.add('active');
+
+      console.log('[CATEGORY] Switched to:', categoryName);
+    };
+
   } catch (error) {
     container.innerHTML = '<p style="text-align:center;color:red;">Ошибка загрузки партнеров</p>';
   }

@@ -2628,47 +2628,79 @@ social.show {
 
 
 /* =====================================================
-   КАТЕГОРИИ - ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ
+   КАТЕГОРИИ - ВКЛАДКИ (ТАБЫ) С ДВУМЯ СТОЛБЦАМИ
    ===================================================== */
 
 .categories-container {
   width: 100%;
-  overflow: hidden;
   margin: 20px 0;
 }
 
-.categories-swipe {
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding: 10px 0;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+/* Табы (вкладки) */
+.categories-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.categories-swipe::-webkit-scrollbar {
-  display: none; /* Chrome/Safari/Opera */
+.categories-tab {
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.categories-swipe > .glass-card {
-  flex: 0 0 auto;
-  min-width: calc(100vw - 60px);
-  max-width: 400px;
-  scroll-snap-align: start;
+.categories-tab:active {
+  transform: scale(0.95);
 }
 
-/* Адаптивность для категорий */
+.categories-tab.active {
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.3), rgba(204, 0, 0, 0.3));
+  border-color: rgba(255, 0, 0, 0.6);
+  color: #FFFFFF;
+  box-shadow: 0 4px 20px rgba(255, 0, 0, 0.4);
+}
+
+/* Контент категорий */
+.categories-content {
+  display: none;
+}
+
+.categories-content.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Сетка кнопок внутри категории */
+.partners-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
 @media (min-width: 600px) {
-  .categories-swipe > .glass-card {
-    min-width: 350px;
+  .partners-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (min-width: 800px) {
-  .categories-swipe > .glass-card {
-    min-width: 400px;
-  }
+.partners-grid .modern-btn {
+  margin: 0;
 }
 
