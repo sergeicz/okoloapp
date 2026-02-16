@@ -377,10 +377,10 @@ function showPromoNotification() {
   notification.innerHTML = `
     <div class="promo-notification-icon">🎁</div>
     <div class="promo-notification-content">
-      <div class="promo-notification-title">Промокод отправлен!</div>
+      <div class="promo-notification-title">✨ Промокод отправлен!</div>
       <div class="promo-notification-text">
-        Проверь личные сообщения с ботом
-        <div class="promo-notification-timer">Получение: <span id="promo-timer">3</span> сек</div>
+        <span class="promo-notification-highlight">Проверь сообщения в боте</span>
+        <div class="promo-notification-timer"><span class="promo-timer-icon">⏳</span> <span id="promo-timer">3</span> сек</div>
       </div>
     </div>
     <button class="promo-notification-close">×</button>
@@ -406,7 +406,7 @@ function showPromoNotification() {
     if (secondsLeft <= 0) {
       clearInterval(timerInterval);
       if (timerElement) {
-        timerElement.parentElement.textContent = '✅ Сообщение должно прийти!';
+        timerElement.parentElement.innerHTML = '<span class="promo-timer-success">✅</span> Сообщение должно прийти!';
       }
     }
   }, 1000);
