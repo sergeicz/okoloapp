@@ -500,11 +500,6 @@ function showEducationNotification() {
   document.body.appendChild(notification);
   console.log('[EDU-UI] Notification appended to body');
 
-  // Позиционируем уведомление в видимой зоне (с учётом скролла)
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const viewportTop = scrollTop + 20; // 20px от верха видимой области
-  notification.style.top = viewportTop + 'px';
-
   // Вибрация для обратной связи
   if (educationTg.HapticFeedback) {
     educationTg.HapticFeedback.notificationOccurred('success');

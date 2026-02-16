@@ -920,11 +920,16 @@ h2 {
   display: flex;
   align-items: center;
   gap: 12px;
-  z-index: 10000;
+  z-index: 999999;
   min-width: 320px;
   max-width: 90%;
   animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.edu-notification > * {
+  pointer-events: auto;
 }
 
 .edu-notification:hover {
