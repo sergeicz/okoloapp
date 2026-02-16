@@ -997,6 +997,24 @@ h2 {
 }
 
 /* =====================================================
+   HOME BUTTON (На Главную)
+   ===================================================== */
+
+.home-arrow {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 6px;
+  filter: brightness(0) invert(1); /* Белая стрелка */
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.home-floating-btn:hover .home-arrow {
+  opacity: 1;
+}
+
+/* =====================================================
    NOTIFICATION POPUP (Toast)
    ===================================================== */
 
