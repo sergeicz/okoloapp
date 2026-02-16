@@ -1005,24 +1005,22 @@ h2 {
 
 .home-arrow {
   display: inline-block;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   vertical-align: middle;
   margin-right: 6px;
-  filter: brightness(0) invert(1); /* Белая стрелка */
   opacity: 0.9;
   transition: opacity 0.2s ease;
-  flex-shrink: 0; /* Не сжимать */
+  flex-shrink: 0;
 }
 
 .home-floating-btn .home-arrow {
   display: inline-block !important;
-  width: 18px !important;
-  height: 18px !important;
-  min-width: 18px !important; /* Предотвращает сжатие */
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
   vertical-align: middle !important;
   margin-right: 6px !important;
-  filter: brightness(0) invert(1) !important;
   object-fit: contain !important;
 }
 
