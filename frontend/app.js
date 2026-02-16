@@ -702,11 +702,24 @@ async function loadPartners() {
         console.log(`[BTN] - URL: ${link.url}`);
         console.log(`[BTN] - Promocode: ${link.promocode || 'none'}`);
 
-        // Use div instead of <a> to prevent Telegram from intercepting clicks
-        const a = document.createElement('div');
-        a.className = 'modern-btn';
-        a.style.cursor = 'pointer';
-        a.onclick = (e) => handleLinkClick(e, link);
+        // Use button element for better iOS support
+        const btn = document.createElement('button');
+        btn.className = 'modern-btn';
+        btn.type = 'button';
+        btn.setAttribute('data-partner', link.title);
+        
+        // iOS requires both touchstart and click for reliable handling
+        btn.ontouchstart = (e) => {
+          // Prevent default touch behavior to avoid double-tap zoom
+          e.preventDefault();
+          handleLinkClick(e, link);
+        };
+        btn.onclick = (e) => {
+          // Only handle click if not already handled by touchstart
+          if (e.handled) return;
+          e.handled = true;
+          handleLinkClick(e, link);
+        };
 
         // Добавляем логотип если есть
         if (link.logo_url && link.logo_url.trim() !== '') {
@@ -734,15 +747,15 @@ async function loadPartners() {
             console.log('[LOGO] Load success:', directUrl);
           };
 
-          a.appendChild(logo);
+          btn.appendChild(logo);
         }
 
         // Добавляем текст
         const text = document.createElement('span');
         text.textContent = link.title;
-        a.appendChild(text);
+        btn.appendChild(text);
 
-        div.appendChild(a);
+        div.appendChild(btn);
       });
 
       container.querySelector('.categories-swipe').appendChild(div);
@@ -757,13 +770,13 @@ async function loadPartners() {
 
 // Track last click timestamps to prevent duplicates
 const lastClickTime = new Map();
-const CLICK_COOLDOWN = 300; // 300ms cooldown between clicks on same link (reduced from 1000ms for better UX on iOS)
+const CLICK_COOLDOWN = 300; // 300ms cooldown between clicks on same link
 
 // Обработка клика по ссылке
 async function handleLinkClick(event, link) {
-  // ВАЖНО: Предотвращаем стандартное поведение ссылки
-  event.preventDefault();
-
+  // Prevent multiple rapid clicks
+  event.stopPropagation();
+  
   // Create unique key for this click
   const clickKey = `${user.id}_${link.url}`;
   const now = Date.now();
@@ -771,10 +784,7 @@ async function handleLinkClick(event, link) {
   // Check if this link was clicked recently
   const lastClick = lastClickTime.get(clickKey);
   if (lastClick && (now - lastClick) < CLICK_COOLDOWN) {
-    console.log('[CLICK] ⏭️ Click too soon after previous, skipping... (cooldown: ' + CLICK_COOLDOWN + 'ms)');
-    if (tg.HapticFeedback) {
-      tg.HapticFeedback.notificationOccurred('warning');
-    }
+    console.log('[CLICK] ⏭️ Click too soon, skipping...');
     return;
   }
 
@@ -783,9 +793,8 @@ async function handleLinkClick(event, link) {
 
   console.log('[CLICK] Tracking click:', link.title || link.url);
   console.log('[CLICK] User ID:', user.id);
-  console.log('[CLICK] Partner data:', { title: link.title, url: link.url, promocode: link.promocode });
 
-  // Вибрация для обратной связи
+  // Вибрация для обратной связи (iOS Haptic Feedback)
   if (tg.HapticFeedback) {
     tg.HapticFeedback.impactOccurred('light');
   }
@@ -813,7 +822,6 @@ async function handleLinkClick(event, link) {
     }
   }).catch(error => {
     console.error('[CLICK] Tracking error (non-blocking):', error);
-    // Ошибка трекинга не влияет на работу
   }).finally(() => {
     // Восстанавливаем прозрачность кнопки
     setTimeout(() => {

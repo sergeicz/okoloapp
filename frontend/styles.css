@@ -551,6 +551,18 @@ h2 {
   letter-spacing: 1px;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  /* iOS touch optimizations */
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* iOS active state for better feedback */
+.modern-btn:active,
+.modern-btn.active {
+  opacity: 0.6;
+  transform: scale(0.98);
 }
 
 /* Эффект свечения при наведении */
