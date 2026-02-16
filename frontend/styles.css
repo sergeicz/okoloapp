@@ -900,6 +900,93 @@ h2 {
 }
 
 /* =====================================================
+   УВЕДОМЛЕНИЕ ОБ ОТПРАВКЕ УРОКА - IPHONE STYLE
+   ===================================================== */
+
+.edu-notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  color: #FFFFFF;
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6),
+              0 4px 16px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10000;
+  min-width: 320px;
+  max-width: 90%;
+  animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s ease;
+}
+
+.edu-notification:hover {
+  background: rgba(40, 40, 40, 0.95);
+}
+
+.edu-notification.hiding {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20px);
+}
+
+.edu-notification-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.edu-notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.edu-notification-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 3px;
+  color: #FFFFFF;
+}
+
+.edu-notification-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.3;
+}
+
+.edu-notification-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.edu-notification-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+.edu-notification-close:active {
+  transform: scale(0.9);
+}
+
+/* =====================================================
    NOTIFICATION POPUP (Toast)
    ===================================================== */
 
