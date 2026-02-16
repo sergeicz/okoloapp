@@ -356,7 +356,7 @@ async function loadEducationMaterials() {
         lectorContainer.style.marginBottom = '8px';
         
         const lectorLabel = document.createElement('span');
-        lectorLabel.textContent = 'Лектор: ';
+        lectorLabel.textContent = 'Образовывает: ';
         lectorLabel.style.color = 'rgba(255, 255, 255, 0.6)';
         lectorLabel.style.fontSize = '0.85rem';
         
