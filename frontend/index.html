@@ -21,13 +21,14 @@
 <link rel="preload" href="img/img.png?v=4" as="image">
 
 <!-- Стили -->
-<link rel="stylesheet" href="styles.css?v=20260217-2100">
+<link rel="stylesheet" href="styles.css?v=20260217-2300">
 
 <!-- DNS Prefetch для API -->
 <link rel="dns-prefetch" href="#">
 
 <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
 <script src="metrika.js" defer></script>
+<script src="app.js?v=20260217-2300" defer></script>
 <noscript><div><img src="https://mc.yandex.ru/watch/106803279" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 </head>
 <body>
@@ -65,6 +66,12 @@
   <h1>⚡ Околоприложение</h1>
   <h2>Всё для хомяков в одном месте</h2>
 
+  <!-- Образовач кнопка -->
+  <a href="obrazovach.html" class="modern-btn obrazovach-btn">
+    <img src="img/obr.png" alt="Образовач" class="obrazovach-icon" />
+    ОБРАЗОВАЧ
+  </a>
+
   <!-- User Profile Card -->
   <div id="userProfileCard" class="user-profile-card">
     <div class="profile-header">
@@ -91,11 +98,6 @@
   </div>
 
   <div id="categories"></div>
-
-  <a href="obrazovach.html" class="modern-btn obrazovach-btn">
-    <img src="img/obr.png" alt="Образовач" class="obrazovach-icon" />
-    ОБРАЗОВАЧ
-  </a>
 
   <button id="adminBtn" class="modern-btn gradient-btn">⚙️ Админ-панель</button>
   
