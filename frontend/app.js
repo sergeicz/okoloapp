@@ -552,9 +552,33 @@ async function initApp() {
 
     console.log('✅ Инициализация завершена!');
 
+    // Скрываем preloader после успешной инициализации
+    hidePreloader();
+
   } catch (error) {
     console.error('❌ Init error:', error);
     showError('Ошибка инициализации приложения');
+    // Скрываем preloader даже при ошибке
+    hidePreloader();
+  }
+}
+
+// Функция скрытия preloader
+function hidePreloader() {
+  const preloader = document.getElementById('preloader');
+  if (preloader) {
+    console.log('🔄 Hiding preloader...');
+    preloader.style.opacity = '0';
+    preloader.style.transition = 'opacity 0.5s ease-out';
+    setTimeout(() => {
+      preloader.style.display = 'none';
+      setTimeout(() => {
+        if (preloader.parentNode) {
+          preloader.parentNode.removeChild(preloader);
+          console.log('✅ Preloader removed from DOM');
+        }
+      }, 100);
+    }, 500);
   }
 }
 
