@@ -1,4 +1,6 @@
-FROM node:18-alpine
+# Using AWS ECR Public to avoid Docker Hub rate limits
+# https://gallery.ecr.aws/docker/library/node
+FROM public.ecr.aws/docker/library/node:18-alpine
 
 WORKDIR /app
 

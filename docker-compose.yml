@@ -20,7 +20,8 @@ services:
       - ./logs:/app/logs
 
   redis:
-    image: redis:7-alpine
+    # Using AWS ECR Public to avoid Docker Hub rate limits
+    image: public.ecr.aws/docker/library/redis:7-alpine
     container_name: telegram-redis
     restart: unless-stopped
     # Port NOT exposed externally for security
@@ -32,7 +33,8 @@ services:
     command: redis-server --appendonly yes
 
   caddy:
-    image: caddy:2-alpine
+    # Using AWS ECR Public to avoid Docker Hub rate limits
+    image: public.ecr.aws/docker/library/caddy:2-alpine
     container_name: telegram-caddy
     restart: unless-stopped
     ports:
