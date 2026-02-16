@@ -2661,15 +2661,12 @@ function setupBot(env) {
 
     try {
       const userStats = await getUserStats(env, userId);
-      // Create two versions of the link:
-      // 1. Original link for button (no escaping)
+      // Create referral link (no escaping needed for code block)
       const botUsername = env.BOT_USERNAME || 'okolotattoo_bot';
       const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
-      // 2. Escaped link for display in text (with \_ for Markdown)
-      const referralLinkEscaped = referralLink.replace(/_/g, '\\_');
 
       let referralMessage = `👥 *Реферальная программа*\n\n`;
-      referralMessage += `🔗 *Ваша ссылка для копирования:*\n\`${referralLinkEscaped}\`\n\n`;
+      referralMessage += `🔗 *Ваша ссылка для копирования:*\n\`${referralLink}\`\n\n`;
       referralMessage += `_Нажми на ссылку, чтобы скопировать_\n\n`;
 
       referralMessage += `📊 *Статистика:*\n`;
@@ -3905,15 +3902,12 @@ function setupBot(env) {
     
     try {
       const userStats = await getUserStats(env, userId);
-      // Create two versions of the link:
-      // 1. Original link for button (no escaping)
+      // Create referral link (no escaping needed for code block)
       const botUsername = env.BOT_USERNAME || 'okolotattoo_bot';
       const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
-      // 2. Escaped link for display in text (with \_ for Markdown)
-      const referralLinkEscaped = referralLink.replace(/_/g, '\\_');
 
       let referralMessage = `👥 *Реферальная программа*\n\n`;
-      referralMessage += `🔗 *Ваша ссылка для копирования:*\n\`${referralLinkEscaped}\`\n\n`;
+      referralMessage += `🔗 *Ваша ссылка для копирования:*\n\`${referralLink}\`\n\n`;
       referralMessage += `_Нажми на ссылку, чтобы скопировать_\n\n`;
 
       referralMessage += `📊 *Статистика:*\n`;
