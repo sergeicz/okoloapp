@@ -349,6 +349,43 @@ async function loadEducationMaterials() {
       title.textContent = material.title;
       card.appendChild(title);
 
+      // Лектор (если указан)
+      if (material.lector_username && material.lector_username.trim() !== '') {
+        const lectorContainer = document.createElement('div');
+        lectorContainer.style.marginTop = '8px';
+        lectorContainer.style.marginBottom = '8px';
+        
+        const lectorLabel = document.createElement('span');
+        lectorLabel.textContent = 'Лектор: ';
+        lectorLabel.style.color = 'rgba(255, 255, 255, 0.6)';
+        lectorLabel.style.fontSize = '0.85rem';
+        
+        const lectorLink = document.createElement('a');
+        // Удаляем @ если есть и пробелы
+        const cleanUsername = material.lector_username.replace('@', '').trim();
+        lectorLink.href = 'https://t.me/' + cleanUsername;
+        lectorLink.target = '_blank';
+        lectorLink.textContent = '@' + cleanUsername;
+        lectorLink.style.color = 'rgba(124, 58, 237, 0.9)';
+        lectorLink.style.fontSize = '0.85rem';
+        lectorLink.style.fontWeight = '600';
+        lectorLink.style.textDecoration = 'underline';
+        lectorLink.style.textDecorationColor = 'rgba(124, 58, 237, 0.4)';
+        lectorLink.style.transition = 'all 0.2s ease';
+        lectorLink.onmouseover = function() {
+          this.style.color = 'rgba(124, 58, 237, 1)';
+          this.style.textDecorationColor = 'rgba(124, 58, 237, 0.8)';
+        };
+        lectorLink.onmouseout = function() {
+          this.style.color = 'rgba(124, 58, 237, 0.9)';
+          this.style.textDecorationColor = 'rgba(124, 58, 237, 0.4)';
+        };
+        
+        lectorContainer.appendChild(lectorLabel);
+        lectorContainer.appendChild(lectorLink);
+        card.appendChild(lectorContainer);
+      }
+
       // Подзаголовок
       if (material.subtitle) {
         const subtitle = document.createElement('p');
