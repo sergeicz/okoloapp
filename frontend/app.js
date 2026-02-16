@@ -363,7 +363,7 @@ function showSuccess(message) {
 // Показ красивого уведомления о промокоде
 function showPromoNotification() {
   console.log('[PROMO-UI] Showing notification...');
-  
+
   // Удаляем предыдущее уведомление если есть
   const existing = document.querySelector('.promo-notification');
   if (existing) {
@@ -371,14 +371,17 @@ function showPromoNotification() {
     existing.remove();
   }
 
-  // Создаем новое уведомление
+  // Создаем новое уведомление с таймером
   const notification = document.createElement('div');
   notification.className = 'promo-notification';
   notification.innerHTML = `
     <div class="promo-notification-icon">🎁</div>
     <div class="promo-notification-content">
       <div class="promo-notification-title">Промокод отправлен!</div>
-      <div class="promo-notification-text">Проверь личные сообщения с ботом</div>
+      <div class="promo-notification-text">
+        Проверь личные сообщения с ботом
+        <div class="promo-notification-timer">Получение: <span id="promo-timer">3</span> сек</div>
+      </div>
     </div>
     <button class="promo-notification-close">×</button>
   `;
@@ -392,6 +395,22 @@ function showPromoNotification() {
   const viewportTop = scrollTop + 20; // 20px от верха видимой области
   notification.style.top = viewportTop + 'px';
 
+  // Запускаем таймер обратного отсчёта
+  let secondsLeft = 3;
+  const timerElement = document.getElementById('promo-timer');
+  const timerInterval = setInterval(() => {
+    secondsLeft--;
+    if (timerElement) {
+      timerElement.textContent = secondsLeft;
+    }
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      if (timerElement) {
+        timerElement.parentElement.textContent = '✅ Сообщение должно прийти!';
+      }
+    }
+  }, 1000);
+
   // Вибрация для обратной связи
   if (tg.HapticFeedback) {
     tg.HapticFeedback.notificationOccurred('success');
@@ -401,12 +420,14 @@ function showPromoNotification() {
   const closeBtn = notification.querySelector('.promo-notification-close');
   closeBtn.onclick = () => {
     console.log('[PROMO-UI] Closing notification via close button');
+    clearInterval(timerInterval);
     notification.classList.add('hiding');
     setTimeout(() => notification.remove(), 300);
   };
 
   // Автоматическое закрытие через 4 секунды
   setTimeout(() => {
+    clearInterval(timerInterval);
     if (notification.parentElement) {
       console.log('[PROMO-UI] Auto-closing notification');
       notification.classList.add('hiding');

@@ -484,14 +484,17 @@ function showEducationNotification() {
     existing.remove();
   }
 
-  // Создаем новое уведомление
+  // Создаем новое уведомление с таймером
   const notification = document.createElement('div');
   notification.className = 'edu-notification';
   notification.innerHTML = `
     <div class="edu-notification-icon">🎥</div>
     <div class="edu-notification-content">
       <div class="edu-notification-title">Урок отправлен!</div>
-      <div class="edu-notification-text">Открой Telegram и проверь сообщения</div>
+      <div class="edu-notification-text">
+        Открой Telegram и проверь сообщения
+        <div class="edu-notification-timer">Получение: <span id="edu-timer">3</span> сек</div>
+      </div>
     </div>
     <button class="edu-notification-close">×</button>
   `;
@@ -499,6 +502,22 @@ function showEducationNotification() {
   // Добавляем на страницу
   document.body.appendChild(notification);
   console.log('[EDU-UI] Notification appended to body');
+
+  // Запускаем таймер обратного отсчёта
+  let secondsLeft = 3;
+  const timerElement = document.getElementById('edu-timer');
+  const timerInterval = setInterval(() => {
+    secondsLeft--;
+    if (timerElement) {
+      timerElement.textContent = secondsLeft;
+    }
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      if (timerElement) {
+        timerElement.parentElement.textContent = '✅ Сообщение должно прийти!';
+      }
+    }
+  }, 1000);
 
   // Вибрация для обратной связи
   if (educationTg.HapticFeedback) {
@@ -509,12 +528,14 @@ function showEducationNotification() {
   const closeBtn = notification.querySelector('.edu-notification-close');
   closeBtn.onclick = () => {
     console.log('[EDU-UI] Closing notification via close button');
+    clearInterval(timerInterval);
     notification.classList.add('hiding');
     setTimeout(() => notification.remove(), 300);
   };
 
   // Автоматическое закрытие через 3 секунды
   setTimeout(() => {
+    clearInterval(timerInterval);
     if (notification.parentElement) {
       console.log('[EDU-UI] Auto-closing notification');
       notification.classList.add('hiding');
