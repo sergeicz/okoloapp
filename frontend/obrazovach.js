@@ -232,62 +232,60 @@ function showEducationLoading(elementId) {
   }
 }
 
-// Инициализация свайпа для карточек
-function initSwipeForEducationCards() {
-  const container = document.querySelector('.education-swipe');
-  if (!container) return;
+// Инициализация свайпа для карточек - ОТКЛЮЧЕНО
+// function initSwipeForEducationCards() {
+//   const container = document.querySelector('.education-swipe');
+//   if (!container) return;
+//
+//   let isDown = false;
+//   let startX;
+//   let scrollLeft;
+//
+//   container.addEventListener('mousedown', (e) => {
+//     isDown = true;
+//     startX = e.pageX - container.offsetLeft;
+//     scrollLeft = container.scrollLeft;
+//   });
+//
+//   container.addEventListener('mouseleave', () => {
+//     isDown = false;
+//   });
+//
+//   container.addEventListener('mouseup', () => {
+//     isDown = false;
+//   });
+//
+//   container.addEventListener('mousemove', (e) => {
+//     if (!isDown) return;
+//     e.preventDefault();
+//     const x = e.pageX - container.offsetLeft;
+//     const walk = (x - startX) * 2;
+//     container.scrollLeft = scrollLeft - walk;
+//   });
+//
+//   container.addEventListener('touchstart', (e) => {
+//     const touch = e.touches[0];
+//     isDown = true;
+//     startX = touch.pageX - container.offsetLeft;
+//     scrollLeft = container.scrollLeft;
+//   });
+//
+//   container.addEventListener('touchend', () => {
+//     isDown = false;
+//   });
+//
+//   container.addEventListener('touchmove', (e) => {
+//     if (!isDown) return;
+//     const touch = e.touches[0];
+//     const x = touch.pageX - container.offsetLeft;
+//     const walk = (x - startX) * 2;
+//     container.scrollLeft = scrollLeft - walk;
+//   });
+// }
 
-  let isDown = false;
-  let startX;
-  let scrollLeft;
-
-  container.addEventListener('mousedown', (e) => {
-    isDown = true;
-    startX = e.pageX - container.offsetLeft;
-    scrollLeft = container.scrollLeft;
-  });
-
-  container.addEventListener('mouseleave', () => {
-    isDown = false;
-  });
-
-  container.addEventListener('mouseup', () => {
-    isDown = false;
-  });
-
-  container.addEventListener('mousemove', (e) => {
-    if (!isDown) return;
-    e.preventDefault();
-    const x = e.pageX - container.offsetLeft;
-    const walk = (x - startX) * 2; // Multiplier for faster scrolling
-    container.scrollLeft = scrollLeft - walk;
-  });
-
-  // Touch events for mobile devices
-  container.addEventListener('touchstart', (e) => {
-    const touch = e.touches[0];
-    isDown = true;
-    startX = touch.pageX - container.offsetLeft;
-    scrollLeft = container.scrollLeft;
-  });
-
-  container.addEventListener('touchend', () => {
-    isDown = false;
-  });
-
-  container.addEventListener('touchmove', (e) => {
-    if (!isDown) return;
-    const touch = e.touches[0];
-    const x = touch.pageX - container.offsetLeft;
-    const walk = (x - startX) * 2; // Multiplier for faster scrolling
-    container.scrollLeft = scrollLeft - walk;
-  });
-}
-
-// Инициализация свайпа когда DOM загружен
+// Инициализация свайпа отключена - карточки отображаются вертикально без эффектов
 document.addEventListener('DOMContentLoaded', () => {
-  // Инициализация свайп-функциональности после короткой задержки для обеспечения отрисовки элементов
-  setTimeout(initSwipeForEducationCards, 500);
+  console.log('[EDUCATION] Swipe effects disabled - vertical list only');
 });
 
 // Загрузка образовательных материалов

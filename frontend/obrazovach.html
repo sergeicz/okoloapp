@@ -22,7 +22,7 @@
 <meta name="msapplication-TileColor" content="#FF0000">
 
 <link rel="preload" href="styles.css" as="style">
-<link rel="stylesheet" href="styles.css?v=20260217-2330">
+<link rel="stylesheet" href="styles.css?v=20260218-0000">
 
 <style>
   /* Стили для кнопки - без анимаций */
@@ -63,6 +63,25 @@
   .home-floating-btn:active {
     background: rgba(124, 58, 237, 0.25) !important;
     border-color: rgba(124, 58, 237, 0.6) !important;
+  }
+
+  /* Отключение всех анимаций и эффектов для карточек */
+  .education-card,
+  .education-card * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .education-card {
+    box-shadow: none !important;
+  }
+
+  .education-vertical-list {
+    animation: none !important;
+    transition: none !important;
   }
 </style>
 
@@ -125,7 +144,7 @@
   </footer>
 </div>
 
-<script src="obrazovach.js?v=20260217-2300" defer></script>
+<script src="obrazovach.js?v=20260218-0000" defer></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
