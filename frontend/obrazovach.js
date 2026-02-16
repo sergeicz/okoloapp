@@ -461,9 +461,6 @@ async function handleVideoButtonClick(event, material) {
         if (window.metrikaTrack) {
           window.metrikaTrack.educationVideoClick(material.title);
         }
-
-        // Показываем красивое уведомление в стиле iPhone
-        showEducationNotification();
       }
     } else {
       console.error('[VIDEO CLICK] Request failed:', response.status);
@@ -471,81 +468,6 @@ async function handleVideoButtonClick(event, material) {
   } catch (error) {
     console.error('[VIDEO CLICK] Error sending video info:', error);
   }
-}
-
-// Показ уведомления об отправке урока (iPhone стиль)
-function showEducationNotification() {
-  console.log('[EDU-UI] Showing notification...');
-  
-  // Удаляем предыдущее уведомление если есть
-  const existing = document.querySelector('.edu-notification');
-  if (existing) {
-    console.log('[EDU-UI] Removing existing notification');
-    existing.remove();
-  }
-
-  // Создаем новое уведомление с таймером
-  const notification = document.createElement('div');
-  notification.className = 'edu-notification';
-  notification.innerHTML = `
-    <div class="edu-notification-icon">🎥</div>
-    <div class="edu-notification-content">
-      <div class="edu-notification-title">Урок отправлен!</div>
-      <div class="edu-notification-text">
-        Открой Telegram и проверь сообщения
-        <div class="edu-notification-timer">Получение: <span id="edu-timer">3</span> сек</div>
-      </div>
-    </div>
-    <button class="edu-notification-close">×</button>
-  `;
-
-  // Добавляем на страницу
-  document.body.appendChild(notification);
-  console.log('[EDU-UI] Notification appended to body');
-
-  // Запускаем таймер обратного отсчёта
-  let secondsLeft = 3;
-  const timerElement = document.getElementById('edu-timer');
-  const timerInterval = setInterval(() => {
-    secondsLeft--;
-    if (timerElement) {
-      timerElement.textContent = secondsLeft;
-    }
-    if (secondsLeft <= 0) {
-      clearInterval(timerInterval);
-      if (timerElement) {
-        timerElement.parentElement.textContent = '✅ Сообщение должно прийти!';
-      }
-    }
-  }, 1000);
-
-  // Вибрация для обратной связи
-  if (educationTg.HapticFeedback) {
-    educationTg.HapticFeedback.notificationOccurred('success');
-  }
-
-  // Закрытие по клику на крестик
-  const closeBtn = notification.querySelector('.edu-notification-close');
-  closeBtn.onclick = () => {
-    console.log('[EDU-UI] Closing notification via close button');
-    clearInterval(timerInterval);
-    notification.classList.add('hiding');
-    setTimeout(() => notification.remove(), 300);
-  };
-
-  // Автоматическое закрытие через 3 секунды
-  setTimeout(() => {
-    clearInterval(timerInterval);
-    if (notification.parentElement) {
-      console.log('[EDU-UI] Auto-closing notification');
-      notification.classList.add('hiding');
-      setTimeout(() => {
-        if (notification.parentElement) {
-          notification.remove();
-        }
-      }, 300);
-    }
-  }, 3000);
 }
 
 // Инициализация приложения
