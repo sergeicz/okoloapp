@@ -22,10 +22,10 @@
 <meta name="msapplication-TileColor" content="#FF0000">
 
 <link rel="preload" href="styles.css" as="style">
-<link rel="stylesheet" href="styles.css?v=20260217-2300">
+<link rel="stylesheet" href="styles.css?v=20260217-2330">
 
 <style>
-  /* Используем !important для принудительного применения стилей */
+  /* Стили для кнопки - без анимаций */
   .home-floating-btn {
     position: fixed !important;
     bottom: 30px !important;
@@ -34,7 +34,7 @@
     z-index: 1000001 !important;
 
     display: inline-block !important;
-    max-width: 90vw !important; /* чтобы не выходила за экран */
+    max-width: 90vw !important;
 
     padding: 14px 36px !important;
 
@@ -51,19 +51,16 @@
     letter-spacing: 1px !important;
     font-weight: 700 !important;
 
-    white-space: nowrap !important;        /* запрет переноса */
-    overflow: hidden !important;           /* скрыть лишнее */
-    text-overflow: ellipsis !important;    /* добавить ... */
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 
     box-shadow:
       0 4px 12px rgba(0, 0, 0, 0.2),
       inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
-
-    transition: all 0.3s ease !important;
   }
 
-  .home-floating-btn:hover {
-    transform: translateX(-50%) translateY(-3px) !important;
+  .home-floating-btn:active {
     background: rgba(124, 58, 237, 0.25) !important;
     border-color: rgba(124, 58, 237, 0.6) !important;
   }
