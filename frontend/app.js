@@ -388,6 +388,11 @@ function showPromoNotification() {
   document.body.appendChild(notification);
   console.log('[PROMO-UI] Notification appended to body');
 
+  // Позиционируем уведомление в видимой зоне (с учётом скролла)
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const viewportTop = scrollTop + 20; // 20px от верха видимой области
+  notification.style.top = viewportTop + 'px';
+
   // Вибрация для обратной связи
   if (tg.HapticFeedback) {
     tg.HapticFeedback.notificationOccurred('success');
@@ -437,6 +442,11 @@ function showPromoAlreadySentNotification() {
 
   // Добавляем на страницу
   document.body.appendChild(notification);
+
+  // Позиционируем уведомление в видимой зоне (с учётом скролла)
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const viewportTop = scrollTop + 20; // 20px от верха видимой области
+  notification.style.top = viewportTop + 'px';
 
   // Вибрация для обратной связи (более мягкая)
   if (tg.HapticFeedback) {
