@@ -5043,12 +5043,42 @@ app.post('/api/click', async (req, res) => {
         const clickType = isAdmin ? 'admin (always send)' : 'first click';
         console.log(`[PROMOCODE] 🎯 Sending promocode "${promocode}" from ${partner.title} to user ${user_id} (${clickType})`)
         try {
+          // Формируем ссылку с UTM-меткой
+          const partnerUrl = partner_url || partner.url || partner.link || '';
+          const utmSource = 'prilozhenieOkolotattoo';
+          
+          // Добавляем UTM-метку к ссылке
+          let urlWithUtm = partnerUrl;
+          if (partnerUrl) {
+            try {
+              const urlObj = new URL(partnerUrl);
+              urlObj.searchParams.set('utm_source', utmSource);
+              urlObj.searchParams.set('utm_medium', 'telegram_miniapp');
+              urlWithUtm = urlObj.toString();
+            } catch (e) {
+              // Если URL невалидный, просто добавляем как query param
+              const separator = partnerUrl.includes('?') ? '&' : '?';
+              urlWithUtm = `${partnerUrl}${separator}utm_source=${utmSource}&utm_medium=telegram_miniapp`;
+            }
+          }
+
           const message = `🎁 <b>Промокод от ${partner.title}</b>\n\n` +
             `<code>${promocode}</code>\n\n` +
             `Скопируйте промокод и используйте его на сайте партнера!\n\n` +
             `<i>Это сообщение будет автоматически удалено через 24 часа</i>`;
 
-          const sentMessage = await globalBot.api.sendMessage(user_id, message, { parse_mode: 'HTML' });
+          // Отправляем сообщение с кнопкой-ссылкой
+          const sentMessage = await globalBot.api.sendMessage(user_id, message, {
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [[
+                {
+                  text: `🌐 Перейти на сайт ${partner.title}`,
+                  url: urlWithUtm
+                }
+              ]]
+            }
+          });
 
           // Save message info for auto-deletion
           const deleteAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours

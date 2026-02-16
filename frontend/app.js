@@ -795,13 +795,8 @@ async function handleLinkClick(event, link) {
   const originalOpacity = clickedElement.style.opacity;
   clickedElement.style.opacity = '0.6';
 
-  // Открываем ссылку СРАЗУ же, без ожидания ответа сервера
-  // Это критично для iOS - пользователь видит мгновенную реакцию
-  console.log('[CLICK] Opening URL immediately:', link.url);
-  openLinkImmediately(link.url);
-
   // Отправляем трек-запрос в фоне (fire-and-forget)
-  // Не блокируем UI и не ждём ответа
+  // Ссылка НЕ открывается - промокод придёт в боте с кнопкой
   sendClickTracking(link).then(data => {
     // Обработка ответа происходит в фоне
     if (data && data.promocode_sent) {
@@ -818,38 +813,13 @@ async function handleLinkClick(event, link) {
     }
   }).catch(error => {
     console.error('[CLICK] Tracking error (non-blocking):', error);
-    // Ошибка трекинга не влияет на открытие ссылки
+    // Ошибка трекинга не влияет на работу
   }).finally(() => {
     // Восстанавливаем прозрачность кнопки
     setTimeout(() => {
       clickedElement.style.opacity = originalOpacity || '1';
     }, 200);
   });
-}
-
-// Функция для немедленного открытия ссылки (без задержек)
-function openLinkImmediately(url) {
-  try {
-    if (url.includes('t.me/') || url.includes('telegram.me/')) {
-      // Для Telegram ссылок
-      if (tg.openTelegramLink) {
-        tg.openTelegramLink(url);
-      } else {
-        window.open(url, '_blank');
-      }
-    } else {
-      // Для обычных ссылок
-      if (tg.openLink) {
-        tg.openLink(url);
-      } else {
-        window.open(url, '_blank');
-      }
-    }
-  } catch (error) {
-    console.error('[CLICK] Error opening link:', error);
-    // Fallback - просто открываем в новой вкладке
-    window.open(url, '_blank');
-  }
 }
 
 // Функция для отправки трек-запроса (используется в фоне)
