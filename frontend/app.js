@@ -29,15 +29,14 @@ function convertToDirectLink(url) {
 
   // Yandex Disk: https://disk.yandex.ru/i/xxx or https://yadi.sk/i/xxx
   if (url.includes('disk.yandex.ru') || url.includes('yadi.sk')) {
-    // Extract the file ID
+    // Extract the file ID from /i/ or /d/ links
     const match = url.match(/\/[id]\/([a-zA-Z0-9_-]+)/);
     if (match) {
       const fileId = match[1];
-      return `https://downloader.disk.yandex.ru/disk/file/${fileId}`;
-    }
-    // If it's already a public link, try to get direct download
-    if (url.includes('/d/')) {
-      return url.replace('/d/', '/i/');
+      // Try multiple endpoints for direct image access
+      // Note: Yandex Disk doesn't provide reliable direct links without API
+      // For reliable image hosting, consider using imgur.com or similar services
+      return `https://disk.yandex.ru/i/${fileId}?preview=true`;
     }
   }
 
