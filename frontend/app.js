@@ -757,7 +757,7 @@ async function loadPartners() {
 
 // Track last click timestamps to prevent duplicates
 const lastClickTime = new Map();
-const CLICK_COOLDOWN = 1000; // 1 second cooldown between clicks on same link
+const CLICK_COOLDOWN = 300; // 300ms cooldown between clicks on same link (reduced from 1000ms for better UX on iOS)
 
 // Обработка клика по ссылке
 async function handleLinkClick(event, link) {
@@ -771,7 +771,7 @@ async function handleLinkClick(event, link) {
   // Check if this link was clicked recently
   const lastClick = lastClickTime.get(clickKey);
   if (lastClick && (now - lastClick) < CLICK_COOLDOWN) {
-    console.log('[CLICK] ⏭️ Click too soon after previous, skipping... (cooldown: ${CLICK_COOLDOWN}ms)');
+    console.log('[CLICK] ⏭️ Click too soon after previous, skipping... (cooldown: ' + CLICK_COOLDOWN + 'ms)');
     if (tg.HapticFeedback) {
       tg.HapticFeedback.notificationOccurred('warning');
     }
@@ -790,76 +790,91 @@ async function handleLinkClick(event, link) {
     tg.HapticFeedback.impactOccurred('light');
   }
 
-  // Отправляем данные о клике и ЖДЕМ завершения
-  try {
-    console.log('[CLICK] Sending tracking request...');
-    const response = await fetch(`${CONFIG.API_URL}/api/click`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        partner_id: link.id || link.title,
-        user_id: user.id,
-        username: user.username || '',
-        partner_url: link.url,
-      }),
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      console.log('[CLICK] Response:', data);
+  // Добавляем визуальный feedback - кнопка становится полупрозрачной
+  const clickedElement = event.currentTarget;
+  const originalOpacity = clickedElement.style.opacity;
+  clickedElement.style.opacity = '0.6';
 
-      if (data.promocode_sent) {
-        console.log('[PROMOCODE] ✅ Промокод отправлен в бот!');
-        // Показываем красивое уведомление о новом промокоде
-        showPromoNotification();
-      } else if (data.promocode_already_sent) {
-        console.log('[PROMOCODE] 🔁 Промокод уже был отправлен ранее');
-        // Показываем уведомление что промокод уже в боте
-        showPromoAlreadySentNotification();
-      }
+  // Открываем ссылку СРАЗУ же, без ожидания ответа сервера
+  // Это критично для iOS - пользователь видит мгновенную реакцию
+  console.log('[CLICK] Opening URL immediately:', link.url);
+  openLinkImmediately(link.url);
 
-      // Track partner click in Yandex.Metrika
-      if (window.metrikaTrack) {
-        window.metrikaTrack.partnerClick(link.title, link.category || 'Другое', link.url);
-      }
-    } else {
-      console.error('[CLICK] Request failed:', response.status);
+  // Отправляем трек-запрос в фоне (fire-and-forget)
+  // Не блокируем UI и не ждём ответа
+  sendClickTracking(link).then(data => {
+    // Обработка ответа происходит в фоне
+    if (data && data.promocode_sent) {
+      console.log('[PROMOCODE] ✅ Промокод отправлен в бот!');
+      showPromoNotification();
+    } else if (data && data.promocode_already_sent) {
+      console.log('[PROMOCODE] 🔁 Промокод уже был отправлен ранее');
+      showPromoAlreadySentNotification();
     }
-  } catch (error) {
-    console.error('[CLICK] Tracking error:', error);
-    // Продолжаем даже если трекинг не удался
-  }
-  
-  // Небольшая задержка перед открытием ссылки
-  await new Promise(resolve => setTimeout(resolve, 200));
-  
-  // Открываем ссылку правильным способом
-  console.log('[CLICK] Opening URL:', link.url);
-  
+
+    // Track partner click in Yandex.Metrika
+    if (window.metrikaTrack) {
+      window.metrikaTrack.partnerClick(link.title, link.category || 'Другое', link.url);
+    }
+  }).catch(error => {
+    console.error('[CLICK] Tracking error (non-blocking):', error);
+    // Ошибка трекинга не влияет на открытие ссылки
+  }).finally(() => {
+    // Восстанавливаем прозрачность кнопки
+    setTimeout(() => {
+      clickedElement.style.opacity = originalOpacity || '1';
+    }, 200);
+  });
+}
+
+// Функция для немедленного открытия ссылки (без задержек)
+function openLinkImmediately(url) {
   try {
-    if (link.url.includes('t.me/') || link.url.includes('telegram.me/')) {
+    if (url.includes('t.me/') || url.includes('telegram.me/')) {
       // Для Telegram ссылок
-      console.log('[CLICK] Using openTelegramLink');
       if (tg.openTelegramLink) {
-        tg.openTelegramLink(link.url);
+        tg.openTelegramLink(url);
       } else {
-        window.open(link.url, '_blank');
+        window.open(url, '_blank');
       }
     } else {
       // Для обычных ссылок
-      console.log('[CLICK] Using openLink');
       if (tg.openLink) {
-        tg.openLink(link.url);
+        tg.openLink(url);
       } else {
-        window.open(link.url, '_blank');
+        window.open(url, '_blank');
       }
     }
   } catch (error) {
     console.error('[CLICK] Error opening link:', error);
     // Fallback - просто открываем в новой вкладке
-    window.open(link.url, '_blank');
+    window.open(url, '_blank');
+  }
+}
+
+// Функция для отправки трек-запроса (используется в фоне)
+async function sendClickTracking(link) {
+  console.log('[CLICK] Sending tracking request in background...');
+  const response = await fetch(`${CONFIG.API_URL}/api/click`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      partner_id: link.id || link.title,
+      user_id: user.id,
+      username: user.username || '',
+      partner_url: link.url,
+    }),
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    console.log('[CLICK] Response:', data);
+    return data;
+  } else {
+    console.error('[CLICK] Request failed:', response.status);
+    throw new Error('Tracking request failed with status: ' + response.status);
   }
 }
 
