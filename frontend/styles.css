@@ -1004,6 +1004,7 @@ h2 {
    ===================================================== */
 
 .home-arrow {
+  display: inline-block;
   width: 18px;
   height: 18px;
   vertical-align: middle;
@@ -1011,6 +1012,18 @@ h2 {
   filter: brightness(0) invert(1); /* Белая стрелка */
   opacity: 0.9;
   transition: opacity 0.2s ease;
+  flex-shrink: 0; /* Не сжимать */
+}
+
+.home-floating-btn .home-arrow {
+  display: inline-block !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important; /* Предотвращает сжатие */
+  vertical-align: middle !important;
+  margin-right: 6px !important;
+  filter: brightness(0) invert(1) !important;
+  object-fit: contain !important;
 }
 
 .home-floating-btn:hover .home-arrow {
