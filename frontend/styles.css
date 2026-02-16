@@ -2641,36 +2641,37 @@ social.show {
 .categories-tabs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .categories-tab {
-  padding: 14px 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  font-weight: 600;
+  padding: 10px 16px;
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+  font-weight: 500;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .categories-tab:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
+  background: rgba(124, 58, 237, 0.2);
 }
 
 .categories-tab.active {
-  background: linear-gradient(135deg, rgba(255, 0, 0, 0.3), rgba(204, 0, 0, 0.3));
-  border-color: rgba(255, 0, 0, 0.6);
+  background: rgba(124, 58, 237, 0.2);
+  border-color: rgba(124, 58, 237, 0.4);
   color: #FFFFFF;
-  box-shadow: 0 4px 20px rgba(255, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
 }
 
 /* Контент категорий */
