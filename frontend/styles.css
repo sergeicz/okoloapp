@@ -907,7 +907,7 @@ h2 {
   position: fixed;
   top: 20px;
   left: 50%;
-  transform: translateX(-50%);
+  margin-left: -160px; /* половина от min-width для центрирования */
   background: rgba(30, 30, 30, 0.95);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
@@ -921,8 +921,8 @@ h2 {
   align-items: center;
   gap: 12px;
   z-index: 999999;
-  min-width: 320px;
-  max-width: 90%;
+  width: 320px;
+  max-width: calc(100% - 40px);
   animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   transition: opacity 0.3s ease;
   pointer-events: none;
@@ -932,13 +932,10 @@ h2 {
   pointer-events: auto;
 }
 
-.edu-notification:hover {
-  background: rgba(40, 40, 40, 0.95);
-}
-
 .edu-notification.hiding {
   opacity: 0;
-  transform: translateX(-50%) translateY(-20px);
+  margin-left: -160px;
+  transform: translateY(-20px);
 }
 
 .edu-notification-icon {
