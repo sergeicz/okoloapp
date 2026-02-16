@@ -5207,11 +5207,41 @@ app.post('/api/user', async (req, res) => {
       // Update existing user with all fields
       const userIndex = users.findIndex(u => String(u.telegram_id) === String(id));
       if (userIndex !== -1) {
-        const rowIndex = userIndex + 2;
+        // Check if registration_number is empty or if 6 months of inactivity have passed
+        let registrationNumber = existing.registration_number || '';
+        const lastActiveDate = existing.last_active_date || existing.date_registered || currentDate;
+        const lastActiveTime = new Date(lastActiveDate).getTime();
+        const sixMonthsInMs = 6 * 30 * 24 * 60 * 60 * 1000; // ~6 months
+        const now = Date.now();
+        
+        // If registration_number is empty OR user was inactive for 6+ months, assign new number
+        if (!registrationNumber || (now - lastActiveTime) > sixMonthsInMs) {
+          if (!registrationNumber) {
+            console.log(`[API] 🔄 User ${id} has no registration_number, assigning new one...`);
+          } else {
+            console.log(`[API] 🔄 User ${id} was inactive for 6+ months, reassigning registration_number...`);
+          }
+          
+          // Check if user is admin
+          const admins = await getSheetData(env.SHEET_ID, 'admins', accessToken);
+          const isAdmin = admins.some(a => {
+            const idMatch = a.telegram_id && String(a.telegram_id) === String(id);
+            return idMatch;
+          });
+
+          if (isAdmin) {
+            const adminUsers = users.filter(u => u.registration_number && String(u.registration_number).startsWith('a_'));
+            registrationNumber = `a_${adminUsers.length + 1}`;
+          } else {
+            const regularUsers = users.filter(u => u.registration_number && !String(u.registration_number).startsWith('a_'));
+            registrationNumber = String(regularUsers.length + 1);
+          }
+        }
+
         await updateSheetRow(
           env.SHEET_ID,
           'users',
-          rowIndex,
+          userIndex + 2,
           [
             id,                                          // telegram_id
             username || existing.username || 'N/A',      // username
@@ -5228,12 +5258,12 @@ app.post('/api/user', async (req, res) => {
             String(existing.events_registered || '0'),   // events_registered
             String(existing.partners_subscribed || '0'), // partners_subscribed
             String(existing.total_donations || '0'),     // total_donations
-            String(existing.registration_number || ''),  // registration_number
+            String(registrationNumber),                  // registration_number (preserve or reassign)
             avatarUrl || existing.avatar_url || ''       // avatar_url (update if available)
           ],
           accessToken
         );
-        console.log(`[API] 🔄 User updated via API: ${id}, avatar: ${avatarUrl ? 'updated' : 'kept'}`);
+        console.log(`[API] 🔄 User updated via API: ${id}, registration #: ${registrationNumber}, avatar: ${avatarUrl ? 'updated' : 'kept'}`);
       }
     }
 
