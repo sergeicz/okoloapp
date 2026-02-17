@@ -107,25 +107,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Cookie checkbox keyboard support
   const cookieLabels = document.querySelectorAll('.cookie-checkbox-label');
-  
+
   cookieLabels.forEach(function(label) {
+    const checkbox = label.querySelector('input[type="checkbox"]');
+    
+    // Click on label text (not checkbox or link)
     label.addEventListener('click', function(e) {
-      if (e.target.tagName !== 'A') {
-        const checkbox = label.querySelector('input[type="checkbox"]');
-        if (checkbox) {
-          checkbox.checked = !checkbox.checked;
-          checkbox.dispatchEvent(new Event('change'));
-        }
+      // If clicked on checkbox itself or link, do nothing
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'A') {
+        return;
+      }
+      // Toggle checkbox
+      if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        // Trigger change event
+        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
       }
     });
-    
+
+    // Keyboard support
     label.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        const checkbox = label.querySelector('input[type="checkbox"]');
-        if (checkbox) {
+        // Don't prevent default for checkbox - let native behavior work
+        if (checkbox && e.target !== checkbox) {
+          e.preventDefault();
           checkbox.checked = !checkbox.checked;
-          checkbox.dispatchEvent(new Event('change'));
+          checkbox.dispatchEvent(new Event('change', { bubbles: true }));
         }
       }
     });
