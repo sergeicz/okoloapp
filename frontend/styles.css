@@ -1477,28 +1477,18 @@ h2 {
   transform: translateY(-2px) scale(1.01);
 }
 
-.banner-icon {
+.partner-icon {
   flex-shrink: 0;
   width: 28px;
   height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: contain;
   filter: drop-shadow(0 4px 8px rgba(168, 85, 247, 0.4));
   animation: pulse 2s ease-in-out infinite;
+  transition: transform 0.3s ease;
 }
 
-.banner-icon img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.banner-hand-icon {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+.partner-banner:hover .partner-icon {
+  transform: scale(1.15) rotate(5deg);
 }
 
 .banner-content {
@@ -1531,18 +1521,9 @@ h2 {
   font-weight: 700;
 }
 
-.partner-banner:hover .banner-arrow {
-  transform: translateX(8px);
-}
-
 .partner-banner.show {
   opacity: 1;
   transform: translateY(0);
-}
-
-.partner-banner:hover .banner-icon {
-  animation: none;
-  transform: scale(1.1) rotate(5deg);
 }
 
 /* =====================================================
