@@ -1534,6 +1534,15 @@ h2 {
   transform: translateY(0);
 }
 
+.partner-icon {
+  flex-shrink: 0;
+  font-size: 18px;   /* регулируй размер здесь */
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* =====================================================
    КАТЕГОРИИ И ЗАГРУЗКА
    ===================================================== */
