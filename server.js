@@ -5059,7 +5059,7 @@ app.post('/api/click', async (req, res) => {
           const message = `🎁 <b>Промокод от ${partner.title}</b>\n\n` +
             `<code>${promocode}</code>\n\n` +
             `Скопируйте промокод и используйте его на сайте партнера!\n\n` +
-            `<i>Это сообщение будет автоматически удалено через 24 часа</i>`;
+            `<i>Это сообщение будет удалено автоматически</i>`;
 
           // Отправляем сообщение с кнопкой-ссылкой
           const sentMessage = await globalBot.api.sendMessage(user_id, message, {
@@ -5075,10 +5075,10 @@ app.post('/api/click', async (req, res) => {
           });
 
           // Save message info for auto-deletion
-          const deleteAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+          const deleteAt = Date.now() + 4 * 60 * 60 * 1000; // 4 hours
           await redis.setex(
             `promo_msg_${user_id}_${Date.now()}`,
-            86400, // 24 hours in seconds
+            14400, // 4 hours in seconds
             JSON.stringify({
               chat_id: user_id,
               message_id: sentMessage.message_id,
@@ -5379,7 +5379,7 @@ app.post('/api/send-video', async (req, res) => {
     if (url_cover && url_cover.trim() !== '') {
       try {
         sentMessage = await globalBot.api.sendPhoto(user_id, url_cover, {
-          caption: caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>',
+          caption: caption + '\n\n<i>Это сообщение будет удалено автоматически</i>',
           parse_mode: 'HTML',
           reply_markup: keyboard
         });
@@ -5387,14 +5387,14 @@ app.post('/api/send-video', async (req, res) => {
       } catch (photoError) {
         console.error(`[API] ⚠️ Failed to send photo, falling back to text message:`, photoError.message);
         // Fallback to text message if photo fails
-        sentMessage = await globalBot.api.sendMessage(user_id, caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>', {
+        sentMessage = await globalBot.api.sendMessage(user_id, caption + '\n\n<i>Это сообщение будет удалено автоматически</i>', {
           parse_mode: 'HTML',
           reply_markup: keyboard
         });
       }
     } else {
       // Send text message if no cover image
-      sentMessage = await globalBot.api.sendMessage(user_id, caption + '\n\n<i>Это сообщение будет автоматически удалено через 24 часа</i>', {
+      sentMessage = await globalBot.api.sendMessage(user_id, caption + '\n\n<i>Это сообщение будет удалено автоматически</i>', {
         parse_mode: 'HTML',
         reply_markup: keyboard
       });
@@ -5402,10 +5402,10 @@ app.post('/api/send-video', async (req, res) => {
     }
 
     // Save message info for auto-deletion
-    const deleteAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    const deleteAt = Date.now() + 4 * 60 * 60 * 1000; // 4 hours
     await redis.setex(
       `video_msg_${user_id}_${Date.now()}`,
-      86400, // 24 hours in seconds
+      14400, // 4 hours in seconds
       JSON.stringify({
         chat_id: user_id,
         message_id: sentMessage.message_id,
@@ -5413,7 +5413,7 @@ app.post('/api/send-video', async (req, res) => {
         delete_at: deleteAt
       })
     );
-    console.log(`[API] 📅 Video message scheduled for deletion in 24 hours: ${title}`);
+    console.log(`[API] 📅 Video message scheduled for deletion in 4 hours: ${title}`);
 
     // Check if this video was already viewed by this user
     const creds = parsedCredentials;
