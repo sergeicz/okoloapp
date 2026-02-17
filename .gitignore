@@ -37,6 +37,9 @@ wrangler.toml.backup
 # Claude CLI
 .claude/
 
+# AI Agents
+.agents/
+.ai-factory.json
 
 # === Docker ===
 # Docker volumes and data

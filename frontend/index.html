@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Околоприложение</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
 
 <!-- Favicons -->
@@ -19,9 +19,12 @@
 <!-- Preload критичных ресурсов -->
 <link rel="preload" href="styles.css" as="style">
 <link rel="preload" href="img/img.png?v=4" as="image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&display=swap" as="style">
 
 <!-- Стили -->
-<link rel="stylesheet" href="styles.css?v=20260218-0300">
+<link rel="stylesheet" href="styles.css?v=20260217-2">
 
 <!-- DNS Prefetch для API -->
 <link rel="dns-prefetch" href="#">
@@ -54,16 +57,16 @@
         <div class="cookie-checkboxes">
           <label class="cookie-checkbox-label">
             <input type="checkbox" id="cookiePersonalData" class="cookie-checkbox">
-            <span class="cookie-checkbox-text"><a href="#" onclick="openPolicy(); return false;">Соглашаюсь на обработку персональных данных</a></span>
+            <span class="cookie-checkbox-text"><a href="#" data-action="openPolicy">Соглашаюсь на обработку персональных данных</a></span>
           </label>
 
           <label class="cookie-checkbox-label">
             <input type="checkbox" id="cookieMarketing" class="cookie-checkbox">
-            <span class="cookie-checkbox-text"><a href="#" onclick="openOffer(); return false;">Соглашаюсь на получение маркетинговых рассылок</a></span>
+            <span class="cookie-checkbox-text"><a href="#" data-action="openOffer">Соглашаюсь на получение маркетинговых рассылок</a></span>
           </label>
         </div>
       </div>
-      <button class="cookie-btn" id="cookieAcceptBtn" onclick="handleCookieAccept()" disabled>
+      <button class="cookie-btn" id="cookieAcceptBtn" disabled>
         Принять
       </button>
     </div>
@@ -72,7 +75,7 @@
 
 <div class="container">
   <div class="avatar-container">
-    <img src="img/img.png?v=4" alt="Логотип" loading="eager" decoding="async">
+    <img src="img/img.png?v=4" alt="Логотип" width="120" height="120" loading="eager" decoding="async">
   </div>
   
   <h1>⚡ Околоприложение</h1>
@@ -176,8 +179,8 @@
     <p class="promo-restart-text">
       Если промокод не приходит
     </p>
-    <!-- Исправленная кнопка с вызовом JS и вибрацией -->
-    <a href="#" onclick="restartBotAndVibrate(); return false;" class="promo-restart-btn">
+    <!-- Кнопка перезапуска бота с вибрацией -->
+    <a href="#" class="promo-restart-btn" data-action="restartBot">
       🔄 Перезапусти бот
     </a>
   </div>
@@ -194,11 +197,6 @@
   
   <!-- Footer -->
   <footer class="app-footer">
-    <!--
-    <button onclick="openDonate()" class="footer-donate-btn">
-      💳 Задонатить
-    </button>
-    -->
     <a href="https://t.me/feedback_svr_bot" target="_blank" class="footer-link">
       🖤 разработано нами 🖤
     </a>
@@ -212,41 +210,6 @@
 
 <!-- Scripts -->
 <script src="app.js?v=20260213-1320" defer></script>
-<script>
-    function restartBotAndVibrate() {
-        // 1. Проверяем, доступен ли Telegram WebApp
-        if (window.Telegram && window.Telegram.WebApp) {
-            // 2. Вызываем openTelegramLink для перезапуска бота
-            window.Telegram.WebApp.openTelegramLink('https://t.me/okolotattoo_bot?start=restart_from_mini_app'); // Добавлен параметр start
-
-            // 3. Вибрация через HapticFeedback (если доступен)
-            if (window.Telegram.WebApp.HapticFeedback) {
-                try {
-                    window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-                } catch(e) {
-                    console.warn("HapticFeedback impactOccurred failed:", e);
-                    // Fallback: обычная вибрация браузера
-                    if (navigator.vibrate) {
-                        navigator.vibrate([10]); // Вибрация на 10мс
-                    }
-                }
-            } else {
-                 // Fallback: обычная вибрация браузера
-                 if (navigator.vibrate) {
-                     navigator.vibrate([10]); // Вибрация на 10мс
-                 }
-            }
-        } else {
-            // Fallback: если WebApp API недоступен, открываем в новой вкладке
-            console.warn("Telegram WebApp API недоступен. Открываем ссылку в новой вкладке.");
-            window.open('https://t.me/okolotattoo_bot', '_blank');
-
-            // Вибрация браузера (если поддерживается)
-            if (navigator.vibrate) {
-                navigator.vibrate([10]);
-            }
-        }
-    }
-</script>
+<script src="restart-bot.js?v=20260217-1" defer></script>
 </body>
 </html>

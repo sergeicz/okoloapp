@@ -204,6 +204,10 @@ if (!user || user.id === 0 || !user.id) {
 
     // Create overlay with blur - completely opaque
     const overlay = document.createElement('div');
+    overlay.setAttribute('role', 'alertdialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'warningTitle');
+    overlay.setAttribute('aria-describedby', 'warningDescription');
     overlay.style.cssText = `
       position: fixed;
       top: 0;
@@ -249,8 +253,8 @@ if (!user || user.id === 0 || !user.id) {
     `;
 
     warningBox.innerHTML = `
-      <div style="font-size: 4rem; margin-bottom: 20px; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));">⚠️</div>
-      <div style="font-weight: bold; font-size: 1.3rem; margin-bottom: 20px; color: rgba(255, 255, 255, 0.95);">Приложение открыто некорректно!</div>
+      <div id="warningTitle" style="font-size: 4rem; margin-bottom: 20px; animation: float 3s ease-in-out infinite; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));" role="img" aria-label="Warning">⚠️</div>
+      <div id="warningDescription" style="font-weight: bold; font-size: 1.3rem; margin-bottom: 20px; color: rgba(255, 255, 255, 0.95);">Приложение открыто некорректно!</div>
       <div style="font-size: 1rem; line-height: 1.6; margin-bottom: 20px; color: rgba(255, 255, 255, 0.85);">
         Пожалуйста, открой приложение через кнопку<br>"🚀 Открыть Mini App" в боте
       </div>

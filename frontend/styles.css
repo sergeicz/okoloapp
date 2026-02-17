@@ -14,6 +14,10 @@
   --primary-gradient: linear-gradient(135deg, #FF0000 0%, #CC0000 100%);
   --secondary: linear-gradient(135deg, #FF4500 0%, #DC143C 100%);
   --success: linear-gradient(135deg, #00FF00 0%, #008000 100%);
+  
+  /* Дополнительные акценты для глубины */
+  --accent-cyan: #00F0FF;
+  --accent-purple: #6B21A3;
 
   /* Жидкое стекло - темные размытые фоны */
   --glass-bg: rgba(18, 18, 18, 0.7);
@@ -37,6 +41,10 @@
   --brutal-dark: #0a0a0a;
   --bg-dark: #121212;
   --bg-darker: #0a0a0a;
+  
+  /* Шрифты */
+  --font-display: 'Unbounded', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, sans-serif;
 }
 
 /* =====================================================
@@ -128,6 +136,25 @@
   }
 }
 
+/* =========================================
+   REDUCED MOTION
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  body::before,
+  body::after {
+    content: none;
+  }
+}
+
 /* =====================================================
    ОСНОВНАЯ РАЗМЕТКА
    ===================================================== */
@@ -139,7 +166,7 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body);
   background: linear-gradient(-45deg, #0a0a0a, #121212, #1a0000, #0a0a0a);
   background-size: 400% 400%;
   animation: gradient 20s ease infinite;
@@ -155,6 +182,31 @@ body {
   position: relative;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+}
+
+/* Noise texture overlay для глубины */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Radial glow от центра для атмосферы */
+body::after {
+  content: '';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150vmax;
+  height: 150vmax;
+  background: radial-gradient(circle, rgba(255, 0, 0, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .container {
@@ -205,6 +257,7 @@ h1 {
   text-align: center;
   font-size: 2.5rem;
   font-weight: 900;
+  font-family: var(--font-display);
   margin-bottom: 10px;
   background: linear-gradient(135deg, #FF0000 0%, #FFFFFF 50%, #FF0000 100%);
   -webkit-background-clip: text;
@@ -222,6 +275,7 @@ h2 {
   text-align: center;
   font-size: 1.2rem;
   font-weight: 400;
+  font-family: var(--font-display);
   margin-bottom: 40px;
   color: var(--text-secondary);
   letter-spacing: 1px;
@@ -268,8 +322,11 @@ h2 {
 .glass-card:hover {
   transform: translateY(-4px);
   background: var(--glass-bg-hover);
-  box-shadow: var(--shadow-hover), inset 0 0 30px rgba(255, 0, 0, 0.1);
+  box-shadow: var(--shadow-hover),
+              inset 0 0 30px rgba(255, 0, 0, 0.1),
+              0 0 30px rgba(255, 0, 0, 0.15);
   border-color: var(--glass-border-hover);
+  filter: drop-shadow(0 0 12px rgba(255, 0, 0, 0.3));
 }
 
 .glass-card:active {
@@ -467,8 +524,11 @@ h2 {
 
 .profile-action-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 16px rgba(255, 0, 0, 0.4),
+              inset 0 1px 1px rgba(255, 255, 255, 0.3),
+              0 0 20px rgba(255, 0, 0, 0.3);
   border-color: rgba(255, 255, 255, 0.3);
+  filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.4));
 }
 
 .profile-action-btn:hover::before {
@@ -587,7 +647,9 @@ h2 {
   border-color: rgba(255, 0, 0, 0.5);
   box-shadow: 0 8px 30px rgba(255, 0, 0, 0.5),
               inset 0 1px 1px rgba(255, 255, 255, 0.2),
-              0 0 40px rgba(255, 0, 0, 0.3);
+              0 0 40px rgba(255, 0, 0, 0.3),
+              0 0 60px rgba(255, 0, 0, 0.15);
+  filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.4));
 }
 
 .modern-btn:active {
@@ -612,7 +674,9 @@ h2 {
   background: linear-gradient(135deg, rgba(255, 0, 0, 0.35), rgba(204, 0, 0, 0.35));
   box-shadow: 0 10px 40px rgba(255, 0, 0, 0.6),
               inset 0 1px 1px rgba(255, 255, 255, 0.3),
-              0 0 50px rgba(255, 0, 0, 0.4);
+              0 0 50px rgba(255, 0, 0, 0.4),
+              0 0 80px rgba(255, 0, 0, 0.2);
+  filter: drop-shadow(0 0 12px rgba(255, 0, 0, 0.5));
 }
 
 .obrazovach-icon {
@@ -1338,8 +1402,10 @@ h2 {
   border-color: rgba(168, 85, 247, 0.5);
   box-shadow: 0 12px 40px rgba(168, 85, 247, 0.4),
               0 6px 20px rgba(0, 0, 0, 0.3),
-              inset 0 1px 1px rgba(255, 255, 255, 0.6);
+              inset 0 1px 1px rgba(255, 255, 255, 0.6),
+              0 0 30px rgba(168, 85, 247, 0.3);
   transform: translateY(-4px) scale(1.02);
+  filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.4));
 }
 
 .partner-banner:active {
@@ -1569,9 +1635,17 @@ h2 {
   transition: all 0.3s ease;
 }
 
+#pushForm input:focus-visible,
+#pushForm textarea:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 2px;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
 #pushForm input:focus,
 #pushForm textarea:focus {
-  outline: none;
   border-color: rgba(255, 255, 255, 0.4);
   background: rgba(255, 255, 255, 0.15);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
@@ -2322,6 +2396,35 @@ social.show {
   transform: translateY(-3px) scale(1.1);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3),
               inset 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+/* Color-coded social icons при hover */
+.social-link:nth-child(1):hover {
+  background: #9146FF;
+  border-color: #9146FF;
+  box-shadow: 0 8px 20px rgba(145, 70, 255, 0.4),
+              0 0 15px rgba(145, 70, 255, 0.6);
+}
+
+.social-link:nth-child(2):hover {
+  background: #0077FF;
+  border-color: #0077FF;
+  box-shadow: 0 8px 20px rgba(0, 119, 255, 0.4),
+              0 0 15px rgba(0, 119, 255, 0.6);
+}
+
+.social-link:nth-child(3):hover {
+  background: #FF0000;
+  border-color: #FF0000;
+  box-shadow: 0 8px 20px rgba(255, 0, 0, 0.4),
+              0 0 15px rgba(255, 0, 0, 0.6);
+}
+
+.social-link:nth-child(4):hover {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  border-color: #bc1888;
+  box-shadow: 0 8px 20px rgba(220, 39, 67, 0.4),
+              0 0 15px rgba(220, 39, 67, 0.6);
 }
 
 .social-link:active {
