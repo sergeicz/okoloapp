@@ -1479,9 +1479,8 @@ h2 {
 
 .partner-icon {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
+  font-size: 28px;
+  line-height: 1;
   filter: drop-shadow(0 4px 8px rgba(168, 85, 247, 0.4));
   animation: pulse 2s ease-in-out infinite;
   transition: transform 0.3s ease;

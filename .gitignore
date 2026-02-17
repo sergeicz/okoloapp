@@ -92,3 +92,8 @@ htmlcov/
 # === Documentation ===
 *.md
 *.xlsx
+
+# === Screenshots ===
+*.png
+*.jpg
+*.jpeg
